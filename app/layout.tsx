@@ -6,6 +6,7 @@ import './collection.css';
 import './businesses.css';
 import './money.css';
 import './achievements.css';
+import './time.css';
 
 export const metadata: Metadata = {
   title: 'Spend It All',
