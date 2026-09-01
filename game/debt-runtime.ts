@@ -1,10 +1,29 @@
+import { achievements } from '@/data/achievement-catalog';
 import { scenarios } from '@/data/content';
-import { advance, canSellItem, netWorth, scenarioProgress, sellItem } from './engine';
+import { advance, canSellItem, netWorth, passiveCashPerSecond, scenarioProgress, sellItem, totalOwned } from './engine';
 import type { GameItem, GameState } from './types';
+import { achievementUnlockedByRule, syncAchievementUnlocks } from './systems/achievement-rules';
 import { advanceDebtState, debtSummary, isItemPledged, normalizeDebtState } from './systems/debt';
 
 export function leveragedNetWorth(state: GameState) {
   return netWorth(state) - debtSummary(normalizeDebtState(state.debt)).totalDebt;
+}
+
+function enforceDebtAwareAchievementIntegrity(before: GameState, after: GameState) {
+  const previous = new Set(Object.keys(before.runAchievements ?? {}));
+  const nextAchievements = { ...(after.runAchievements ?? {}) };
+  const metrics = { netWorth: leveragedNetWorth(after), incomePerSecond: passiveCashPerSecond(after), totalOwned: totalOwned(after) };
+
+  for (const [id] of Object.entries(nextAchievements)) {
+    if (previous.has(id)) continue;
+    const definition = achievements.find((entry) => entry.id === id);
+    if (!definition) continue;
+    const withoutCandidate = { ...after, runAchievements: Object.fromEntries(Object.entries(nextAchievements).filter(([entryId]) => entryId !== id)) };
+    if (!achievementUnlockedByRule(withoutCandidate, definition, metrics)) delete nextAchievements[id];
+  }
+
+  const cleaned = { ...after, runAchievements: nextAchievements };
+  return syncAchievementUnlocks(cleaned, achievements, metrics);
 }
 
 export function advanceWithDebt(state: GameState, deltaMs: number): GameState {
@@ -17,7 +36,7 @@ export function advanceWithDebt(state: GameState, deltaMs: number): GameState {
     for (const collateral of result.seized) owned[collateral.itemId] = Math.max(0, (owned[collateral.itemId] ?? 0) - collateral.quantity);
   }
   next = { ...next, debt: result.debt, owned, updatedAt: Date.now() };
-  return next;
+  return enforceDebtAwareAchievementIntegrity(state, next);
 }
 
 export function canSellItemWithDebt(state: GameState, item: GameItem) {
