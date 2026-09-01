@@ -6,7 +6,7 @@ Standalone browser-based incremental economic sandbox.
 
 This repository owns the game itself: UI, simulation, content, scenarios, building systems, saves, and deployment.
 
-LOK is intentionally external. The game connects to the broader LOK ecosystem through a modular adapter/API layer rather than living inside the ecosystem repository.
+LOK is intentionally external. The game connects to the broader LOK ecosystem through a modular adapter/API layer rather than living inside the ecosystem repository. The current adapter lives under `integrations/lok/` and can later be replaced with the authoritative shared wallet/ledger service.
 
 ## Current playable slice
 
@@ -32,3 +32,5 @@ npm run dev
 Import `mistachatty-cmyk/spend-ut-all` directly. This is a standalone Next.js repository, so the Vercel Root Directory should remain the repository root (`.`).
 
 No environment variables are required for the current MVP. Shared LOK wallet configuration will be added later through the integration layer.
+
+See `DEPLOYMENT.md` for the preview verification checklist.
