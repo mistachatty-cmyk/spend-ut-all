@@ -2,6 +2,8 @@
 
 import { RULE_PRESET_INFO } from '@/data/rule-presets';
 import { applyRulePreset, markRulesCustom, normalizeGameRules } from '@/game/systems/rules';
+import { debtSummary, normalizeDebtState } from '@/game/systems/debt';
+import { setDebtSystemEnabled } from '@/game/debt-actions';
 import { lokRuntime } from '@/integrations/lok/runtime';
 import type { GameState } from '@/game/types';
 
@@ -10,6 +12,8 @@ type RuleSection = 'economy' | 'world' | 'difficulty' | 'progression';
 export function SettingsView({ state, setState }: { state: GameState; setState: React.Dispatch<React.SetStateAction<GameState | null>> }) {
   const wallet = lokRuntime.snapshot();
   const challengeLocked = state.scenarioId === 'custom' && !!state.customScenario?.rulesLocked;
+  const debt = normalizeDebtState(state.debt);
+  const debtInfo = debtSummary(debt);
   const patchRules = (section: RuleSection, patch: Record<string, number | boolean>) => setState((current) => {
     if (!current || (current.scenarioId === 'custom' && current.customScenario?.rulesLocked)) return current;
     const nextRules = normalizeGameRules({ ...current.rules, [section]: { ...current.rules[section], ...patch } } as GameState['rules']);
@@ -43,7 +47,7 @@ export function SettingsView({ state, setState }: { state: GameState; setState: 
           <Range label="Event intensity" value={state.rules.world.eventIntensity} min={0} max={3} step={0.05} suffix="×" onChange={(v) => patchRules('world',{eventIntensity:v})}/>
           <Toggle label="Offline income" checked={state.rules.world.offlineIncomeEnabled} onChange={(v) => patchRules('world',{offlineIncomeEnabled:v})}/>
           <Range label="Offline income" value={state.rules.world.offlineIncomeMultiplier} min={0} max={5} step={0.05} suffix="×" onChange={(v) => patchRules('world',{offlineIncomeMultiplier:v})}/>
-          <Range label="Debt pressure" value={state.rules.difficulty.debtPressureMultiplier} min={0} max={3} step={0.05} suffix="×" onChange={(v) => patchRules('difficulty',{debtPressureMultiplier:v})}/>
+          <Range label="Risk overdraft pressure" value={state.rules.difficulty.debtPressureMultiplier} min={0} max={3} step={0.05} suffix="×" onChange={(v) => patchRules('difficulty',{debtPressureMultiplier:v})}/>
           <Range label="Active work payouts" value={state.rules.difficulty.activeIncomeMultiplier} min={0.1} max={5} step={0.05} suffix="×" onChange={(v) => patchRules('difficulty',{activeIncomeMultiplier:v})}/>
         </section>
 
@@ -56,6 +60,14 @@ export function SettingsView({ state, setState }: { state: GameState; setState: 
           <Toggle label="Jet lag" checked={state.time.settings.jetLag} onChange={(v) => patchTime({jetLag:v})}/>
           <Range label="Game minutes / real minute" value={state.time.settings.timeScale} min={1} max={240} step={1} suffix="×" onChange={(v) => patchTime({timeScale:v})}/>
         </section>
+
+        <section className="panel settings-group"><span className="eyebrow">DEBT & LEGAL</span><h2>Optional leverage simulation</h2>
+          <Toggle label="Debt, collateral & court system" checked={debt.enabled} onChange={(v) => setState((current) => current ? setDebtSystemEnabled(current, v) : current)}/>
+          <p className="muted">When enabled, explicit loans accrue interest against the game calendar. Secured defaults can seize pledged assets; unsecured defaults can become civil court cases.</p>
+          <div className="finance-grid"><span>Outstanding <b>{moneyLike(debtInfo.totalDebt)}</b></span><span>Credit score <b>{debt.creditScore}</b></span><span>Court cases <b>{debtInfo.activeCourtCases}</b></span><span>Pledged assets <b>{debtInfo.pledgedAssets}</b></span></div>
+          {!debt.enabled ? <small>Off by default. Risk Mode overdraft can still exist independently.</small> : null}
+          {debt.enabled && debtInfo.totalDebt > 0 ? <small>Outstanding debt must be repaid or resolved before this system can be switched off.</small> : null}
+        </section>
       </div>
     </fieldset>
 
@@ -67,11 +79,13 @@ export function SettingsView({ state, setState }: { state: GameState; setState: 
       <Toggle label="Minutes" checked={state.time.display.showMinutes} onChange={(v) => patchDisplay({showMinutes:v})}/>
       <Toggle label="Hours" checked={state.time.display.showHours} onChange={(v) => patchDisplay({showHours:v})}/>
       <Toggle label="Days" checked={state.time.display.showDays} onChange={(v) => patchDisplay({showDays:v})}/>
+      <p className="muted">The live debt counter is controlled separately from the Counters ⚙ menu under the main balance, and only appears when the debt system is enabled.</p>
     </section>
 
     <section className="panel account-settings"><div><span className="eyebrow">ACCOUNT & PERSISTENCE</span><h2>Local-first today, portable later</h2><p>Your active run, Legacy Collection, leaderboard and LOK wallet are local for now. Future account sync will let Apple, Discord, GitHub or G-Six identity carry them between devices without making an account mandatory to play.</p></div><div className="persistence-cards"><span><small>LOK wallet</small><b>◈ {wallet.balance.toLocaleString()}</b><em>Local persistent wallet</em></span><span><small>Identity</small><b>Local</b><em>Cloud linking planned</em></span><span><small>LOK Pass</small><b>Future</b><em>$2.99 supporter/ad-free entitlement</em></span><span><small>Cloud saves</small><b>Future</b><em>Server adapter ready</em></span></div></section>
   </section>;
 }
 
+function moneyLike(value: number) { return value >= 1e12 ? `$${(value / 1e12).toFixed(2)}T` : value >= 1e9 ? `$${(value / 1e9).toFixed(2)}B` : value >= 1e6 ? `$${(value / 1e6).toFixed(2)}M` : `$${Math.round(value).toLocaleString()}`; }
 function Toggle({label,checked,onChange}:{label:string;checked:boolean;onChange:(value:boolean)=>void}) { return <label className="settings-toggle"><span>{label}</span><input type="checkbox" checked={checked} onChange={(e)=>onChange(e.target.checked)}/></label>; }
 function Range({label,value,min,max,step,suffix,onChange}:{label:string;value:number;min:number;max:number;step:number;suffix:string;onChange:(value:number)=>void}) { return <label className="settings-range"><span><b>{label}</b><em>{Number(value.toFixed(2))}{suffix}</em></span><input type="range" min={min} max={max} step={step} value={value} onChange={(e)=>onChange(Number(e.target.value))}/></label>; }
