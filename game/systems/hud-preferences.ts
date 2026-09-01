@@ -1,4 +1,5 @@
 export type InterfaceMode = 'simple' | 'advanced';
+export type LooperArtStyle = 'classic' | 'pixel-plus';
 
 export type HudPreferences = {
   showLok: boolean;
@@ -9,6 +10,7 @@ export type HudPreferences = {
   compactHud: boolean;
   boxedBalance: boolean;
   interfaceMode: InterfaceMode;
+  looperArtStyle: LooperArtStyle;
 };
 
 export const HUD_PREFS_KEY = 'spend-it-all-hud-counters-v1';
@@ -20,9 +22,8 @@ export const DEFAULT_HUD_PREFS: HudPreferences = {
   showDebt: false,
   compactHud: true,
   boxedBalance: false,
-  // Advanced is deliberately available immediately while the command UI is being built.
-  // Later this can be gated behind progression without changing the saved preference shape.
   interfaceMode: 'simple',
+  looperArtStyle: 'pixel-plus',
 };
 
 const EVENT_NAME = 'spend-it-all-hud-preferences';
