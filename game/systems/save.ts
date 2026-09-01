@@ -21,7 +21,10 @@ export function normalizeGameState(state: GameState, now = Date.now()): GameStat
   let owned = state.owned ?? {};
   if (debtTick.seized.length) {
     owned = { ...owned };
-    for (const collateral of debtTick.seized) owned[collateral.itemId] = Math.max(0, (owned[collateral.itemId] ?? 0) - collateral.quantity);
+    for (const collateral of debtTick.seized) {
+      if (collateral.kind !== 'item') continue;
+      owned[collateral.itemId] = Math.max(0, (owned[collateral.itemId] ?? 0) - collateral.quantity);
+    }
   }
   return {
     ...state,
