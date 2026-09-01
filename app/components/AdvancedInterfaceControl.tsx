@@ -2,11 +2,15 @@
 
 import { useEffect, useState } from 'react';
 import { loadHudPreferences, saveHudPreferences, subscribeHudPreferences, type HudPreferences } from '@/game/systems/hud-preferences';
+import { loadMicroMotionPreferences, saveMicroMotionPreferences, subscribeMicroMotionPreferences } from '@/game/systems/micro-animations';
+import type { MicroMotionPreferences } from '@/game/micro-animation-types';
 
 export function AdvancedInterfaceControl() {
   const [prefs, setPrefs] = useState<HudPreferences>(() => loadHudPreferences());
+  const [motionPrefs, setMotionPrefs] = useState<MicroMotionPreferences>(() => loadMicroMotionPreferences());
 
   useEffect(() => subscribeHudPreferences(setPrefs), []);
+  useEffect(() => subscribeMicroMotionPreferences(setMotionPrefs), []);
   useEffect(() => {
     document.documentElement.dataset.interfaceMode = prefs.interfaceMode;
     document.documentElement.dataset.looperArt = prefs.looperArtStyle;
@@ -14,9 +18,14 @@ export function AdvancedInterfaceControl() {
 
   const advanced = prefs.interfaceMode === 'advanced';
   const pixelPlus = prefs.looperArtStyle === 'pixel-plus';
+  const looperAnimated = motionPrefs.enabled && motionPrefs.amplificationLevel >= 2;
   const patch = (nextPatch: Partial<HudPreferences>) => {
     const next = saveHudPreferences({ ...prefs, ...nextPatch });
     setPrefs(next);
+  };
+  const enableLooperMotion = () => {
+    const next = saveMicroMotionPreferences({ ...motionPrefs, enabled: true, amplificationLevel: Math.max(2, motionPrefs.amplificationLevel) as MicroMotionPreferences['amplificationLevel'] });
+    setMotionPrefs(next);
   };
 
   return <aside className="advanced-interface-control" aria-label="Interface and Looper visual modes">
@@ -32,12 +41,22 @@ export function AdvancedInterfaceControl() {
 
     <section className="interface-setting-block looper-art-setting">
       <div>
-        <span className="eyebrow">LOOPER ART STYLE</span>
+        <span className="eyebrow">LOOPER / COMPANION ART</span>
         <b>{pixelPlus ? 'Pixel+ Production Art' : 'Classic Pixel Art'}</b>
-        <small>{pixelPlus ? 'Higher-detail canonical Firstlight sprites and signature animation layers.' : 'Original compact companion sprites preserved as a lightweight legacy option.'}</small>
-        <em>Pixel+ is the default direction. Classic remains available for preference, nostalgia, and lower visual load.</em>
+        <small>{pixelPlus ? 'Higher-detail canonical Firstlight sprites and signature visual layers.' : 'Original compact companion sprites preserved as the lightweight legacy option.'}</small>
+        <em>This switch changes the actual Looper renderer used in companions, LOKDEX and supported Card Shop surfaces.</em>
       </div>
-      <button type="button" className={pixelPlus ? 'active' : ''} onClick={() => patch({ looperArtStyle: pixelPlus ? 'classic' : 'pixel-plus' })} aria-pressed={pixelPlus}>{pixelPlus ? 'Use Classic Art' : 'Use Pixel+ Art'}</button>
+      <button type="button" className={pixelPlus ? 'active' : ''} onClick={() => patch({ looperArtStyle: pixelPlus ? 'classic' : 'pixel-plus' })} aria-pressed={pixelPlus}>{pixelPlus ? 'Switch to Classic' : 'Switch to Pixel+'}</button>
+    </section>
+
+    <section className="interface-setting-block looper-motion-setting">
+      <div>
+        <span className="eyebrow">LOOPER ANIMATION</span>
+        <b>{looperAnimated ? 'Animations On' : 'Animations Off / Static'}</b>
+        <small>{looperAnimated ? `Effects level ${motionPrefs.amplificationLevel} is high enough for sprite-frame, body and signature animation.` : 'Looper animation starts at Effects level Animated (2). Static (1) intentionally keeps characters still.'}</small>
+        <em>You can fine-tune the full effect level from Settings → Effects.</em>
+      </div>
+      <button type="button" className={looperAnimated ? 'active' : ''} disabled={looperAnimated} onClick={enableLooperMotion}>{looperAnimated ? 'Animated ✓' : 'Enable Looper Animations'}</button>
     </section>
   </aside>;
 }
