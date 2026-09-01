@@ -6,11 +6,15 @@ import type { CustomizationInventory, CustomizationKind } from '@/game/customiza
 import { equipCustomization, grantCustomization, isEquipped, saveCustomizationInventory } from '@/game/systems/customizations';
 import type { GameState } from '@/game/types';
 import { lokRuntime } from '@/integrations/lok/runtime';
+import { CardShopView } from './CardShopView';
 import { LokDexPanel } from './LokDexPanel';
 import { PixelPetSprite } from './PixelPetSprite';
 
-const tabs: Array<{ id: 'all' | CustomizationKind; label: string }> = [
+type CustomizationTab = 'all' | CustomizationKind | 'card-shop';
+
+const tabs: Array<{ id: CustomizationTab; label: string }> = [
   { id: 'all', label: 'All' },
+  { id: 'card-shop', label: 'Card Shop 🃏' },
   { id: 'theme', label: 'Themes' },
   { id: 'money-counter', label: 'Counters' },
   { id: 'pet', label: 'Companions' },
@@ -34,9 +38,9 @@ export function CustomizationView({ state, setState, inventory, onInventoryChang
   inventory: CustomizationInventory;
   onInventoryChange: (inventory: CustomizationInventory) => void;
 }) {
-  const [tab, setTab] = useState<'all' | CustomizationKind>('all');
+  const [tab, setTab] = useState<CustomizationTab>('all');
   const [message, setMessage] = useState('');
-  const visible = useMemo(() => allCustomizations.filter((item) => tab === 'all' || item.kind === tab), [tab]);
+  const visible = useMemo(() => tab === 'card-shop' ? [] : allCustomizations.filter((item) => tab === 'all' || item.kind === tab), [tab]);
 
   const equip = (id: string) => {
     const next = saveCustomizationInventory(equipCustomization(inventory, id));
@@ -60,31 +64,33 @@ export function CustomizationView({ state, setState, inventory, onInventoryChang
 
   return <section className="customization-shell">
     <section className="panel customization-hero">
-      <div><span className="eyebrow">LOK CUSTOMIZATION LAB</span><h2>Make the empire yours</h2><p>Themes, counters, curated companions, and cosmetic rewards live outside individual runs. The much larger LOKdex collection is tracked separately so most LOK characters remain collectibles/cards rather than active advisors.</p></div>
-      <div className="lok-store-balance"><small>Persistent wallet</small><b>◈ {state.lokTokens.toLocaleString()}</b><span>+1 every 10 seconds active</span></div>
+      <div><span className="eyebrow">LOK CUSTOMIZATION & COLLECTION DISTRICT</span><h2>Make the empire yours</h2><p>Themes, counters, curated companions, and cosmetic rewards live outside individual runs. The larger LOKdex and its Card Shop have their own collection economy so players can focus on collecting without turning every character into an advisor.</p></div>
+      <div className="lok-store-balance"><small>Persistent LOK wallet</small><b>◈ {state.lokTokens.toLocaleString()}</b><span>+1 every 10 seconds active</span></div>
     </section>
 
     <nav className="customization-tabs">{tabs.map((entry) => <button key={entry.id} className={tab === entry.id ? 'active' : ''} onClick={() => setTab(entry.id)}>{entry.label}</button>)}</nav>
-    {message ? <div className="customization-message" aria-live="polite">{message}</div> : null}
-    {tab === 'all' || tab === 'pet' ? <LokDexPanel inventory={inventory} /> : null}
 
-    <section className="customization-grid">{visible.map((item) => {
-      const owned = inventory.ownedIds.includes(item.id);
-      const equipped = isEquipped(inventory, item);
-      const lokBuyable = item.acquisition.includes('lok') && typeof item.lokPrice === 'number';
-      const requirement = item.requirementId ? requirementNames[item.requirementId] ?? item.requirementId : null;
-      return <article className={`customization-card rarity-${item.rarity} ${equipped ? 'equipped' : ''}`} key={item.id}>
-        <div className="customization-icon">{item.kind === 'pet' ? <PixelPetSprite petId={item.id} mood={owned ? 'happy' : 'idle'} silhouette={!owned} size={48} /> : item.emoji ?? '✨'}</div>
-        <div className="customization-copy"><div className="customization-title"><h3>{item.name}</h3><span>{item.rarity}</span></div><p>{item.description}</p>
-          <div className="customization-tags"><span>{item.kind === 'pet' ? 'companion' : item.kind === 'pet-accessory' ? 'companion gear' : item.kind.replace('-', ' ')}</span>{item.acquisition.map((method) => <span key={method}>{method.replace('-', ' ')}</span>)}</div>
-          {item.kind === 'pet' && 'personality' in item ? <small className="pet-personality">{String(item.personality)}</small> : null}
-        </div>
-        <div className="customization-action">
-          {equipped ? <button disabled>Equipped ✓</button> : owned ? <button onClick={() => equip(item.id)}>{item.kind === 'pet-accessory' ? 'Toggle Gear' : 'Equip'}</button> : lokBuyable ? <button disabled={state.lokTokens < (item.lokPrice ?? 0)} onClick={() => purchase(item.id, item.lokPrice ?? 0)}>Buy · ◈ {(item.lokPrice ?? 0).toLocaleString()}</button> : <button disabled>Locked</button>}
-          {!owned && requirement ? <small>Unlock: {requirement}</small> : null}
-          {!owned && item.acquisition.includes('lok-pass') ? <small>Future LOK Pass item</small> : null}
-        </div>
-      </article>;
-    })}</section>
+    {tab === 'card-shop' ? <CardShopView inventory={inventory} /> : <>
+      {message ? <div className="customization-message" aria-live="polite">{message}</div> : null}
+      {tab === 'all' || tab === 'pet' ? <LokDexPanel inventory={inventory} /> : null}
+      <section className="customization-grid">{visible.map((item) => {
+        const owned = inventory.ownedIds.includes(item.id);
+        const equipped = isEquipped(inventory, item);
+        const lokBuyable = item.acquisition.includes('lok') && typeof item.lokPrice === 'number';
+        const requirement = item.requirementId ? requirementNames[item.requirementId] ?? item.requirementId : null;
+        return <article className={`customization-card rarity-${item.rarity} ${equipped ? 'equipped' : ''}`} key={item.id}>
+          <div className="customization-icon">{item.kind === 'pet' ? <PixelPetSprite petId={item.id} mood={owned ? 'happy' : 'idle'} silhouette={!owned} size={48} /> : item.emoji ?? '✨'}</div>
+          <div className="customization-copy"><div className="customization-title"><h3>{item.name}</h3><span>{item.rarity}</span></div><p>{item.description}</p>
+            <div className="customization-tags"><span>{item.kind === 'pet' ? 'companion' : item.kind === 'pet-accessory' ? 'companion gear' : item.kind.replace('-', ' ')}</span>{item.acquisition.map((method) => <span key={method}>{method.replace('-', ' ')}</span>)}</div>
+            {item.kind === 'pet' && 'personality' in item ? <small className="pet-personality">{String(item.personality)}</small> : null}
+          </div>
+          <div className="customization-action">
+            {equipped ? <button disabled>Equipped ✓</button> : owned ? <button onClick={() => equip(item.id)}>{item.kind === 'pet-accessory' ? 'Toggle Gear' : 'Equip'}</button> : lokBuyable ? <button disabled={state.lokTokens < (item.lokPrice ?? 0)} onClick={() => purchase(item.id, item.lokPrice ?? 0)}>Buy · ◈ {(item.lokPrice ?? 0).toLocaleString()}</button> : <button disabled>Locked</button>}
+            {!owned && requirement ? <small>Unlock: {requirement}</small> : null}
+            {!owned && item.acquisition.includes('lok-pass') ? <small>Future LOK Pass item</small> : null}
+          </div>
+        </article>;
+      })}</section>
+    </>}
   </section>;
 }
