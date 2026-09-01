@@ -16,12 +16,14 @@ const tabs: Array<{ id: CustomizationTab; label: string }> = [
   { id: 'all', label: 'All' },
   { id: 'card-shop', label: 'Card Shop 🃏' },
   { id: 'theme', label: 'Themes' },
+  { id: 'background', label: 'Backgrounds' },
   { id: 'money-counter', label: 'Counters' },
+  { id: 'hud', label: 'HUDs' },
+  { id: 'title-style', label: 'Title Styles' },
+  { id: 'profile-frame', label: 'Frames' },
+  { id: 'effect', label: 'Effects' },
   { id: 'pet', label: 'Companions' },
   { id: 'pet-accessory', label: 'Companion Gear' },
-  { id: 'hud', label: 'HUDs' },
-  { id: 'effect', label: 'Effects' },
-  { id: 'profile-frame', label: 'Profile' },
 ];
 
 const requirementNames: Record<string, string> = {
@@ -64,7 +66,7 @@ export function CustomizationView({ state, setState, inventory, onInventoryChang
 
   return <section className="customization-shell">
     <section className="panel customization-hero">
-      <div><span className="eyebrow">LOK CUSTOMIZATION & COLLECTION DISTRICT</span><h2>Make the empire yours</h2><p>Themes, counters, curated companions, and cosmetic rewards live outside individual runs. The larger LOKdex and its Card Shop have their own collection economy so players can focus on collecting without turning every character into an advisor.</p></div>
+      <div><span className="eyebrow">LOK CUSTOMIZATION & COLLECTION DISTRICT</span><h2>Make the empire yours</h2><p>Spend persistent LOK on visual identity: themes, backgrounds, HUDs, counters, title styles, frames, effects and companion gear. Cosmetics stay separate from economic power. The LOKdex Card Shop remains collection-focused; no battle system is required.</p></div>
       <div className="lok-store-balance"><small>Persistent LOK wallet</small><b>◈ {state.lokTokens.toLocaleString()}</b><span>+1 every 10 seconds active</span></div>
     </section>
 
