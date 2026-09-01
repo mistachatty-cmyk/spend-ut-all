@@ -16,6 +16,7 @@ import './lokdex.css';
 import './card-shop.css';
 import './card-releases.css';
 import './micro-animations.css';
+import './effects-levels.css';
 import './debt.css';
 
 export const metadata: Metadata = {
@@ -24,5 +25,5 @@ export const metadata: Metadata = {
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
-  return <html lang="en"><body>{children}<DiscoveryNotifier /><MicroAnimationLayer /></body></html>;
+  return <html lang="en" data-effects-level="1"><body>{children}<DiscoveryNotifier /><MicroAnimationLayer /></body></html>;
 }
