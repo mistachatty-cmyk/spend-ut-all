@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { customizationById, lokPets } from '@/data/customizations';
-import type { CustomizationInventory, PetMood } from '@/game/customization-types';
+import type { CustomizationInventory, LokPetDefinition, PetMood } from '@/game/customization-types';
 import { getActiveMarketEvent } from '@/game/systems/market-events';
 import { bankruptcySecondsRemaining } from '@/game/systems/risk';
 import type { GameState } from '@/game/types';
@@ -11,7 +11,9 @@ import { PixelPetSprite } from './PixelPetSprite';
 
 const PET_ADVICE_KEY = 'spend-it-all-pet-advice-v1';
 
-function petStatus(state: GameState, income: number): { mood: PetMood; message: string } {
+type AdvisorRole = LokPetDefinition['advisorRole'];
+
+function petStatus(state: GameState, income: number, role: AdvisorRole): { mood: PetMood; message: string } {
   const countdown = bankruptcySecondsRemaining(state);
   const activity = state.time.activeActivity?.id ?? null;
   const hour = Math.floor((state.time.gameMinute % 1440) / 60);
@@ -32,12 +34,14 @@ function petStatus(state: GameState, income: number): { mood: PetMood; message: 
   if (hour >= 22 || hour < 5) return { mood: 'sleepy', message: 'It’s late in the game world. Some industries may be closed even if the empire is awake.' };
 
   const tipCycle = Math.floor((state.activePlayMs ?? 0) / 45_000) % 6;
+  if (role === 'money' && tipCycle % 2 === 0) return { mood: 'happy', message: income > 0 ? `Money check: ${money(state.cash)} cash and ${money(income)}/sec net flow. I’ll flag when the balance starts working against you.` : 'Money check: no passive flow yet. Earn first, then prioritize assets that create repeatable cash flow.' };
+  if (role === 'work' && tipCycle % 2 === 0) return { mood: 'happy', message: state.time.fatigue > 45 ? `Work check: fatigue is ${Math.round(state.time.fatigue)}%. A recovery block may be worth more than forcing another shift.` : 'Work check: your schedule is healthy. Active earning blocks are strongest before fatigue starts stacking.' };
   if (tipCycle === 0) return { mood: 'idle', message: 'Cards & LOKDEX is available anytime. Packs, binder, and collection live there.' };
   if (tipCycle === 1) return { mood: 'happy', message: 'LOK is cosmetic currency. Spend it on themes, counters, effects, companions, and gear without changing economic power.' };
   if (tipCycle === 2) return { mood: 'happy', message: income > 0 ? `Positive cash flow at ${money(income)}/sec. Keep the machine healthy.` : 'No passive income yet. Earn, buy cash-flow assets, then let the economy start working for you.' };
   if (tipCycle === 3) return { mood: 'idle', message: 'World events can swing revenue and costs. I’ll call out the important ones when they happen.' };
   if (tipCycle === 4) return { mood: 'happy', message: 'Your Card Shop collection is persistent. You can visit it without abandoning the current run.' };
-  return { mood: 'idle', message: 'I’ll keep an eye on milestones, debt, fatigue, world events, and useful side districts while you build.' };
+  return { mood: 'idle', message: role === 'starter' ? 'Balanced guide active: I’ll watch milestones, debt, fatigue, world events, and side districts.' : 'I’ll keep an eye on the parts of the economy I’m best at.' };
 }
 
 export function PetCompanion({ state, income, inventory }: { state: GameState; income: number; inventory: CustomizationInventory }) {
@@ -52,7 +56,7 @@ export function PetCompanion({ state, income, inventory }: { state: GameState; i
   });
 
   const pet = useMemo(() => lokPets.find((entry) => entry.id === inventory.equipped.petId) ?? lokPets[0], [inventory.equipped.petId]);
-  const status = petStatus(state, income);
+  const status = petStatus(state, income, pet.advisorRole);
   const accessories = inventory.equipped.petAccessoryIds.map((id) => customizationById(id)).filter(Boolean);
 
   return <aside className={`pet-companion mood-${status.mood}`} aria-label={`${pet.name} companion`}>
