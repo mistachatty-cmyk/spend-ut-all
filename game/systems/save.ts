@@ -1,6 +1,7 @@
 import { normalizeBusinessPortfolio } from './businesses';
 import { normalizeCityEconomy } from './city-economy';
 import { normalizeIncomeStreams } from './earnings';
+import { normalizeTimeSimulation } from './time-simulation';
 import { GameState } from '../types';
 
 const DEFAULT_EVENT_INTERVAL_MS = 120_000;
@@ -15,6 +16,7 @@ export function normalizeGameState(state: GameState, now = Date.now()): GameStat
     businesses: normalizeBusinessPortfolio(state.businesses),
     cityEconomy: normalizeCityEconomy(state.cityEconomy, now),
     incomeStreams: normalizeIncomeStreams(state.incomeStreams),
+    time: normalizeTimeSimulation(state.time),
     townLevel: state.townLevel ?? 0,
     regionLevel: state.regionLevel ?? 0,
     upgrades: state.upgrades ?? {},
