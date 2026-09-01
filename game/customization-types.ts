@@ -25,6 +25,7 @@ export type CustomizationDefinition = {
   id: string;
   kind: CustomizationKind;
   name: string;
+  emoji?: string;
   description: string;
   rarity: CustomizationRarity;
   acquisition: AcquisitionMethod[];
