@@ -1,9 +1,9 @@
-import { achievements, citySpecializations, empireUpgrades, houseTiers, items, marketEvents, regionTiers, scenarios, townTiers } from '@/data/content';
+import { achievements, citySpecializations, empireUpgrades, houseTiers, items, regionTiers, scenarios, townTiers } from '@/data/content';
 import { lokRuntime } from '@/integrations/lok/runtime';
 import { Achievement, CitySpecializationId, EmpireUpgrade, GameItem, GameState, ScenarioId } from './types';
-
-const EVENT_INTERVAL_MS = 120_000;
-const MAX_OFFLINE_MS = 8 * 60 * 60 * 1000;
+import { EVENT_INTERVAL_MS, getActiveMarketEvent, getEventMultipliers, updateMarketEventState } from './systems/market-events';
+import { calculateOfflineIncome } from './systems/offline';
+import { normalizeGameState } from './systems/save';
 
 export function newGame(scenarioId: ScenarioId, mode: GameState['mode']): GameState {
   const scenario = scenarios.find((entry) => entry.id === scenarioId) ?? scenarios[0];
@@ -35,19 +35,7 @@ export function newGame(scenarioId: ScenarioId, mode: GameState['mode']): GameSt
 }
 
 export function normalizeState(state: GameState): GameState {
-  const now = Date.now();
-  return {
-    ...state,
-    totalSold: state.totalSold ?? 0,
-    townLevel: state.townLevel ?? 0,
-    regionLevel: state.regionLevel ?? 0,
-    upgrades: state.upgrades ?? {},
-    citySpecialization: state.citySpecialization ?? null,
-    activeEventId: state.activeEventId ?? null,
-    eventEndsAt: state.eventEndsAt ?? 0,
-    nextEventAt: state.nextEventAt ?? now + EVENT_INTERVAL_MS,
-    lastOfflineIncome: state.lastOfflineIncome ?? 0,
-  };
+  return normalizeGameState(state);
 }
 
 export function itemUnitPrice(item: GameItem, owned: number) {
@@ -88,19 +76,13 @@ function specializationMultipliers(state: GameState) {
 }
 
 export function activeMarketEvent(state: GameState) {
-  if (!state.activeEventId || Date.now() >= state.eventEndsAt) return null;
-  return marketEvents.find((event) => event.id === state.activeEventId) ?? null;
-}
-
-function eventMultipliers(state: GameState) {
-  const event = activeMarketEvent(state);
-  return { income: event?.incomeMultiplier ?? 1, upkeep: event?.upkeepMultiplier ?? 1 };
+  return getActiveMarketEvent(state);
 }
 
 export function grossIncomePerSecond(state: GameState) {
   const base = items.reduce((total, item) => total + (item.incomePerSecond ?? 0) * (state.owned[item.id] ?? 0), 0);
   const spec = specializationMultipliers(state);
-  const event = eventMultipliers(state);
+  const event = getEventMultipliers(state);
   return base * upgradeIncomeMultiplier(state) * spec.income * event.income;
 }
 
@@ -108,7 +90,7 @@ export function upkeepPerSecond(state: GameState) {
   if (state.mode !== 'advanced') return 0;
   const base = items.reduce((total, item) => total + (item.upkeepPerSecond ?? 0) * (state.owned[item.id] ?? 0), 0);
   const spec = specializationMultipliers(state);
-  const event = eventMultipliers(state);
+  const event = getEventMultipliers(state);
   return base * upgradeUpkeepMultiplier(state) * spec.upkeep * event.upkeep;
 }
 
@@ -228,31 +210,23 @@ export function scenarioProgress(state: GameState) {
   return 0;
 }
 
-function maybeUpdateMarketEvent(state: GameState, now: number): GameState {
-  let next = state;
-  if (next.activeEventId && now >= next.eventEndsAt) {
-    next = { ...next, activeEventId: null, eventEndsAt: 0, nextEventAt: Math.max(next.nextEventAt, now + EVENT_INTERVAL_MS) };
-  }
-  if (!next.activeEventId && now >= next.nextEventAt) {
-    const index = Math.floor(now / 1000) % marketEvents.length;
-    const event = marketEvents[index];
-    next = { ...next, activeEventId: event.id, eventEndsAt: now + event.durationMs, nextEventAt: now + event.durationMs + EVENT_INTERVAL_MS };
-  }
-  return next;
-}
-
 export function applyOfflineProgress(state: GameState, now = Date.now()): GameState {
-  const safeState = normalizeState(state);
-  const elapsed = Math.min(MAX_OFFLINE_MS, Math.max(0, now - safeState.updatedAt));
-  if (elapsed < 5_000) return { ...safeState, lastOfflineIncome: 0 };
-  const offlineIncome = Math.max(0, passiveCashPerSecond({ ...safeState, activeEventId: null, eventEndsAt: 0 }) * (elapsed / 1000));
-  return { ...safeState, cash: safeState.cash + offlineIncome, lifetimeIncome: safeState.lifetimeIncome + offlineIncome, lastOfflineIncome: offlineIncome, updatedAt: now };
+  const safeState = normalizeGameState(state, now);
+  const offline = calculateOfflineIncome(safeState, passiveCashPerSecond, now);
+  if (offline.income <= 0) return { ...safeState, lastOfflineIncome: 0 };
+  return {
+    ...safeState,
+    cash: safeState.cash + offline.income,
+    lifetimeIncome: safeState.lifetimeIncome + offline.income,
+    lastOfflineIncome: offline.income,
+    updatedAt: now,
+  };
 }
 
 export function advance(state: GameState, deltaMs: number): GameState {
-  let safeState = normalizeState(state);
+  let safeState = normalizeGameState(state);
   const now = Date.now();
-  safeState = maybeUpdateMarketEvent(safeState, now);
+  safeState = updateMarketEventState(safeState, now);
   const seconds = deltaMs / 1000;
   const income = passiveCashPerSecond(safeState) * seconds;
   const lok = lokRuntime.accrue(safeState.lokTokens, safeState.lokProgressMs, deltaMs);
