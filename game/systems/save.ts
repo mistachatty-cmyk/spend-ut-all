@@ -1,15 +1,19 @@
 import { normalizeBusinessPortfolio } from './businesses';
 import { normalizeCityEconomy } from './city-economy';
+import { normalizeIncomeStreams } from './earnings';
 import { GameState } from '../types';
 
 const DEFAULT_EVENT_INTERVAL_MS = 120_000;
 
 export function normalizeGameState(state: GameState, now = Date.now()): GameState {
+  const cash = Number.isFinite(state.cash) ? state.cash : 0;
   return {
     ...state,
+    cash,
     totalSold: state.totalSold ?? 0,
     businesses: normalizeBusinessPortfolio(state.businesses),
     cityEconomy: normalizeCityEconomy(state.cityEconomy, now),
+    incomeStreams: normalizeIncomeStreams(state.incomeStreams),
     townLevel: state.townLevel ?? 0,
     regionLevel: state.regionLevel ?? 0,
     upgrades: state.upgrades ?? {},
@@ -18,5 +22,10 @@ export function normalizeGameState(state: GameState, now = Date.now()): GameStat
     eventEndsAt: state.eventEndsAt ?? 0,
     nextEventAt: state.nextEventAt ?? now + DEFAULT_EVENT_INTERVAL_MS,
     lastOfflineIncome: state.lastOfflineIncome ?? 0,
+    riskMode: state.riskMode ?? false,
+    runStatus: state.runStatus ?? 'active',
+    bankruptcyDeadline: state.bankruptcyDeadline ?? 0,
+    peakCash: Math.max(state.peakCash ?? cash, cash),
+    peakNetWorth: Math.max(0, state.peakNetWorth ?? 0),
   };
 }
