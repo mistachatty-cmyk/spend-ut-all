@@ -14,6 +14,8 @@ export function normalizeLokDexCollection(input?: Partial<LokDexCollection> | nu
   const discoveredIds = Array.isArray(input?.discoveredIds) ? [...new Set(input!.discoveredIds.filter((id): id is string => typeof id === 'string'))] : [];
   const cards = Array.isArray(input?.cards) ? input!.cards.filter((card): card is LokDexOwnedCard => !!card && typeof card.instanceId === 'string' && typeof card.characterId === 'string').map((card) => ({
     ...card,
+    editionId: typeof card.editionId === 'string' ? card.editionId : undefined,
+    releaseId: typeof card.releaseId === 'string' ? card.releaseId : undefined,
     serial: Number.isFinite(card.serial) ? card.serial : null,
     acquiredAt: Number.isFinite(card.acquiredAt) ? card.acquiredAt : Date.now(),
     favorite: !!card.favorite,
@@ -59,7 +61,9 @@ export function discoverLokDexCharacter(input: LokDexCollection, characterId: st
 
 export function grantLokDexCard(input: LokDexCollection, characterId: string, acquisition: LokDexAcquisition, options?: {
   instanceId?: string;
+  editionId?: string;
   variant?: LokDexCardVariant;
+  releaseId?: string;
   serial?: number | null;
   sourceGame?: string;
   generationSeed?: string;
@@ -71,7 +75,9 @@ export function grantLokDexCard(input: LokDexCollection, characterId: string, ac
   const card: LokDexOwnedCard = {
     instanceId,
     characterId,
+    editionId: options?.editionId,
     variant: options?.variant ?? 'standard',
+    releaseId: options?.releaseId,
     serial: options?.serial ?? null,
     acquiredAt: Date.now(),
     acquisition,
@@ -95,6 +101,7 @@ export function syncCompanionsToLokDex(input: LokDexCollection, inventory: Custo
     const instanceId = `companion-origin:${companion.id}`;
     collection = grantLokDexCard(collection, companion.dexCharacterId, companion.acquisition.includes('starter') ? 'starter' : companion.acquisition.includes('achievement') ? 'achievement' : companion.acquisition.includes('scenario') ? 'scenario' : 'lok', {
       instanceId,
+      releaseId: 'lok-gen1-origin',
       sourceGame: 'spend-it-all',
       tradeLocked: true,
     });
