@@ -7,7 +7,7 @@ export type ItemCategory = 'everyday' | 'luxury' | 'property' | 'business' | 'in
 export type CitySpecializationId = 'finance' | 'technology' | 'industrial' | 'tourism';
 export type RunStatus = 'active' | 'bankrupt';
 export type AchievementKind = 'spent' | 'netWorth' | 'income' | 'house' | 'town' | 'region' | 'collection' | 'cash' | 'lifetimeIncome' | 'businesses' | 'incomeStreams' | 'combo';
-export type AchievementCategory = 'wealth' | 'speedrunner' | 'wolf-boss' | 'comeback' | 'spending' | 'income' | 'business' | 'empire' | 'collection' | 'risk' | 'scenario' | 'secret';
+export type AchievementCategory = 'wealth' | 'time' | 'speedrunner' | 'wolf-boss' | 'comeback' | 'spending' | 'income' | 'business' | 'empire' | 'collection' | 'risk' | 'scenario' | 'secret';
 export type AchievementConditionId =
   | 'nothing-millionaire' | 'nothing-billionaire' | 'nothing-trillionaire' | 'nothing-first-business' | 'nothing-first-home' | 'nothing-town' | 'nothing-metropolis' | 'nothing-planetary'
   | 'ten-x-win' | 'hundred-x-win' | 'thousand-x-win' | 'no-sales-millionaire' | 'debt-comeback' | 'deep-debt-comeback' | 'diversified' | 'all-businesses'
@@ -16,7 +16,9 @@ export type AchievementConditionId =
   | 'wolf-first-billion' | 'wolf-three-businesses' | 'wolf-million-income' | 'wolf-market-master' | 'wolf-risk-billionaire'
   | 'debt-10k-comeback' | 'debt-1m-comeback' | 'debt-100m-comeback' | 'debt-billion-comeback' | 'near-bankruptcy-comeback'
   | 'nothing-no-passive-millionaire' | 'nothing-active-100k' | 'risk-100x-win' | 'risk-1000x-win' | 'no-sales-billionaire'
-  | 'one-of-everything' | 'coffee-million' | 'all-upgrades-max' | 'planetary-from-nothing' | 'spend-elon-benchmark' | 'spendutall-super';
+  | 'one-of-everything' | 'coffee-million' | 'all-upgrades-max' | 'planetary-from-nothing' | 'spend-elon-benchmark' | 'spendutall-super'
+  | 'play-1s' | 'play-10s' | 'play-1m' | 'play-10m' | 'play-1h' | 'play-6h' | 'play-24h' | 'play-7d'
+  | 'risk-survive-30m' | 'nothing-million-under-60s' | 'spendutall-after-24h';
 
 export type GameItem = { id: string; name: string; emoji: string; category: ItemCategory; basePrice: number; growthRate: number; incomePerSecond?: number; upkeepPerSecond?: number; unlockSpent?: number; description: string; };
 export type Scenario = { id: ScenarioId; name: string; description: string; startingCash: number; targetSpent?: number; targetNetWorth?: number; targetMultiplier?: number; goalLabel: string; freeMode?: boolean; };
@@ -70,6 +72,7 @@ export type GameState = {
   peakCash: number;
   peakNetWorth: number;
   lowestCash: number;
+  activePlayMs: number;
   runAchievements: Record<string, number>;
   lokTokens: number;
   lokProgressMs: number;
