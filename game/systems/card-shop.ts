@@ -1,4 +1,5 @@
 import { CARD_SHOP_FREE_PACK_COOLDOWN_MS, CARD_SHOP_STARTER_CREDITS, cardShopProducts } from '@/data/card-shop';
+import { lokDexEditionById } from '@/data/lokdex-editions';
 import { lokDexEntries } from '@/data/lokdex';
 import type { CardShopProduct, CardShopPull, CardShopState } from '../card-shop-types';
 import type { CustomizationRarity } from '../customization-types';
@@ -131,6 +132,23 @@ function weightedCharacter(product: CardShopProduct, guarantee = false) {
   return weighted[Math.floor(Math.random() * weighted.length)] ?? pool[0];
 }
 
+function editionForPull(product: CardShopProduct, guarantee = false) {
+  const ids = product.editionPoolIds ?? [];
+  const chance = Math.max(0, Math.min(1, product.guarantee?.editionChance ?? 0));
+  if (!ids.length || Math.random() >= chance) return null;
+  let editions = ids.map((id) => lokDexEditionById(id)).filter((edition): edition is NonNullable<typeof edition> => !!edition);
+  if (guarantee && product.guarantee?.minRarity) {
+    const minimum = rarityRank[product.guarantee.minRarity];
+    const filtered = editions.filter((edition) => {
+      const base = lokDexEntries.find((entry) => entry.id === edition.baseCharacterId);
+      const rarity = edition.rarityOverride ?? base?.rarity ?? 'common';
+      return rarityRank[rarity] >= minimum;
+    });
+    if (filtered.length) editions = filtered;
+  }
+  return editions[Math.floor(Math.random() * editions.length)] ?? null;
+}
+
 function rollVariant(boost = 1): LokDexCardVariant {
   const roll = Math.random();
   const gold = .002 * boost;
@@ -152,13 +170,26 @@ function pullProduct(collectionInput: LokDexCollection, product: CardShopProduct
   const boost = product.guarantee?.variantBoost ?? 1;
   const fixed = product.fixedCharacterIds ?? [];
   for (let index = 0; index < product.cardCount; index += 1) {
+    const guarantee = index === product.cardCount - 1;
+    const edition = editionForPull(product, guarantee);
     const fixedId = fixed[index];
-    const character = fixedId ? lokDexEntries.find((entry) => entry.id === fixedId) ?? weightedCharacter(product, index === product.cardCount - 1) : weightedCharacter(product, index === product.cardCount - 1);
+    const character = edition
+      ? lokDexEntries.find((entry) => entry.id === edition.baseCharacterId) ?? weightedCharacter(product, guarantee)
+      : fixedId
+        ? lokDexEntries.find((entry) => entry.id === fixedId) ?? weightedCharacter(product, guarantee)
+        : weightedCharacter(product, guarantee);
     const variant = rollVariant(boost);
     const wasDiscovered = collection.discoveredIds.includes(character.id);
     const instanceId = `shop:${Date.now()}:${index}:${Math.random().toString(36).slice(2,8)}`;
-    collection = grantLokDexCard(collection, character.id, 'pack', { instanceId, variant, sourceGame:'spend-it-all', tradeLocked:true });
-    pulls.push({ instanceId, characterId:character.id, variant, rarity:character.rarity, isNewCharacter:!wasDiscovered });
+    collection = grantLokDexCard(collection, character.id, 'pack', {
+      instanceId,
+      editionId:edition?.id,
+      variant,
+      releaseId:product.releaseId,
+      sourceGame:'spend-it-all',
+      tradeLocked:true,
+    });
+    pulls.push({ instanceId, characterId:character.id, editionId:edition?.id, releaseId:product.releaseId, variant, rarity:edition?.rarityOverride ?? character.rarity, isNewCharacter:!wasDiscovered });
   }
   return { collection, pulls };
 }
@@ -201,7 +232,7 @@ export function claimFreeCardPack(shopInput: CardShopState, collectionInput: Lok
   let shop = ensureCardShopStarterGrant(shopInput);
   if (!freePackReady(shop, now)) return { success:false as const, shop, collection:normalizeLokDexCollection(collectionInput), pulls:[] as CardShopPull[] };
   const product = cardShopProducts.find((entry) => entry.id === 'pack-street')!;
-  const opened = pullProduct(collectionInput, { ...product, cardCount:3, guarantee:{ minRarity:'uncommon' } });
+  const opened = pullProduct(collectionInput, { ...product, cardCount:3, guarantee:{ ...product.guarantee, minRarity:'uncommon' } });
   shop = normalizeCardShopState({
     ...shop,
     lastFreePackAt:now,
@@ -216,7 +247,8 @@ export function claimFreeCardPack(shopInput: CardShopState, collectionInput: Lok
 
 export function recycleValue(card: LokDexOwnedCard) {
   const character = lokDexEntries.find((entry) => entry.id === card.characterId);
-  return character ? Math.max(1, Math.round(rarityRecycle[character.rarity] * variantMultiplier[card.variant])) : 1;
+  const editionMultiplier = card.editionId ? 1.75 : 1;
+  return character ? Math.max(1, Math.round(rarityRecycle[character.rarity] * variantMultiplier[card.variant] * editionMultiplier)) : 1;
 }
 
 export function recycleDuplicateCard(shopInput: CardShopState, collectionInput: LokDexCollection, characterId: string) {
@@ -234,5 +266,5 @@ export function recycleDuplicateCard(shopInput: CardShopState, collectionInput: 
     cardsRecycled:shop.cardsRecycled + 1,
     creditsFromRecycling:shop.creditsFromRecycling + creditsGained,
   });
-  return { success:true as const, shop:nextShop, collection:nextCollection, creditsGained };
+  return { success:true as const, shop:nextShop, collection:nextCollection, creditsGained, recycledCard:recyclable };
 }
