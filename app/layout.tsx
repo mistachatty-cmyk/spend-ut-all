@@ -3,6 +3,7 @@ import { DiscoveryNotifier } from '@/app/components/DiscoveryNotifier';
 import './globals.css';
 import './empire.css';
 import './collection.css';
+import './businesses.css';
 
 export const metadata: Metadata = {
   title: 'Spend It All',
