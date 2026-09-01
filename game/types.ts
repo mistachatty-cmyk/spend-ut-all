@@ -22,7 +22,9 @@ export type AchievementConditionId =
   | 'nothing-no-passive-millionaire' | 'nothing-active-100k' | 'risk-100x-win' | 'risk-1000x-win' | 'no-sales-billionaire'
   | 'one-of-everything' | 'coffee-million' | 'all-upgrades-max' | 'planetary-from-nothing' | 'spend-elon-benchmark' | 'spendutall-super'
   | 'play-1s' | 'play-10s' | 'play-1m' | 'play-10m' | 'play-1h' | 'play-6h' | 'play-24h' | 'play-7d'
-  | 'risk-survive-30m' | 'nothing-million-under-60s' | 'spendutall-after-24h';
+  | 'risk-survive-30m' | 'nothing-million-under-60s' | 'spendutall-after-24h'
+  | 'explicit-first-loan' | 'explicit-million-leverage' | 'explicit-clean-payoff' | 'explicit-debt-free' | 'explicit-seizure'
+  | 'explicit-court-filed' | 'explicit-court-settled' | 'explicit-judgment' | 'explicit-credit-recovery' | 'explicit-house-of-cards';
 
 export type GameItem = { id: string; name: string; emoji: string; category: ItemCategory; basePrice: number; growthRate: number; incomePerSecond?: number; upkeepPerSecond?: number; unlockSpent?: number; description: string; };
 export type Scenario = { id: ScenarioId; name: string; description: string; startingCash: number; targetSpent?: number; targetNetWorth?: number; targetMultiplier?: number; goalLabel: string; freeMode?: boolean; };
