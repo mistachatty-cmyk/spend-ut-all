@@ -5,11 +5,12 @@ import { EVENT_INTERVAL_MS, getActiveMarketEvent, getEventMultipliers, updateMar
 import { calculateOfflineIncome } from './systems/offline';
 import { normalizeGameState } from './systems/save';
 import { portfolioEconomics } from './systems/businesses';
+import { advanceCityEconomy, cityEconomySnapshot, createCityEconomyState } from './systems/city-economy';
 
 export function newGame(scenarioId: ScenarioId, mode: GameState['mode']): GameState {
   const scenario = scenarios.find((entry) => entry.id === scenarioId) ?? scenarios[0];
   const now = Date.now();
-  return { started: true, scenarioId, mode, cash: scenario.startingCash, totalSpent: 0, totalSold: 0, lifetimeIncome: 0, owned: {}, businesses: {}, houseLevel: 0, townLevel: 0, regionLevel: 0, upgrades: {}, citySpecialization: null, activeEventId: null, eventEndsAt: 0, nextEventAt: now + EVENT_INTERVAL_MS, lastOfflineIncome: 0, lokTokens: 0, lokProgressMs: 0, theme: 'light', createdAt: now, updatedAt: now };
+  return { started: true, scenarioId, mode, cash: scenario.startingCash, totalSpent: 0, totalSold: 0, lifetimeIncome: 0, owned: {}, businesses: {}, cityEconomy: createCityEconomyState(now), houseLevel: 0, townLevel: 0, regionLevel: 0, upgrades: {}, citySpecialization: null, activeEventId: null, eventEndsAt: 0, nextEventAt: now + EVENT_INTERVAL_MS, lastOfflineIncome: 0, lokTokens: 0, lokProgressMs: 0, theme: 'light', createdAt: now, updatedAt: now };
 }
 
 export function normalizeState(state: GameState): GameState { return normalizeGameState(state); }
@@ -22,15 +23,20 @@ function upgradeUpkeepMultiplier(state: GameState) { return empireUpgrades.reduc
 function specializationMultipliers(state: GameState) { const spec = citySpecializations.find((entry) => entry.id === state.citySpecialization); return { income: spec?.incomeMultiplier ?? 1, upkeep: spec?.upkeepMultiplier ?? 1 }; }
 export function activeMarketEvent(state: GameState) { return getActiveMarketEvent(state); }
 
+function businessEnvironment(state: GameState) {
+  const city = cityEconomySnapshot(state.cityEconomy, state.businesses ?? {}, state.townLevel);
+  return { demandMultiplier: city.businessDemandMultiplier, laborCostMultiplier: city.laborCostMultiplier };
+}
+
 export function grossIncomePerSecond(state: GameState) {
   const assetBase = items.reduce((total, item) => total + (item.incomePerSecond ?? 0) * (state.owned[item.id] ?? 0), 0);
-  const spec = specializationMultipliers(state), event = getEventMultipliers(state), businesses = portfolioEconomics(state.businesses ?? {});
+  const spec = specializationMultipliers(state), event = getEventMultipliers(state), businesses = portfolioEconomics(state.businesses ?? {}, businessEnvironment(state));
   return assetBase * upgradeIncomeMultiplier(state) * spec.income * event.income + businesses.revenuePerSecond;
 }
 
 export function upkeepPerSecond(state: GameState) {
   const assetBase = state.mode === 'advanced' ? items.reduce((total, item) => total + (item.upkeepPerSecond ?? 0) * (state.owned[item.id] ?? 0), 0) : 0;
-  const spec = specializationMultipliers(state), event = getEventMultipliers(state), businesses = portfolioEconomics(state.businesses ?? {});
+  const spec = specializationMultipliers(state), event = getEventMultipliers(state), businesses = portfolioEconomics(state.businesses ?? {}, businessEnvironment(state));
   return assetBase * upgradeUpkeepMultiplier(state) * spec.upkeep * event.upkeep + businesses.payrollPerSecond + businesses.operatingCostPerSecond;
 }
 
@@ -52,4 +58,4 @@ export function totalOwned(state: GameState) { return Object.values(state.owned)
 export function unlockedAchievements(state: GameState): Achievement[] { const worth = netWorth(state), income = passiveCashPerSecond(state), collection = totalOwned(state); return achievements.filter((achievement) => { if (achievement.kind === 'spent') return state.totalSpent >= achievement.threshold; if (achievement.kind === 'netWorth') return worth >= achievement.threshold; if (achievement.kind === 'income') return income >= achievement.threshold; if (achievement.kind === 'house') return state.houseLevel >= achievement.threshold; if (achievement.kind === 'town') return state.townLevel >= achievement.threshold; if (achievement.kind === 'region') return state.regionLevel >= achievement.threshold; return collection >= achievement.threshold; }); }
 export function scenarioProgress(state: GameState) { const scenario = scenarios.find((entry) => entry.id === state.scenarioId) ?? scenarios[0]; if (scenario.targetSpent) return Math.min(1, state.totalSpent / scenario.targetSpent); if (scenario.targetNetWorth) return Math.min(1, netWorth(state) / scenario.targetNetWorth); return 0; }
 export function applyOfflineProgress(state: GameState, now = Date.now()): GameState { const safeState = normalizeGameState(state, now); const offline = calculateOfflineIncome(safeState, passiveCashPerSecond, now); if (offline.income <= 0) return { ...safeState, lastOfflineIncome: 0 }; return { ...safeState, cash: safeState.cash + offline.income, lifetimeIncome: safeState.lifetimeIncome + offline.income, lastOfflineIncome: offline.income, updatedAt: now }; }
-export function advance(state: GameState, deltaMs: number): GameState { let safeState = normalizeGameState(state); const now = Date.now(); safeState = updateMarketEventState(safeState, now); const income = passiveCashPerSecond(safeState) * (deltaMs / 1000); const lok = lokRuntime.accrue(safeState.lokTokens, safeState.lokProgressMs, deltaMs); return { ...safeState, cash: safeState.cash + income, lifetimeIncome: safeState.lifetimeIncome + Math.max(0, income), lokTokens: lok.balance, lokProgressMs: lok.progressMs, lastOfflineIncome: 0, updatedAt: now }; }
+export function advance(state: GameState, deltaMs: number): GameState { let safeState = normalizeGameState(state); const now = Date.now(); safeState = updateMarketEventState(safeState, now); safeState = { ...safeState, cityEconomy: advanceCityEconomy(safeState.cityEconomy, safeState.businesses ?? {}, safeState.townLevel, deltaMs) }; const income = passiveCashPerSecond(safeState) * (deltaMs / 1000); const lok = lokRuntime.accrue(safeState.lokTokens, safeState.lokProgressMs, deltaMs); return { ...safeState, cash: safeState.cash + income, lifetimeIncome: safeState.lifetimeIncome + Math.max(0, income), lokTokens: lok.balance, lokProgressMs: lok.progressMs, lastOfflineIncome: 0, updatedAt: now }; }
