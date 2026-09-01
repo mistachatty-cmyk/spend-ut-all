@@ -2,9 +2,10 @@ import type { BusinessPortfolio } from './business-types';
 import type { CityEconomyState } from './city-types';
 import type { TimeSimulationState } from './time-types';
 import type { GameRules } from './rules-types';
+import type { CustomScenarioDefinition } from './custom-scenario-types';
 
 export type FinancialMode = 'simple' | 'advanced';
-export type ScenarioId = 'nothing' | 'freeplay' | 'ten-x' | 'hundred-x' | 'thousand-x' | 'billionaire' | 'trillionaire';
+export type ScenarioId = 'nothing' | 'freeplay' | 'ten-x' | 'hundred-x' | 'thousand-x' | 'billionaire' | 'trillionaire' | 'custom';
 export type ItemCategory = 'everyday' | 'luxury' | 'property' | 'business' | 'infrastructure';
 export type CitySpecializationId = 'finance' | 'technology' | 'industrial' | 'tourism';
 export type RunStatus = 'active' | 'bankrupt';
@@ -33,7 +34,7 @@ export type MarketEvent = { id: string; name: string; emoji: string; description
 export type Achievement = { id: string; name: string; description: string; emoji: string; kind: AchievementKind; threshold: number; category?: AchievementCategory; subgroup?: string; condition?: AchievementConditionId; hidden?: boolean; scenarioOnly?: ScenarioId[]; points?: number; super?: boolean; };
 
 export type GameState = {
-  started: boolean; scenarioId: ScenarioId; mode: FinancialMode; cash: number; totalSpent: number; totalSold: number; lifetimeIncome: number;
+  started: boolean; scenarioId: ScenarioId; customScenario: CustomScenarioDefinition | null; mode: FinancialMode; cash: number; totalSpent: number; totalSold: number; lifetimeIncome: number;
   owned: Record<string, number>; incomeStreams: Record<string, number>; businesses: BusinessPortfolio; cityEconomy: CityEconomyState; time: TimeSimulationState; rules: GameRules;
   houseLevel: number; townLevel: number; regionLevel: number; upgrades: Record<string, number>; citySpecialization: CitySpecializationId | null;
   activeEventId: string | null; eventEndsAt: number; nextEventAt: number; lastOfflineIncome: number;
