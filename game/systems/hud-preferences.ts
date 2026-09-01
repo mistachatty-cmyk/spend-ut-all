@@ -1,3 +1,5 @@
+export type InterfaceMode = 'simple' | 'advanced';
+
 export type HudPreferences = {
   showLok: boolean;
   showRunClock: boolean;
@@ -6,6 +8,7 @@ export type HudPreferences = {
   showDebt: boolean;
   compactHud: boolean;
   boxedBalance: boolean;
+  interfaceMode: InterfaceMode;
 };
 
 export const HUD_PREFS_KEY = 'spend-it-all-hud-counters-v1';
@@ -17,6 +20,9 @@ export const DEFAULT_HUD_PREFS: HudPreferences = {
   showDebt: false,
   compactHud: true,
   boxedBalance: false,
+  // Advanced is deliberately available immediately while the command UI is being built.
+  // Later this can be gated behind progression without changing the saved preference shape.
+  interfaceMode: 'simple',
 };
 
 const EVENT_NAME = 'spend-it-all-hud-preferences';
