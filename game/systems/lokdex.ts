@@ -101,7 +101,7 @@ export function syncCompanionsToLokDex(input: LokDexCollection, inventory: Custo
     const instanceId = `companion-origin:${companion.id}`;
     collection = grantLokDexCard(collection, companion.dexCharacterId, companion.acquisition.includes('starter') ? 'starter' : companion.acquisition.includes('achievement') ? 'achievement' : companion.acquisition.includes('scenario') ? 'scenario' : 'lok', {
       instanceId,
-      releaseId: 'lok-gen1-origin',
+      releaseId: 'lok-gen1-firstlight',
       sourceGame: 'spend-it-all',
       tradeLocked: true,
     });
