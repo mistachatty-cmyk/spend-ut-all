@@ -26,13 +26,13 @@ function petStatus(state: GameState, income: number): { mood: PetMood; message: 
   if (activity === 'sleep' || activity === 'power-nap') return { mood: 'sleepy', message: activity === 'sleep' ? 'Eight hours invested in tomorrow’s productivity.' : 'Power nap mode. Wake me when the counter moves.' };
   if (state.time.jetLag >= 45) return { mood: 'sleepy', message: 'Jet lag is getting heavy. Rest or a short recovery activity could help.' };
   if (state.time.fatigue >= 70) return { mood: 'sleepy', message: 'Long day. Your fatigue is high enough to hurt efficiency.' };
-  if (state.regionLevel >= 5) return { mood: 'celebrating', message: 'Planetary scale. Also: the Cards & LOKDEX district is always open from the top access bar.' };
+  if (state.regionLevel >= 5) return { mood: 'celebrating', message: 'Planetary scale. Also: the Cards & LOKDEX district is always open.' };
   if (state.townLevel >= 5) return { mood: 'happy', message: 'Metropolis online. The city is officially part of the machine now.' };
   if (income >= 1_000_000) return { mood: 'excited', message: `The counter is flying at ${money(income)}/sec.` };
   if (hour >= 22 || hour < 5) return { mood: 'sleepy', message: 'It’s late in the game world. Some industries may be closed even if the empire is awake.' };
 
   const tipCycle = Math.floor((state.activePlayMs ?? 0) / 45_000) % 6;
-  if (tipCycle === 0) return { mood: 'idle', message: 'Cards & LOKDEX is available anytime from the Cards bar above. Packs, binder, and collection live there.' };
+  if (tipCycle === 0) return { mood: 'idle', message: 'Cards & LOKDEX is available anytime. Packs, binder, and collection live there.' };
   if (tipCycle === 1) return { mood: 'happy', message: 'LOK is cosmetic currency. Spend it on themes, counters, effects, companions, and gear without changing economic power.' };
   if (tipCycle === 2) return { mood: 'happy', message: income > 0 ? `Positive cash flow at ${money(income)}/sec. Keep the machine healthy.` : 'No passive income yet. Earn, buy cash-flow assets, then let the economy start working for you.' };
   if (tipCycle === 3) return { mood: 'idle', message: 'World events can swing revenue and costs. I’ll call out the important ones when they happen.' };
@@ -56,7 +56,7 @@ export function PetCompanion({ state, income, inventory }: { state: GameState; i
   const accessories = inventory.equipped.petAccessoryIds.map((id) => customizationById(id)).filter(Boolean);
 
   return <aside className={`pet-companion mood-${status.mood}`} aria-label={`${pet.name} companion`}>
-    <div className="pet-avatar" aria-hidden="true"><PixelPetSprite petId={pet.id} mood={status.mood} />{accessories.length ? <div className="pet-accessories">{accessories.map((item) => <i key={item!.id}>{item!.emoji}</i>)}</div> : null}</div>
+    <div className="pet-avatar" aria-hidden="true"><PixelPetSprite petId={pet.id} mood={status.mood} size={30} />{accessories.length ? <div className="pet-accessories">{accessories.map((item) => <i key={item!.id}>{item!.emoji}</i>)}</div> : null}</div>
     <div className="pet-copy"><div><b>{pet.name}</b><small>{status.mood}</small></div>{advice ? <p>{status.message}</p> : <p className="pet-muted">Advice muted. I’m just hanging out.</p>}</div>
     <button type="button" onClick={toggleAdvice}>{advice ? 'Mute tips' : 'Enable tips'}</button>
   </aside>;
