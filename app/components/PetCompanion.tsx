@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { customizationById, lokPets } from '@/data/customizations';
 import type { CustomizationInventory, PetMood } from '@/game/customization-types';
+import { getActiveMarketEvent } from '@/game/systems/market-events';
 import { bankruptcySecondsRemaining } from '@/game/systems/risk';
 import type { GameState } from '@/game/types';
 import { money } from '@/game/format';
@@ -14,26 +15,29 @@ function petStatus(state: GameState, income: number): { mood: PetMood; message: 
   const countdown = bankruptcySecondsRemaining(state);
   const activity = state.time.activeActivity?.id ?? null;
   const hour = Math.floor((state.time.gameMinute % 1440) / 60);
+  const event = getActiveMarketEvent(state);
 
   if (countdown) return { mood: 'worried', message: `${countdown}s to bankruptcy. Find positive cash flow fast.` };
   if (state.cash < 0) return { mood: 'worried', message: `Debt is at ${money(Math.abs(state.cash))}. Your counter is moving the wrong way.` };
   if (income < 0) return { mood: 'worried', message: `Costs are beating income by ${money(Math.abs(income))}/sec.` };
+  if (event) return { mood: event.incomeMultiplier >= 1 ? 'excited' : 'worried', message: `${event.emoji} ${event.name}: ${event.description} Revenue ×${event.incomeMultiplier.toFixed(2)}, costs ×${event.upkeepMultiplier.toFixed(2)}.` };
   if (activity === 'regional-flight' || activity === 'long-haul-flight') return { mood: 'traveling', message: activity === 'long-haul-flight' ? 'Long-haul day. I’ll watch the empire while the time zones move underneath us.' : 'Regional flight in progress. Next market, next opportunity.' };
   if (activity === 'espresso-break') return { mood: 'excited', message: 'Espresso acquired. Tiny cup, extremely serious business.' };
   if (activity === 'sleep' || activity === 'power-nap') return { mood: 'sleepy', message: activity === 'sleep' ? 'Eight hours invested in tomorrow’s productivity.' : 'Power nap mode. Wake me when the counter moves.' };
-  if (activity === 'shift-cafe') return { mood: 'happy', message: 'Part-time café shift in progress. Small money still counts.' };
-  if (activity === 'shift-warehouse') return { mood: 'happy', message: 'Full warehouse shift. Eight game-hours going straight into the climb.' };
-  if (activity === 'freelance-block') return { mood: 'happy', message: 'Freelance block active. Two focused hours can beat a whole idle day.' };
-  if (activity === 'client-meeting') return { mood: 'excited', message: 'Client meeting. Time to make ninety minutes expensive.' };
   if (state.time.jetLag >= 45) return { mood: 'sleepy', message: 'Jet lag is getting heavy. Rest or a short recovery activity could help.' };
   if (state.time.fatigue >= 70) return { mood: 'sleepy', message: 'Long day. Your fatigue is high enough to hurt efficiency.' };
-  if (state.activeEventId) return { mood: 'excited', message: 'Market event is live. Watch the revenue and cost multipliers before making a big move.' };
-  if (hour >= 22 || hour < 5) return { mood: 'sleepy', message: 'It’s late in the game world. Some industries may be closed even if the empire is awake.' };
-  if (income >= 1_000_000) return { mood: 'excited', message: `The counter is flying at ${money(income)}/sec.` };
-  if (state.regionLevel >= 5) return { mood: 'celebrating', message: 'Planetary scale. I knew this office was getting suspiciously large.' };
+  if (state.regionLevel >= 5) return { mood: 'celebrating', message: 'Planetary scale. Also: the Cards & LOKDEX district is always open from the top access bar.' };
   if (state.townLevel >= 5) return { mood: 'happy', message: 'Metropolis online. The city is officially part of the machine now.' };
-  if (state.activePlayMs < 60_000) return { mood: 'idle', message: 'I’ll keep an eye on the counters while you build.' };
-  return { mood: 'happy', message: income > 0 ? 'Positive cash flow. Keep the machine healthy.' : 'Ready when you are.' };
+  if (income >= 1_000_000) return { mood: 'excited', message: `The counter is flying at ${money(income)}/sec.` };
+  if (hour >= 22 || hour < 5) return { mood: 'sleepy', message: 'It’s late in the game world. Some industries may be closed even if the empire is awake.' };
+
+  const tipCycle = Math.floor((state.activePlayMs ?? 0) / 45_000) % 6;
+  if (tipCycle === 0) return { mood: 'idle', message: 'Cards & LOKDEX is available anytime from the Cards bar above. Packs, binder, and collection live there.' };
+  if (tipCycle === 1) return { mood: 'happy', message: 'LOK is cosmetic currency. Spend it on themes, counters, effects, companions, and gear without changing economic power.' };
+  if (tipCycle === 2) return { mood: 'happy', message: income > 0 ? `Positive cash flow at ${money(income)}/sec. Keep the machine healthy.` : 'No passive income yet. Earn, buy cash-flow assets, then let the economy start working for you.' };
+  if (tipCycle === 3) return { mood: 'idle', message: 'World events can swing revenue and costs. I’ll call out the important ones when they happen.' };
+  if (tipCycle === 4) return { mood: 'happy', message: 'Your Card Shop collection is persistent. You can visit it without abandoning the current run.' };
+  return { mood: 'idle', message: 'I’ll keep an eye on milestones, debt, fatigue, world events, and useful side districts while you build.' };
 }
 
 export function PetCompanion({ state, income, inventory }: { state: GameState; income: number; inventory: CustomizationInventory }) {
