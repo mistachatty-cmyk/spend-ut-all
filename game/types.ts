@@ -66,6 +66,7 @@ export type GameState = {
   riskMode: boolean;
   runStatus: RunStatus;
   bankruptcyDeadline: number;
+  bankruptcyWarnings: number;
   peakCash: number;
   peakNetWorth: number;
   lowestCash: number;
