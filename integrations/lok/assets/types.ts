@@ -7,6 +7,7 @@ export type LokAssetKind =
   | 'profile-frame'
   | 'title-style'
   | 'effect'
+  | 'motion-pack'
   | 'pet'
   | 'companion-profile'
   | 'pet-accessory'
@@ -114,4 +115,16 @@ export type LokCompanionProfileMetadata = {
   reactionIds: string[];
   dialogueSetId?: string;
   animationSetId?: string;
+};
+
+/** Portable cosmetic definition for flyouts, particles and value-change presentation. */
+export type LokMotionPackMetadata = {
+  symbolKey?: string;
+  particleKey?: string;
+  trailKey?: string;
+  arrivalEffectKey?: string;
+  easingKey?: string;
+  durationScale?: number;
+  paletteMode?: 'fixed' | 'theme' | 'target';
+  supportedTargets?: Array<'cash' | 'lok' | 'card-credits' | 'debt' | 'reward'>;
 };
