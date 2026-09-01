@@ -2,13 +2,14 @@
 
 import { useEffect } from 'react';
 import { money } from '@/game/format';
+import type { RunResult } from '@/game/run-types';
 import { addRunResult, createRunResult, LEADERBOARD_KEY, normalizeRunHistory } from '@/game/systems/leaderboard';
 import type { GameState } from '@/game/types';
 
 export function GameOverView({ state, onRestart }: { state: GameState; onRestart: () => void }) {
   useEffect(() => {
     const result = createRunResult(state, false);
-    let history = [];
+    let history: RunResult[] = [];
     const raw = localStorage.getItem(LEADERBOARD_KEY);
     if (raw) { try { history = normalizeRunHistory(JSON.parse(raw)); } catch { history = []; } }
     localStorage.setItem(LEADERBOARD_KEY, JSON.stringify(addRunResult(history, result)));
