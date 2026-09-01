@@ -33,8 +33,8 @@ export type Achievement = {
   emoji: string;
   kind: AchievementKind;
   threshold: number;
-  category: AchievementCategory;
-  subgroup: string;
+  category?: AchievementCategory;
+  subgroup?: string;
   condition?: AchievementConditionId;
   hidden?: boolean;
   scenarioOnly?: ScenarioId[];
