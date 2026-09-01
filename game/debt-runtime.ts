@@ -29,13 +29,28 @@ function enforceDebtAwareAchievementIntegrity(before: GameState, after: GameStat
 export function advanceWithDebt(state: GameState, deltaMs: number): GameState {
   const previousGameMinute = state.time.gameMinute;
   let next = advance(state, deltaMs);
-  const result = advanceDebtState(normalizeDebtState(next.debt), previousGameMinute, next.time.gameMinute);
+  const result = advanceDebtState(normalizeDebtState(next.debt), previousGameMinute, next.time.gameMinute, Math.max(0, next.cash));
   let owned = next.owned;
+  let houseLevel = next.houseLevel;
+
   if (result.seized.length) {
     owned = { ...next.owned };
-    for (const collateral of result.seized) owned[collateral.itemId] = Math.max(0, (owned[collateral.itemId] ?? 0) - collateral.quantity);
+    for (const collateral of result.seized) {
+      if (collateral.kind === 'item') owned[collateral.itemId] = Math.max(0, (owned[collateral.itemId] ?? 0) - collateral.quantity);
+      if (collateral.kind === 'home') houseLevel = Math.min(houseLevel, Math.max(0, collateral.houseLevel - 1));
+    }
   }
-  next = { ...next, debt: result.debt, owned, updatedAt: Date.now() };
+
+  const cash = Math.max(0, next.cash - result.cashUsed);
+  next = {
+    ...next,
+    cash,
+    lowestCash: Math.min(next.lowestCash, cash),
+    debt: result.debt,
+    owned,
+    houseLevel,
+    updatedAt: Date.now(),
+  };
   return enforceDebtAwareAchievementIntegrity(state, next);
 }
 
