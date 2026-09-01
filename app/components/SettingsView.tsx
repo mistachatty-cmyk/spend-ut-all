@@ -5,8 +5,8 @@ import { DebtView } from '@/app/components/DebtView';
 import { RULE_PRESET_INFO } from '@/data/rule-presets';
 import { applyRulePreset, markRulesCustom, normalizeGameRules } from '@/game/systems/rules';
 import { debtSummary, normalizeDebtState } from '@/game/systems/debt';
-import { loadMicroMotionPreferences, saveMicroMotionPreferences, subscribeMicroMotionPreferences } from '@/game/systems/micro-animations';
-import type { MicroMotionPreferences } from '@/game/micro-animation-types';
+import { loadMicroMotionPreferences, microMotionProfile, saveMicroMotionPreferences, subscribeMicroMotionPreferences } from '@/game/systems/micro-animations';
+import type { MicroMotionLevel, MicroMotionPreferences } from '@/game/micro-animation-types';
 import { setDebtSystemEnabled } from '@/game/debt-actions';
 import { lokRuntime } from '@/integrations/lok/runtime';
 import type { GameState } from '@/game/types';
@@ -19,6 +19,7 @@ export function SettingsView({ state, setState }: { state: GameState; setState: 
   const debt = normalizeDebtState(state.debt);
   const debtInfo = debtSummary(debt);
   const [motionPrefs, setMotionPrefs] = useState<MicroMotionPreferences>(() => loadMicroMotionPreferences());
+  const motionProfile = microMotionProfile(motionPrefs.amplificationLevel);
   useEffect(() => subscribeMicroMotionPreferences(setMotionPrefs), []);
   const patchMotion = (patch: Partial<MicroMotionPreferences>) => setMotionPrefs((current) => saveMicroMotionPreferences({ ...current, ...patch }));
   const patchRules = (section: RuleSection, patch: Record<string, number | boolean>) => setState((current) => {
@@ -89,16 +90,17 @@ export function SettingsView({ state, setState }: { state: GameState; setState: 
       <p className="muted">The live debt counter is controlled separately from the Counters ⚙ menu under the main balance, and only appears when the debt system is enabled.</p>
     </section>
 
-    <section className="panel settings-group"><span className="eyebrow">MICRO MOTION</span><h2>Value trails & count animations</h2>
-      <p className="muted">Actions can emit a tiny visual token from the button/card/business that caused the change toward the counter that owns the value. This presentation layer never changes game math.</p>
-      <Toggle label="Micro animations" checked={motionPrefs.enabled} onChange={(v) => patchMotion({enabled:v})}/>
+    <section className="panel settings-group"><span className="eyebrow">EFFECTS AMPLIFICATION</span><h2>From static to completely absurd</h2>
+      <p className="muted">The fresh-install default is <b>Static</b>: tiny feedback with no traveling particles or animated counting. Turn the knob up only when you want the extra spectacle. This is presentation-only and never changes rewards or challenge rules.</p>
+      <EffectsKnob value={motionPrefs.amplificationLevel} onChange={(value) => patchMotion({ amplificationLevel:value })} />
+      <div className={`motion-profile-summary level-${motionProfile.level}`}><div><span className="motion-profile-orb" /><div><b>{motionProfile.name}</b><small>{motionProfile.description}</small></div></div><div className="motion-profile-metrics"><span>{motionProfile.particles} particles</span><span>{motionProfile.echoes} echoes</span><span>{motionProfile.maxConcurrent} max flyouts</span></div></div>
+      <Toggle label="Micro-motion system" checked={motionPrefs.enabled} onChange={(v) => patchMotion({enabled:v})}/>
       <Toggle label="Flying value trails" checked={motionPrefs.flyoutsEnabled} onChange={(v) => patchMotion({flyoutsEnabled:v})}/>
       <Toggle label="Animated counter counting" checked={motionPrefs.counterCountingEnabled} onChange={(v) => patchMotion({counterCountingEnabled:v})}/>
       <Toggle label="Match active palette / counter color" checked={motionPrefs.paletteReactive} onChange={(v) => patchMotion({paletteReactive:v})}/>
       <Toggle label="Respect reduced-motion preference" checked={motionPrefs.respectReducedMotion} onChange={(v) => patchMotion({respectReducedMotion:v})}/>
-      <Range label="Motion intensity" value={motionPrefs.intensity} min={.25} max={2} step={.05} suffix="×" onChange={(v) => patchMotion({intensity:v})}/>
       <label className="settings-toggle"><span>Floating symbol treatment</span><select value={motionPrefs.symbolStyle} onChange={(e) => patchMotion({symbolStyle:e.target.value as MicroMotionPreferences['symbolStyle']})}><option value="auto">Auto</option><option value="minimal">Minimal</option><option value="burst">Burst</option></select></label>
-      <small>Future cosmetic packs can replace trail symbols, particles, and motion styles without changing the underlying currency event.</small>
+      <small>Future cosmetic motion packs can replace the glyphs, particles, trails, arrival bursts and glow style while still obeying this performance knob.</small>
     </section>
 
     <DebtView state={state} setState={setState} />
@@ -110,3 +112,4 @@ export function SettingsView({ state, setState }: { state: GameState; setState: 
 function moneyLike(value: number) { return value >= 1e12 ? `$${(value / 1e12).toFixed(2)}T` : value >= 1e9 ? `$${(value / 1e9).toFixed(2)}B` : value >= 1e6 ? `$${(value / 1e6).toFixed(2)}M` : `$${Math.round(value).toLocaleString()}`; }
 function Toggle({label,checked,onChange}:{label:string;checked:boolean;onChange:(value:boolean)=>void}) { return <label className="settings-toggle"><span>{label}</span><input type="checkbox" checked={checked} onChange={(e)=>onChange(e.target.checked)}/></label>; }
 function Range({label,value,min,max,step,suffix,onChange}:{label:string;value:number;min:number;max:number;step:number;suffix:string;onChange:(value:number)=>void}) { return <label className="settings-range"><span><b>{label}</b><em>{Number(value.toFixed(2))}{suffix}</em></span><input type="range" min={min} max={max} step={step} value={value} onChange={(e)=>onChange(Number(e.target.value))}/></label>; }
+function EffectsKnob({value,onChange}:{value:MicroMotionLevel;onChange:(value:MicroMotionLevel)=>void}) { const labels=['Nothing','Static','Animated','High','Uber','Absurd']; return <div className={`effects-knob level-${value}`}><div className="effects-knob-head"><b>Effects</b><span>{labels[value]}</span></div><input aria-label="Effects amplification" type="range" min={0} max={5} step={1} value={value} onChange={(e)=>onChange(Number(e.target.value) as MicroMotionLevel)}/><div className="effects-knob-labels">{labels.map((label,index)=><button type="button" key={label} className={value===index?'active':''} onClick={()=>onChange(index as MicroMotionLevel)}>{label}</button>)}</div></div>; }
