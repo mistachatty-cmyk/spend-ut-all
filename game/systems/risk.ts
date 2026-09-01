@@ -33,7 +33,7 @@ export function updateRiskState(state: GameState, currentNetWorth: number, now =
   let next = state;
 
   if (!distressed && state.bankruptcyDeadline && state.cash > recoveryLine && currentNetWorth > 0) next = { ...state, bankruptcyDeadline: 0 };
-  if (distressed && !next.bankruptcyDeadline) next = { ...next, bankruptcyDeadline: now + BANKRUPTCY_WINDOW_MS };
+  if (distressed && !next.bankruptcyDeadline) next = { ...next, bankruptcyDeadline: now + BANKRUPTCY_WINDOW_MS, bankruptcyWarnings: (next.bankruptcyWarnings ?? 0) + 1 };
   if (next.bankruptcyDeadline && now >= next.bankruptcyDeadline) next = { ...next, runStatus: 'bankrupt', bankruptcyDeadline: 0, updatedAt: now };
   return next;
 }
