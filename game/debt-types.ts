@@ -1,7 +1,8 @@
-export type CreditorType = 'bank' | 'credit-union' | 'private-lender' | 'asset-lender' | 'business-lender';
-export type DebtSecurityType = 'unsecured' | 'item';
+export type CreditorType = 'bank' | 'credit-union' | 'private-lender' | 'asset-lender' | 'business-lender' | 'mortgage-lender';
+export type DebtSecurityType = 'unsecured' | 'item' | 'home';
 export type DebtStatus = 'current' | 'late' | 'default' | 'paid' | 'seized' | 'judgment';
 export type CourtStage = 'filed' | 'hearing' | 'judgment' | 'settled' | 'dismissed';
+export type AutopayMode = 'off' | 'minimum' | 'full';
 
 export type DebtProductDefinition = {
   id: string;
@@ -21,12 +22,20 @@ export type DebtProductDefinition = {
   requiresBusiness?: boolean;
 };
 
-export type DebtCollateral = {
+export type ItemDebtCollateral = {
   kind: 'item';
   itemId: string;
   quantity: number;
   pledgedValue: number;
 };
+
+export type HomeDebtCollateral = {
+  kind: 'home';
+  houseLevel: number;
+  pledgedValue: number;
+};
+
+export type DebtCollateral = ItemDebtCollateral | HomeDebtCollateral;
 
 export type DebtObligation = {
   id: string;
@@ -48,6 +57,9 @@ export type DebtObligation = {
   lastPaymentGameMinute: number;
   defaultedAtGameMinute: number | null;
   collateral: DebtCollateral | null;
+  autopayMode: AutopayMode;
+  refinanceCount: number;
+  refinancedFromIds: string[];
 };
 
 export type CourtCase = {
@@ -75,6 +87,10 @@ export type DebtState = {
   lifetimeLegalCosts: number;
   lifetimeDefaults: number;
   lifetimeSeizures: number;
+  lifetimeAutopayPaid: number;
+  lifetimeRefinanced: number;
+  lifetimeConsolidated: number;
+  lifetimeForeclosures: number;
 };
 
 export type DebtSummary = {
@@ -85,4 +101,6 @@ export type DebtSummary = {
   activeObligations: number;
   activeCourtCases: number;
   pledgedAssets: number;
+  homeLoans: number;
+  autopayEnabled: number;
 };
