@@ -1,0 +1,13 @@
+import type { BusinessDefinition } from '@/game/business-types';
+
+export const businessDefinitions: BusinessDefinition[] = [
+  { id: 'restaurant-group', name: 'Restaurant Group', emoji: '🍽️', description: 'Build from one local restaurant into a national hospitality brand.', foundingCost: 750_000, baseRevenuePerSecond: 18, basePayrollPerEmployee: 0.22, employeesPerLocation: 18, locationCost: 900_000, locationGrowthRate: 1.18, hqUpgradeBaseCost: 2_500_000 },
+  { id: 'retail-brand', name: 'Retail Brand', emoji: '🛍️', description: 'Operate stores, grow a brand, and scale distribution.', foundingCost: 5_000_000, baseRevenuePerSecond: 95, basePayrollPerEmployee: 0.26, employeesPerLocation: 28, locationCost: 6_000_000, locationGrowthRate: 1.2, hqUpgradeBaseCost: 12_000_000 },
+  { id: 'software-company', name: 'Software Company', emoji: '💻', description: 'A high-margin technology company that scales with talent and operations.', foundingCost: 15_000_000, baseRevenuePerSecond: 260, basePayrollPerEmployee: 0.65, employeesPerLocation: 42, locationCost: 28_000_000, locationGrowthRate: 1.22, hqUpgradeBaseCost: 40_000_000 },
+  { id: 'hotel-group', name: 'Hotel Group', emoji: '🏨', description: 'Expand a hospitality company across your growing cities.', foundingCost: 120_000_000, baseRevenuePerSecond: 1_350, basePayrollPerEmployee: 0.31, employeesPerLocation: 95, locationCost: 140_000_000, locationGrowthRate: 1.2, hqUpgradeBaseCost: 250_000_000, requiredTownLevel: 1 },
+  { id: 'manufacturing-company', name: 'Manufacturing Company', emoji: '🏭', description: 'Create industrial jobs and scale physical production.', foundingCost: 180_000_000, baseRevenuePerSecond: 2_100, basePayrollPerEmployee: 0.38, employeesPerLocation: 140, locationCost: 220_000_000, locationGrowthRate: 1.24, hqUpgradeBaseCost: 350_000_000, requiredTownLevel: 2 },
+  { id: 'media-company', name: 'Media Company', emoji: '📺', description: 'Build audiences, advertising revenue, and cultural reach.', foundingCost: 600_000_000, baseRevenuePerSecond: 6_500, basePayrollPerEmployee: 0.48, employeesPerLocation: 85, locationCost: 750_000_000, locationGrowthRate: 1.22, hqUpgradeBaseCost: 1_200_000_000, requiredTownLevel: 3 },
+  { id: 'banking-group', name: 'Banking Group', emoji: '🏦', description: 'A financial institution that will later connect to deposits, loans, credit and bonds.', foundingCost: 30_000_000_000, baseRevenuePerSecond: 180_000, basePayrollPerEmployee: 0.72, employeesPerLocation: 220, locationCost: 10_000_000_000, locationGrowthRate: 1.28, hqUpgradeBaseCost: 25_000_000_000, requiredTownLevel: 4 },
+];
+
+export const hqTiers = ['Home Office', 'Small Office', 'Corporate Office', 'Headquarters', 'Corporate Campus', 'Mega Campus'];
