@@ -1,4 +1,3 @@
-import type { FinancialMode } from './types';
 import type { GameRules } from './rules-types';
 import type { TimeSystemSettings } from './time-types';
 
@@ -17,7 +16,7 @@ export type CustomScenarioDefinition = {
   name: string;
   description: string;
   startingCash: number;
-  mode: FinancialMode;
+  mode: 'simple' | 'advanced';
   riskMode: boolean;
   rulesLocked: boolean;
   rules: GameRules;
