@@ -52,6 +52,8 @@ export type CardShopState = {
   cardsPulled: number;
   cardsRecycled: number;
   creditsFromRecycling: number;
+  creditsFromCollectionRewards: number;
+  claimedCollectionMilestones: number[];
   ownedDeckBlueprintIds: string[];
   lastFreePackAt: number;
   freePacksClaimed: number;
