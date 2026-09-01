@@ -5,6 +5,7 @@ import { money } from '@/game/format';
 import { formatRunClock, runClockParts } from '@/game/systems/run-clock';
 import { gameClockLabel, gameDay } from '@/game/systems/time-simulation';
 import { bankruptcySecondsRemaining } from '@/game/systems/risk';
+import { debtSummary, normalizeDebtState } from '@/game/systems/debt';
 import type { GameState } from '@/game/types';
 
 type HudPrefs = {
@@ -12,10 +13,11 @@ type HudPrefs = {
   showRunClock: boolean;
   showGameDay: boolean;
   showMilliseconds: boolean;
+  showDebt: boolean;
 };
 
 const HUD_PREFS_KEY = 'spend-it-all-hud-counters-v1';
-const defaultPrefs: HudPrefs = { showLok: true, showRunClock: true, showGameDay: true, showMilliseconds: true };
+const defaultPrefs: HudPrefs = { showLok: true, showRunClock: true, showGameDay: true, showMilliseconds: true, showDebt: false };
 
 export function MoneyCounter({ state, income }: { state: GameState; income: number }) {
   const [display, setDisplay] = useState(state.cash);
@@ -69,6 +71,8 @@ export function MoneyCounter({ state, income }: { state: GameState; income: numb
   const lokProgress = Math.max(0, Math.min(1, (state.lokProgressMs ?? 0) / 10_000));
   const lokMsRemaining = Math.max(0, 10_000 - (state.lokProgressMs ?? 0));
   const countdown = bankruptcySecondsRemaining(state);
+  const debt = normalizeDebtState(state.debt);
+  const debtInfo = debtSummary(debt);
   const status = state.runStatus === 'bankrupt' ? 'bankrupt' : countdown ? 'critical' : display < 0 ? 'debt' : income < 0 ? 'falling' : 'growing';
 
   const patchPref = (key: keyof HudPrefs) => setPrefs((current) => ({ ...current, [key]: !current[key] }));
@@ -99,6 +103,12 @@ export function MoneyCounter({ state, income }: { state: GameState; income: numb
         <div className="counter-value"><b>Day {gameDay(state.time)}</b><small>{gameClockLabel(state.time)}</small></div>
         <div className="counter-unit-row"><span>{state.time.settings.enabled ? `${state.time.settings.timeScale}× time` : 'time paused'}</span><span>{Math.round(state.time.fatigue)}% fatigue</span><span>{Math.round(state.time.jetLag)}% jet lag</span></div>
       </div> : null}
+
+      {prefs.showDebt && debt.enabled ? <div className={`counter-card debt-counter ${debtInfo.defaultedDebt > 0 ? 'debt-counter-danger' : ''}`}>
+        <span className="counter-label">TOTAL DEBT</span>
+        <div className="counter-value"><b>{money(debtInfo.totalDebt)}</b><small>{debtInfo.activeObligations} creditor{debtInfo.activeObligations === 1 ? '' : 's'}</small></div>
+        <div className="counter-unit-row"><span>{debt.creditScore} credit</span><span>{money(debtInfo.monthlyEquivalentInterest)}/mo interest</span>{debtInfo.activeCourtCases ? <span>⚖️ {debtInfo.activeCourtCases} court</span> : null}</div>
+      </div> : null}
     </section>
 
     <div className="counter-actions">
@@ -108,6 +118,7 @@ export function MoneyCounter({ state, income }: { state: GameState; income: numb
         <label><input type="checkbox" checked={prefs.showRunClock} onChange={() => patchPref('showRunClock')} /> Playtime</label>
         <label><input type="checkbox" checked={prefs.showGameDay} onChange={() => patchPref('showGameDay')} /> Day / world time</label>
         <label><input type="checkbox" checked={prefs.showMilliseconds} onChange={() => patchPref('showMilliseconds')} /> Milliseconds</label>
+        <label><input type="checkbox" checked={prefs.showDebt} onChange={() => patchPref('showDebt')} disabled={!debt.enabled} /> Debt {debt.enabled ? '' : '(system off)'}</label>
       </div> : null}
     </div>
 
