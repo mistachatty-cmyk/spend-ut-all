@@ -15,6 +15,7 @@ import './settings.css';
 import './custom-scenarios.css';
 import './customizations.css';
 import './pixel-pets.css';
+import './looper-animations.css';
 import './lokdex.css';
 import './card-shop.css';
 import './card-releases.css';
