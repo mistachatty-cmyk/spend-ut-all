@@ -12,7 +12,7 @@ export function setDebtSystemEnabled(state: GameState, enabled: boolean): GameSt
   const current = debtOf(state);
   const summary = debtSummary(current);
   if (!enabled && (summary.totalDebt > 0 || summary.activeCourtCases > 0)) return state;
-  return { ...state, debt: { ...current, enabled }, updatedAt: Date.now() };
+  return { ...state, debt: { ...current, enabled, lastAdvancedGameMinute: state.time.gameMinute }, updatedAt: Date.now() };
 }
 
 export function collateralCandidates(state: GameState) {
@@ -74,6 +74,7 @@ export function borrowFromProduct(state: GameState, productId: string, collatera
   };
   const debt = normalizeDebtState({
     ...current,
+    lastAdvancedGameMinute: gameMinute,
     obligations: [...current.obligations, obligation],
     lifetimeBorrowed: current.lifetimeBorrowed + amount,
   });
@@ -103,6 +104,7 @@ export function repayDebt(state: GameState, debtId: string, requestedAmount: num
     cash: state.cash - payment,
     debt: normalizeDebtState({
       ...current,
+      lastAdvancedGameMinute: state.time.gameMinute,
       obligations,
       courtCases,
       creditScore: current.creditScore + (paid ? 8 : 2),
@@ -130,6 +132,7 @@ export function settleCourtCase(state: GameState, caseId: string): GameState {
     cash: state.cash - settlement,
     debt: normalizeDebtState({
       ...current,
+      lastAdvancedGameMinute: state.time.gameMinute,
       obligations: current.obligations.map((entry) => entry.id === debt.id ? { ...entry, balance: 0, status: 'paid' as const, missedPayments: 0 } : entry),
       courtCases: current.courtCases.map((entry) => entry.id === caseId ? { ...entry, stage: 'settled' as const, nextEventGameMinute: 0 } : entry),
       lifetimeRepaid: current.lifetimeRepaid + settlement,
