@@ -7,7 +7,7 @@ export type ItemCategory = 'everyday' | 'luxury' | 'property' | 'business' | 'in
 export type CitySpecializationId = 'finance' | 'technology' | 'industrial' | 'tourism';
 export type RunStatus = 'active' | 'bankrupt';
 export type AchievementKind = 'spent' | 'netWorth' | 'income' | 'house' | 'town' | 'region' | 'collection' | 'cash' | 'lifetimeIncome' | 'businesses' | 'incomeStreams' | 'combo';
-export type AchievementCategory = 'wealth' | 'time' | 'speedrunner' | 'wolf-boss' | 'comeback' | 'spending' | 'income' | 'business' | 'empire' | 'collection' | 'risk' | 'scenario' | 'secret';
+export type AchievementCategory = 'wealth' | 'speedrunner' | 'wolf-boss' | 'comeback' | 'spending' | 'income' | 'business' | 'empire' | 'collection' | 'risk' | 'scenario' | 'secret';
 export type AchievementConditionId =
   | 'nothing-millionaire' | 'nothing-billionaire' | 'nothing-trillionaire' | 'nothing-first-business' | 'nothing-first-home' | 'nothing-town' | 'nothing-metropolis' | 'nothing-planetary'
   | 'ten-x-win' | 'hundred-x-win' | 'thousand-x-win' | 'no-sales-millionaire' | 'debt-comeback' | 'deep-debt-comeback' | 'diversified' | 'all-businesses'
