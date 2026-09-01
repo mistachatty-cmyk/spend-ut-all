@@ -6,6 +6,7 @@ import { lokDexEntries } from '@/data/lokdex';
 import type { CustomizationInventory } from '@/game/customization-types';
 import type { LokDexCollection } from '@/game/lokdex-types';
 import {
+  applyCardCollectionMilestones,
   claimFreeCardPack,
   createCardShopState,
   ensureCardShopStarterGrant,
@@ -43,8 +44,11 @@ export function CardShopView({ inventory }: { inventory: CustomizationInventory 
 
   useEffect(() => {
     const synced = syncCompanionsToLokDex(loadLokDexCollection(), inventory);
+    const starter = ensureCardShopStarterGrant(loadCardShopState());
+    const milestone = applyCardCollectionMilestones(starter, synced);
     setCollection(saveLokDexCollection(synced));
-    setShop(saveCardShopState(ensureCardShopStarterGrant(loadCardShopState())));
+    setShop(saveCardShopState(milestone.shop));
+    if (milestone.creditsAwarded) setMessage(`Collection milestone reached · +${milestone.creditsAwarded} Card Credits.`);
     setNow(Date.now());
     setLoaded(true);
   }, []);
@@ -58,7 +62,12 @@ export function CardShopView({ inventory }: { inventory: CustomizationInventory 
   useEffect(() => {
     if (!loaded) return;
     const synced = syncCompanionsToLokDex(collection, inventory);
-    if (synced.cards.length !== collection.cards.length || synced.discoveredIds.length !== collection.discoveredIds.length) setCollection(synced);
+    if (synced.cards.length !== collection.cards.length || synced.discoveredIds.length !== collection.discoveredIds.length) {
+      const milestone = applyCardCollectionMilestones(shop, synced);
+      setCollection(synced);
+      setShop(milestone.shop);
+      if (milestone.creditsAwarded) setMessage(`Collection milestone reached · +${milestone.creditsAwarded} Card Credits.`);
+    }
   }, [inventory.ownedIds, loaded]);
 
   useEffect(() => {
@@ -80,7 +89,8 @@ export function CardShopView({ inventory }: { inventory: CustomizationInventory 
     setCollection(result.collection);
     setLastPulls(result.pulls);
     const newCount = result.pulls.filter((pull) => pull.isNewCharacter).length;
-    setMessage(`${result.pulls.length} cards opened${newCount ? ` · ${newCount} new LOKdex discover${newCount === 1 ? 'y' : 'ies'}` : ''}${result.discoveryBonus ? ` · +${result.discoveryBonus} discovery credits` : ''}.`);
+    const bonus = (result.discoveryBonus ?? 0) + (result.milestoneBonus ?? 0);
+    setMessage(`${result.pulls.length} cards opened${newCount ? ` · ${newCount} new LOKdex discover${newCount === 1 ? 'y' : 'ies'}` : ''}${bonus ? ` · +${bonus} bonus credits` : ''}.`);
   };
 
   const claimFree = () => {
@@ -89,7 +99,7 @@ export function CardShopView({ inventory }: { inventory: CustomizationInventory 
     setShop(result.shop);
     setCollection(result.collection);
     setLastPulls(result.pulls);
-    setMessage('Free Sample Pack opened. Come back when the shop timer refreshes.');
+    setMessage(`Free Sample Pack opened${result.milestoneBonus ? ` · collection milestone +${result.milestoneBonus} credits` : ''}.`);
   };
 
   const recycle = (characterId: string) => {
@@ -154,6 +164,6 @@ export function CardShopView({ inventory }: { inventory: CustomizationInventory 
 
     {tab === 'recycle' ? <section className="panel recycle-panel"><div className="section-heading"><div><span className="eyebrow">CARD RECYCLER</span><h3>Duplicates become Card Credits</h3></div><span>We protect your last copy automatically.</span></div>{duplicateGroups.length ? <div className="recycle-list">{duplicateGroups.map(({character,cards}) => <article key={character.id}><span>{affinityEmoji[character.affinity]}</span><div><b>{character.name}</b><small>{cards.length} copies · {character.rarity}</small></div><button onClick={() => recycle(character.id)}>Recycle one duplicate</button></article>)}</div> : <div className="empty-card-shop">No duplicate characters yet. Your last copy of every character is protected.</div>}</section> : null}
 
-    <section className="panel card-economy-stats"><span><small>Packs opened</small><b>{shop.packsOpened}</b></span><span><small>Cards pulled</small><b>{shop.cardsPulled}</b></span><span><small>Free packs</small><b>{shop.freePacksClaimed}</b></span><span><small>Credits spent</small><b>◫ {Math.floor(shop.lifetimeCreditsSpent).toLocaleString()}</b></span><span><small>Duplicates recycled</small><b>{shop.cardsRecycled}</b></span><span><small>Recycle income</small><b>◫ {Math.floor(shop.creditsFromRecycling).toLocaleString()}</b></span></section>
+    <section className="panel card-economy-stats"><span><small>Packs opened</small><b>{shop.packsOpened}</b></span><span><small>Cards pulled</small><b>{shop.cardsPulled}</b></span><span><small>Free packs</small><b>{shop.freePacksClaimed}</b></span><span><small>Credits spent</small><b>◫ {Math.floor(shop.lifetimeCreditsSpent).toLocaleString()}</b></span><span><small>Duplicates recycled</small><b>{shop.cardsRecycled}</b></span><span><small>Binder rewards</small><b>◫ {Math.floor(shop.creditsFromCollectionRewards).toLocaleString()}</b></span></section>
   </section>;
 }
