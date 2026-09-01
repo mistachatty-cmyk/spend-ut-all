@@ -1,7 +1,7 @@
 import { courtConfig } from '@/data/debt-products';
 import type { CourtCase, DebtCollateral, DebtObligation, DebtState, DebtSummary } from '../debt-types';
 
-export const DEBT_VERSION = 1;
+export const DEBT_VERSION = 2;
 const YEAR_GAME_MINUTES = 365 * 24 * 60;
 
 export function createDebtState(): DebtState {
@@ -18,6 +18,10 @@ export function createDebtState(): DebtState {
     lifetimeLegalCosts: 0,
     lifetimeDefaults: 0,
     lifetimeSeizures: 0,
+    lifetimeAutopayPaid: 0,
+    lifetimeRefinanced: 0,
+    lifetimeConsolidated: 0,
+    lifetimeForeclosures: 0,
   };
 }
 
@@ -41,6 +45,9 @@ function normalizeObligation(input: DebtObligation): DebtObligation {
     lastPaymentGameMinute: Math.max(0, finite(input.lastPaymentGameMinute)),
     defaultedAtGameMinute: input.defaultedAtGameMinute == null ? null : Math.max(0, finite(input.defaultedAtGameMinute)),
     collateral: input.collateral ?? null,
+    autopayMode: input.autopayMode ?? 'off',
+    refinanceCount: Math.max(0, Math.floor(finite(input.refinanceCount))),
+    refinancedFromIds: Array.isArray(input.refinancedFromIds) ? input.refinancedFromIds.filter((id) => typeof id === 'string') : [],
   };
 }
 
@@ -68,6 +75,10 @@ export function normalizeDebtState(input?: Partial<DebtState> | null): DebtState
     lifetimeLegalCosts: Math.max(0, finite(input?.lifetimeLegalCosts)),
     lifetimeDefaults: Math.max(0, Math.floor(finite(input?.lifetimeDefaults))),
     lifetimeSeizures: Math.max(0, Math.floor(finite(input?.lifetimeSeizures))),
+    lifetimeAutopayPaid: Math.max(0, finite(input?.lifetimeAutopayPaid)),
+    lifetimeRefinanced: Math.max(0, finite(input?.lifetimeRefinanced)),
+    lifetimeConsolidated: Math.max(0, finite(input?.lifetimeConsolidated)),
+    lifetimeForeclosures: Math.max(0, Math.floor(finite(input?.lifetimeForeclosures))),
   };
 }
 
@@ -75,7 +86,7 @@ export function debtMinimumPayment(debt: DebtObligation) {
   return Math.min(debt.balance, Math.max(1, debt.principal * debt.paymentPercent));
 }
 
-export function debtSummary(input: DebtState): DebtSummary {
+export function debtSummary(input?: DebtState | null): DebtSummary {
   const debt = normalizeDebtState(input);
   const active = debt.obligations.filter((entry) => !['paid', 'seized'].includes(entry.status) && entry.balance > 0);
   return {
@@ -86,11 +97,17 @@ export function debtSummary(input: DebtState): DebtSummary {
     activeObligations: active.length,
     activeCourtCases: debt.courtCases.filter((entry) => !['settled', 'dismissed'].includes(entry.stage)).length,
     pledgedAssets: active.filter((entry) => !!entry.collateral).length,
+    homeLoans: active.filter((entry) => entry.collateral?.kind === 'home').length,
+    autopayEnabled: active.filter((entry) => entry.autopayMode !== 'off').length,
   };
 }
 
-export function isItemPledged(input: DebtState, itemId: string) {
-  return normalizeDebtState(input).obligations.some((entry) => entry.balance > 0 && !['paid', 'seized'].includes(entry.status) && entry.collateral?.itemId === itemId);
+export function isItemPledged(input: DebtState | null | undefined, itemId: string) {
+  return normalizeDebtState(input).obligations.some((entry) => entry.balance > 0 && !['paid', 'seized'].includes(entry.status) && entry.collateral?.kind === 'item' && entry.collateral.itemId === itemId);
+}
+
+export function hasHomeLien(input?: DebtState | null) {
+  return normalizeDebtState(input).obligations.some((entry) => entry.balance > 0 && !['paid', 'seized'].includes(entry.status) && entry.collateral?.kind === 'home');
 }
 
 function accrueInterest(debt: DebtObligation, deltaGameMinutes: number) {
@@ -114,12 +131,21 @@ function makeCourtCase(debt: DebtObligation, gameMinute: number): CourtCase {
   };
 }
 
-export function advanceDebtState(input: DebtState, previousGameMinute: number, currentGameMinute: number) {
+function autopayAmount(debt: DebtObligation, cashAvailable: number) {
+  if (debt.autopayMode === 'off' || cashAvailable <= 0) return 0;
+  const minimum = debtMinimumPayment(debt);
+  if (debt.autopayMode === 'full' && cashAvailable >= debt.balance) return debt.balance;
+  return cashAvailable >= minimum ? minimum : 0;
+}
+
+export function advanceDebtState(input: DebtState | null | undefined, previousGameMinute: number, currentGameMinute: number, availableCash = 0) {
   let state = normalizeDebtState(input);
-  if (!state.enabled || currentGameMinute <= previousGameMinute) return { debt: { ...state, lastAdvancedGameMinute: Math.max(state.lastAdvancedGameMinute, currentGameMinute) }, seized: [] as DebtCollateral[] };
+  if (!state.enabled || currentGameMinute <= previousGameMinute) return { debt: { ...state, lastAdvancedGameMinute: Math.max(state.lastAdvancedGameMinute, currentGameMinute) }, seized: [] as DebtCollateral[], cashUsed: 0 };
   const delta = currentGameMinute - previousGameMinute;
   let interestTotal = 0;
   let defaults = 0;
+  let autopayPaid = 0;
+  let cashRemaining = Math.max(0, availableCash);
   const seized: DebtCollateral[] = [];
 
   let obligations = state.obligations.map((raw) => {
@@ -130,18 +156,35 @@ export function advanceDebtState(input: DebtState, previousGameMinute: number, c
     if (debt.balance <= 0 || ['paid', 'seized'].includes(debt.status)) return debt;
 
     let safety = 0;
-    while (currentGameMinute >= debt.nextPaymentGameMinute && safety < 24 && !['default', 'judgment'].includes(debt.status)) {
-      debt = { ...debt, missedPayments: debt.missedPayments + 1, status: 'late', nextPaymentGameMinute: debt.nextPaymentGameMinute + debt.paymentIntervalGameMinutes };
+    while (currentGameMinute >= debt.nextPaymentGameMinute && safety < 24 && !['default', 'judgment', 'paid', 'seized'].includes(debt.status)) {
+      const autoPayment = autopayAmount(debt, cashRemaining);
+      if (autoPayment > 0) {
+        cashRemaining -= autoPayment;
+        autopayPaid += autoPayment;
+        const balance = Math.max(0, debt.balance - autoPayment);
+        const paid = balance <= 0.01;
+        debt = {
+          ...debt,
+          balance: paid ? 0 : balance,
+          status: paid ? 'paid' : 'current',
+          missedPayments: 0,
+          lastPaymentGameMinute: debt.nextPaymentGameMinute,
+          nextPaymentGameMinute: debt.nextPaymentGameMinute + debt.paymentIntervalGameMinutes,
+          defaultedAtGameMinute: null,
+        };
+      } else {
+        debt = { ...debt, missedPayments: debt.missedPayments + 1, status: 'late', nextPaymentGameMinute: debt.nextPaymentGameMinute + debt.paymentIntervalGameMinutes };
+      }
       safety += 1;
     }
 
     const lastDue = debt.nextPaymentGameMinute - debt.paymentIntervalGameMinutes;
-    if (!['default', 'judgment'].includes(debt.status) && debt.missedPayments >= debt.defaultAfterMisses && currentGameMinute >= lastDue + debt.graceGameMinutes) {
+    if (!['default', 'judgment', 'paid', 'seized'].includes(debt.status) && debt.missedPayments >= debt.defaultAfterMisses && currentGameMinute >= lastDue + debt.graceGameMinutes) {
       debt = { ...debt, status: 'default', defaultedAtGameMinute: currentGameMinute };
       defaults += 1;
     }
 
-    if (debt.status === 'default' && debt.security === 'item' && debt.collateral && debt.defaultedAtGameMinute != null && currentGameMinute >= debt.defaultedAtGameMinute + debt.graceGameMinutes) {
+    if (debt.status === 'default' && debt.security !== 'unsecured' && debt.collateral && debt.defaultedAtGameMinute != null && currentGameMinute >= debt.defaultedAtGameMinute + debt.graceGameMinutes) {
       seized.push(debt.collateral);
       debt = { ...debt, status: 'seized', balance: 0 };
     }
@@ -175,16 +218,20 @@ export function advanceDebtState(input: DebtState, previousGameMinute: number, c
     return court;
   });
 
+  const foreclosures = seized.filter((entry) => entry.kind === 'home').length;
   state = normalizeDebtState({
     ...state,
     lastAdvancedGameMinute: currentGameMinute,
     obligations,
     courtCases,
-    creditScore: state.creditScore - defaults * 90 - seized.length * 35,
+    creditScore: state.creditScore - defaults * 90 - seized.length * 35 + (autopayPaid > 0 ? 1 : 0),
     lifetimeInterest: state.lifetimeInterest + interestTotal,
     lifetimeLegalCosts: state.lifetimeLegalCosts + legalCosts,
     lifetimeDefaults: state.lifetimeDefaults + defaults,
     lifetimeSeizures: state.lifetimeSeizures + seized.length,
+    lifetimeForeclosures: state.lifetimeForeclosures + foreclosures,
+    lifetimeRepaid: state.lifetimeRepaid + autopayPaid,
+    lifetimeAutopayPaid: state.lifetimeAutopayPaid + autopayPaid,
   });
-  return { debt: state, seized };
+  return { debt: state, seized, cashUsed: autopayPaid };
 }
