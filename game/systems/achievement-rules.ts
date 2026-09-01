@@ -18,8 +18,8 @@ function ownedIncomeStreams(state: GameState) {
   return Object.values(state.incomeStreams ?? {}).reduce((total, count) => total + count, 0);
 }
 
-function elapsedMs(state: GameState, now: number) {
-  return Math.max(0, now - state.createdAt);
+function activeElapsedMs(state: GameState) {
+  return Math.max(0, state.activePlayMs ?? 0);
 }
 
 function ownsMarketplaceAsset(state: GameState) {
@@ -50,7 +50,7 @@ export function achievementUnlockedByRule(state: GameState, achievement: Achieve
   if (achievement.kind === 'businesses') return foundedBusinesses(state) >= achievement.threshold;
   if (achievement.kind === 'incomeStreams') return ownedIncomeStreams(state) >= achievement.threshold;
 
-  const elapsed = elapsedMs(state, now);
+  const elapsed = activeElapsedMs(state);
   const businesses = foundedBusinesses(state);
   const streams = ownedIncomeStreams(state);
 
@@ -74,9 +74,21 @@ export function achievementUnlockedByRule(state: GameState, achievement: Achieve
     case 'nothing-million-speed-10m': return state.scenarioId === 'nothing' && metrics.netWorth >= 1_000_000 && elapsed <= 10 * 60_000;
     case 'nothing-million-speed-5m': return state.scenarioId === 'nothing' && metrics.netWorth >= 1_000_000 && elapsed <= 5 * 60_000;
     case 'nothing-million-speed-2m': return state.scenarioId === 'nothing' && metrics.netWorth >= 1_000_000 && elapsed <= 2 * 60_000;
+    case 'nothing-million-under-60s': return state.scenarioId === 'nothing' && metrics.netWorth >= 1_000_000 && elapsed <= 60_000;
     case 'billion-speed-30m': return metrics.netWorth >= 1_000_000_000 && elapsed <= 30 * 60_000;
     case 'town-speed-15m': return state.townLevel >= 1 && elapsed <= 15 * 60_000;
     case 'metropolis-speed-60m': return state.townLevel >= 5 && elapsed <= 60 * 60_000;
+
+    case 'play-1s': return elapsed >= 1_000;
+    case 'play-10s': return elapsed >= 10_000;
+    case 'play-1m': return elapsed >= 60_000;
+    case 'play-10m': return elapsed >= 10 * 60_000;
+    case 'play-1h': return elapsed >= 60 * 60_000;
+    case 'play-6h': return elapsed >= 6 * 60 * 60_000;
+    case 'play-24h': return elapsed >= 24 * 60 * 60_000;
+    case 'play-7d': return elapsed >= 7 * 24 * 60 * 60_000;
+    case 'risk-survive-30m': return state.riskMode && state.runStatus === 'active' && elapsed >= 30 * 60_000;
+    case 'spendutall-after-24h': return elapsed >= 24 * 60 * 60_000 && state.totalSpent >= SPENDUTALL_SUPER_THRESHOLD;
 
     case 'wolf-first-billion': return businesses >= 1 && metrics.netWorth >= 1_000_000_000;
     case 'wolf-three-businesses': return businesses >= 3 && metrics.netWorth >= 100_000_000;
