@@ -6,6 +6,9 @@ export const customizationCatalog: CustomizationDefinition[] = [
   { id: 'theme-cozy-cafe', kind: 'theme', name: 'Cozy Café', emoji: '☕', description: 'Warm paper, coffee-shop surfaces, and softer motion.', rarity: 'uncommon', acquisition: ['lok'], lokPrice: 45, previewKey: 'cozy-cafe' },
   { id: 'theme-executive-glass', kind: 'theme', name: 'Executive Glass', emoji: '🏙️', description: 'Dark glass panels and restrained executive styling.', rarity: 'rare', acquisition: ['lok'], lokPrice: 90, previewKey: 'executive-glass' },
   { id: 'theme-market-terminal', kind: 'theme', name: 'Market Terminal', emoji: '📈', description: 'Dense terminal-inspired surfaces for finance-heavy runs.', rarity: 'rare', acquisition: ['lok'], lokPrice: 120, previewKey: 'market-terminal' },
+  { id: 'theme-pixel-office', kind: 'theme', name: 'Pixel Office', emoji: '🕹️', description: 'A crisp retro office treatment that pairs naturally with future pixel LOK Pets.', rarity: 'rare', acquisition: ['lok'], lokPrice: 110, previewKey: 'pixel-office' },
+  { id: 'theme-neon-pulse', kind: 'theme', name: 'Neon Pulse', emoji: '💜', description: 'Animated neon edge lighting with a restrained moving glow.', rarity: 'epic', acquisition: ['lok'], lokPrice: 160, previewKey: 'neon-pulse' },
+  { id: 'theme-aurora-ledger', kind: 'theme', name: 'Aurora Ledger', emoji: '🌌', description: 'A slow animated aurora washes behind the financial dashboard without hurting readability.', rarity: 'epic', acquisition: ['lok'], lokPrice: 185, previewKey: 'aurora-ledger' },
   { id: 'theme-lunar-office', kind: 'theme', name: 'Lunar Office', emoji: '🌕', description: 'A late-game lunar command treatment earned through planetary progression.', rarity: 'legendary', acquisition: ['scenario'], requirementId: 'region-planetary', previewKey: 'lunar-office' },
 
   { id: 'hud-default', kind: 'hud', name: 'Classic HUD', emoji: '🧭', description: 'The standard money, LOK, time, and world counters.', rarity: 'common', acquisition: ['starter'] },
@@ -13,6 +16,8 @@ export const customizationCatalog: CustomizationDefinition[] = [
   { id: 'counter-smooth', kind: 'money-counter', name: 'Smooth Roller', emoji: '💵', description: 'The standard animated money counter.', rarity: 'common', acquisition: ['starter'], previewKey: 'smooth' },
   { id: 'counter-flip', kind: 'money-counter', name: 'Flip Board', emoji: '🔢', description: 'Mechanical split-flap inspired money presentation.', rarity: 'uncommon', acquisition: ['lok'], lokPrice: 30, previewKey: 'flip' },
   { id: 'counter-terminal', kind: 'money-counter', name: 'Terminal Digits', emoji: '🖥️', description: 'Compact monospaced financial terminal digits.', rarity: 'rare', acquisition: ['lok'], lokPrice: 65, previewKey: 'terminal' },
+  { id: 'counter-neon', kind: 'money-counter', name: 'Neon Meter', emoji: '💡', description: 'A softly pulsing luminous balance designed for dark themes.', rarity: 'rare', acquisition: ['lok'], lokPrice: 80, previewKey: 'neon' },
+  { id: 'counter-hologram', kind: 'money-counter', name: 'Hologram Ledger', emoji: '🫧', description: 'An animated scan-line and shimmer treatment for the main wealth counter.', rarity: 'epic', acquisition: ['lok'], lokPrice: 125, previewKey: 'hologram' },
   { id: 'counter-gold', kind: 'money-counter', name: 'Golden Fortune', emoji: '✨', description: 'A premium gold treatment for very large balances.', rarity: 'epic', acquisition: ['lok'], lokPrice: 140, previewKey: 'gold' },
   { id: 'counter-spendutall', kind: 'money-counter', name: 'SPENDUTALL Singularity', emoji: '🌀', description: 'A mythic counter treatment awarded for the SPENDUTALL super achievement.', rarity: 'mythic', acquisition: ['achievement'], requirementId: 'spendutall-super', previewKey: 'singularity' },
 
@@ -20,6 +25,8 @@ export const customizationCatalog: CustomizationDefinition[] = [
   { id: 'frame-bootstrapped', kind: 'profile-frame', name: 'Bootstrapped', emoji: '🧗', description: 'A self-made profile frame earned from nothing.', rarity: 'rare', acquisition: ['achievement'], requirementId: 'nothing-millionaire' },
 
   { id: 'accessory-coffee-mug', kind: 'pet-accessory', name: 'Tiny Coffee Mug', emoji: '☕', description: 'A tiny companion mug for long economy sessions.', rarity: 'common', acquisition: ['lok'], lokPrice: 15 },
+  { id: 'accessory-headphones', kind: 'pet-accessory', name: 'Pixel Headphones', emoji: '🎧', description: 'Tiny headphones for companions that look especially good in Pixel Office.', rarity: 'uncommon', acquisition: ['lok'], lokPrice: 25 },
+  { id: 'accessory-glow-orb', kind: 'pet-accessory', name: 'Glow Orb', emoji: '🔮', description: 'A small luminous companion trinket with no economic effect.', rarity: 'rare', acquisition: ['lok'], lokPrice: 40 },
   { id: 'accessory-crown', kind: 'pet-accessory', name: 'Mini Crown', emoji: '👑', description: 'A ridiculous tiny crown for your equipped LOK Pet.', rarity: 'rare', acquisition: ['lok'], lokPrice: 45 },
 ];
 
