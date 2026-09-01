@@ -8,6 +8,7 @@ export function createDebtState(): DebtState {
   return {
     version: DEBT_VERSION,
     enabled: false,
+    lastAdvancedGameMinute: 0,
     obligations: [],
     courtCases: [],
     creditScore: 650,
@@ -50,6 +51,7 @@ export function normalizeDebtState(input?: Partial<DebtState> | null): DebtState
     ...input,
     version: DEBT_VERSION,
     enabled: input?.enabled ?? base.enabled,
+    lastAdvancedGameMinute: Math.max(0, finite(input?.lastAdvancedGameMinute)),
     obligations: Array.isArray(input?.obligations) ? input!.obligations.map((entry) => normalizeObligation(entry as DebtObligation)) : [],
     courtCases: Array.isArray(input?.courtCases) ? input!.courtCases.map((entry) => ({
       ...(entry as CourtCase),
@@ -114,7 +116,7 @@ function makeCourtCase(debt: DebtObligation, gameMinute: number): CourtCase {
 
 export function advanceDebtState(input: DebtState, previousGameMinute: number, currentGameMinute: number) {
   let state = normalizeDebtState(input);
-  if (!state.enabled || currentGameMinute <= previousGameMinute) return { debt: state, seized: [] as DebtCollateral[] };
+  if (!state.enabled || currentGameMinute <= previousGameMinute) return { debt: { ...state, lastAdvancedGameMinute: Math.max(state.lastAdvancedGameMinute, currentGameMinute) }, seized: [] as DebtCollateral[] };
   const delta = currentGameMinute - previousGameMinute;
   let interestTotal = 0;
   let defaults = 0;
@@ -175,6 +177,7 @@ export function advanceDebtState(input: DebtState, previousGameMinute: number, c
 
   state = normalizeDebtState({
     ...state,
+    lastAdvancedGameMinute: currentGameMinute,
     obligations,
     courtCases,
     creditScore: state.creditScore - defaults * 90 - seized.length * 35,
