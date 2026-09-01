@@ -3,6 +3,7 @@ import type { CityEconomyState } from './city-types';
 import type { TimeSimulationState } from './time-types';
 import type { GameRules } from './rules-types';
 import type { CustomScenarioDefinition } from './custom-scenario-types';
+import type { DebtState } from './debt-types';
 
 export type FinancialMode = 'simple' | 'advanced';
 export type ScenarioId = 'nothing' | 'freeplay' | 'ten-x' | 'hundred-x' | 'thousand-x' | 'billionaire' | 'trillionaire' | 'custom';
@@ -35,7 +36,7 @@ export type Achievement = { id: string; name: string; description: string; emoji
 
 export type GameState = {
   started: boolean; scenarioId: ScenarioId; customScenario: CustomScenarioDefinition | null; mode: FinancialMode; cash: number; totalSpent: number; totalSold: number; lifetimeIncome: number;
-  owned: Record<string, number>; incomeStreams: Record<string, number>; businesses: BusinessPortfolio; cityEconomy: CityEconomyState; time: TimeSimulationState; rules: GameRules;
+  owned: Record<string, number>; incomeStreams: Record<string, number>; businesses: BusinessPortfolio; cityEconomy: CityEconomyState; time: TimeSimulationState; rules: GameRules; debt: DebtState;
   houseLevel: number; townLevel: number; regionLevel: number; upgrades: Record<string, number>; citySpecialization: CitySpecializationId | null;
   activeEventId: string | null; eventEndsAt: number; nextEventAt: number; lastOfflineIncome: number;
   riskMode: boolean; runStatus: RunStatus; bankruptcyDeadline: number; bankruptcyWarnings: number;
