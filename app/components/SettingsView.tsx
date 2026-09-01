@@ -5,11 +5,13 @@ import { applyRulePreset, normalizeGameRules } from '@/game/systems/rules';
 import { lokRuntime } from '@/integrations/lok/runtime';
 import type { GameState } from '@/game/types';
 
+type RuleSection = 'economy' | 'world' | 'difficulty' | 'progression';
+
 export function SettingsView({ state, setState }: { state: GameState; setState: React.Dispatch<React.SetStateAction<GameState | null>> }) {
   const wallet = lokRuntime.snapshot();
-  const patchRules = (section: keyof GameState['rules'], patch: Record<string, number | boolean>) => setState((current) => {
+  const patchRules = (section: RuleSection, patch: Record<string, number | boolean>) => setState((current) => {
     if (!current) return current;
-    const nextRules = normalizeGameRules({ ...current.rules, [section]: { ...current.rules[section], ...patch } });
+    const nextRules = normalizeGameRules({ ...current.rules, [section]: { ...current.rules[section], ...patch } } as GameState['rules']);
     return { ...current, rules: nextRules, updatedAt: Date.now() };
   });
   const patchTime = (patch: Partial<GameState['time']['settings']>) => setState((current) => current ? { ...current, time: { ...current.time, settings: { ...current.time.settings, ...patch } }, updatedAt: Date.now() } : current);
