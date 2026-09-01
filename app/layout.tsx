@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from 'next';
 import { CardDistrictLink } from '@/app/components/CardDistrictLink';
 import { DiscoveryNotifier } from '@/app/components/DiscoveryNotifier';
 import { MicroAnimationLayer } from '@/app/components/MicroAnimationLayer';
+import { StarterCompanionPrompt } from '@/app/components/StarterCompanionPrompt';
 import './globals.css';
 import './empire.css';
 import './collection.css';
@@ -21,6 +22,7 @@ import './effects-levels.css';
 import './debt.css';
 import './game-shell.css';
 import './card-access.css';
+import './card-district-access.css';
 
 export const metadata: Metadata = {
   title: 'Spend It All',
@@ -35,5 +37,5 @@ export const viewport: Viewport = {
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
-  return <html lang="en" data-effects-level="1"><body><CardDistrictLink />{children}<DiscoveryNotifier /><MicroAnimationLayer /></body></html>;
+  return <html lang="en" data-effects-level="1"><body><CardDistrictLink /><StarterCompanionPrompt />{children}<DiscoveryNotifier /><MicroAnimationLayer /></body></html>;
 }
