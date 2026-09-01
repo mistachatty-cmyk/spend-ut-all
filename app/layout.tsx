@@ -10,6 +10,7 @@ import './time.css';
 import './settings.css';
 import './custom-scenarios.css';
 import './customizations.css';
+import './debt.css';
 
 export const metadata: Metadata = {
   title: 'Spend It All',
