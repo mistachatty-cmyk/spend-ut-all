@@ -6,6 +6,8 @@ import type { CustomizationInventory, CustomizationKind } from '@/game/customiza
 import { equipCustomization, grantCustomization, isEquipped, saveCustomizationInventory } from '@/game/systems/customizations';
 import type { GameState } from '@/game/types';
 import { lokRuntime } from '@/integrations/lok/runtime';
+import { LokDexPanel } from './LokDexPanel';
+import { PixelPetSprite } from './PixelPetSprite';
 
 const tabs: Array<{ id: 'all' | CustomizationKind; label: string }> = [
   { id: 'all', label: 'All' },
@@ -64,6 +66,7 @@ export function CustomizationView({ state, setState, inventory, onInventoryChang
 
     <nav className="customization-tabs">{tabs.map((entry) => <button key={entry.id} className={tab === entry.id ? 'active' : ''} onClick={() => setTab(entry.id)}>{entry.label}</button>)}</nav>
     {message ? <div className="customization-message" aria-live="polite">{message}</div> : null}
+    {tab === 'all' || tab === 'pet' ? <LokDexPanel inventory={inventory} /> : null}
 
     <section className="customization-grid">{visible.map((item) => {
       const owned = inventory.ownedIds.includes(item.id);
@@ -71,7 +74,7 @@ export function CustomizationView({ state, setState, inventory, onInventoryChang
       const lokBuyable = item.acquisition.includes('lok') && typeof item.lokPrice === 'number';
       const requirement = item.requirementId ? requirementNames[item.requirementId] ?? item.requirementId : null;
       return <article className={`customization-card rarity-${item.rarity} ${equipped ? 'equipped' : ''}`} key={item.id}>
-        <div className="customization-icon">{item.emoji ?? '✨'}</div>
+        <div className="customization-icon">{item.kind === 'pet' ? <PixelPetSprite petId={item.id} mood={owned ? 'happy' : 'idle'} silhouette={!owned} size={48} /> : item.emoji ?? '✨'}</div>
         <div className="customization-copy"><div className="customization-title"><h3>{item.name}</h3><span>{item.rarity}</span></div><p>{item.description}</p>
           <div className="customization-tags"><span>{item.kind.replace('-', ' ')}</span>{item.acquisition.map((method) => <span key={method}>{method.replace('-', ' ')}</span>)}</div>
           {item.kind === 'pet' && 'personality' in item ? <small className="pet-personality">{String(item.personality)}</small> : null}
