@@ -1,10 +1,12 @@
 import { courtConfig, debtProducts } from '@/data/debt-products';
-import { items } from '@/data/content';
-import type { DebtObligation, DebtProductDefinition } from './debt-types';
+import { houseTiers, items } from '@/data/content';
+import type { AutopayMode, DebtObligation, DebtProductDefinition } from './debt-types';
 import type { GameState } from './types';
 import { foundedBusinessCount } from './systems/businesses';
-import { debtMinimumPayment, debtSummary, isItemPledged, normalizeDebtState } from './systems/debt';
+import { debtMinimumPayment, debtSummary, hasHomeLien, isItemPledged, normalizeDebtState } from './systems/debt';
+import { leveragedNetWorth } from './debt-runtime';
 
+const DAY = 24 * 60;
 function clamp(value: number, min: number, max: number) { return Math.min(max, Math.max(min, value)); }
 function debtOf(state: GameState) { return normalizeDebtState(state.debt); }
 
@@ -30,6 +32,7 @@ export function canBorrowProduct(state: GameState, product: DebtProductDefinitio
   if (product.requiresBusiness && foundedBusinessCount(state.businesses ?? {}) < 1) return false;
   if (debtSummary(current).activeObligations >= 12) return false;
   if (product.security === 'item') return !!collateralCandidates(state).find((item) => item.id === collateralItemId);
+  if (product.security === 'home') return false;
   return true;
 }
 
@@ -39,6 +42,7 @@ export function estimatedBorrowAmount(state: GameState, product: DebtProductDefi
     const item = collateralCandidates(state).find((entry) => entry.id === collateralItemId);
     return item ? Math.max(1_000, item.pledgedValue * (product.collateralLtv ?? 0.5)) : 0;
   }
+  if (product.security === 'home') return 0;
   const creditFactor = clamp((current.creditScore - 400) / 250, 0.55, 1.35);
   return Math.max(100, product.baseAmount * creditFactor);
 }
@@ -71,6 +75,9 @@ export function borrowFromProduct(state: GameState, productId: string, collatera
     lastPaymentGameMinute: gameMinute,
     defaultedAtGameMinute: null,
     collateral: collateralItem ? { kind: 'item', itemId: collateralItem.id, quantity: 1, pledgedValue: collateralItem.pledgedValue } : null,
+    autopayMode: 'off',
+    refinanceCount: 0,
+    refinancedFromIds: [],
   };
   const debt = normalizeDebtState({
     ...current,
@@ -97,6 +104,7 @@ export function repayDebt(state: GameState, debtId: string, requestedAmount: num
     missedPayments: paid ? 0 : Math.max(0, entry.missedPayments - 1),
     lastPaymentGameMinute: state.time.gameMinute,
     nextPaymentGameMinute: entry.status === 'late' ? state.time.gameMinute + entry.paymentIntervalGameMinutes : entry.nextPaymentGameMinute,
+    defaultedAtGameMinute: paid ? null : entry.defaultedAtGameMinute,
   } : entry);
   const courtCases = paid ? current.courtCases.map((entry) => entry.debtId === debtId && entry.stage !== 'judgment' ? { ...entry, stage: 'dismissed' as const, nextEventGameMinute: 0 } : entry) : current.courtCases;
   return {
@@ -119,6 +127,168 @@ export function repayMinimum(state: GameState, debtId: string) {
   return debt ? repayDebt(state, debtId, debtMinimumPayment(debt)) : state;
 }
 
+export function setDebtAutopay(state: GameState, debtId: string, mode: AutopayMode): GameState {
+  const current = debtOf(state);
+  if (!current.enabled) return state;
+  const obligations = current.obligations.map((entry) => entry.id === debtId && entry.balance > 0 && !['paid', 'seized', 'judgment'].includes(entry.status) ? { ...entry, autopayMode: mode } : entry);
+  return { ...state, debt: normalizeDebtState({ ...current, obligations }), updatedAt: Date.now() };
+}
+
+export function refinanceQuote(state: GameState, debtId: string) {
+  const current = debtOf(state);
+  const debt = current.obligations.find((entry) => entry.id === debtId);
+  if (!debt || debt.balance < 1_000 || ['default', 'judgment', 'paid', 'seized'].includes(debt.status) || current.creditScore < 600) return null;
+  if (current.courtCases.some((entry) => entry.debtId === debt.id && !['dismissed', 'settled'].includes(entry.stage))) return null;
+  const scoreFactor = clamp((current.creditScore - 600) / 250, 0, 1);
+  const rateReduction = 0.01 + scoreFactor * 0.04;
+  const apr = Math.max(0.045, debt.apr - rateReduction);
+  if (apr >= debt.apr - 0.002) return null;
+  const fee = debt.balance * 0.02;
+  return { oldApr: debt.apr, apr, fee, newBalance: debt.balance + fee };
+}
+
+export function refinanceDebt(state: GameState, debtId: string): GameState {
+  const quote = refinanceQuote(state, debtId);
+  if (!quote) return state;
+  const current = debtOf(state);
+  const obligations = current.obligations.map((entry) => entry.id === debtId ? {
+    ...entry,
+    principal: quote.newBalance,
+    balance: quote.newBalance,
+    apr: quote.apr,
+    status: 'current' as const,
+    missedPayments: 0,
+    nextPaymentGameMinute: state.time.gameMinute + entry.paymentIntervalGameMinutes,
+    defaultedAtGameMinute: null,
+    refinanceCount: entry.refinanceCount + 1,
+    refinancedFromIds: [...entry.refinancedFromIds, `${entry.productId}@${entry.refinanceCount}`],
+  } : entry);
+  return {
+    ...state,
+    debt: normalizeDebtState({
+      ...current,
+      obligations,
+      creditScore: current.creditScore - 2,
+      lifetimeRefinanced: current.lifetimeRefinanced + quote.newBalance,
+    }),
+    updatedAt: Date.now(),
+  };
+}
+
+export function consolidationQuote(state: GameState) {
+  const current = debtOf(state);
+  if (current.creditScore < 600) return null;
+  const eligible = current.obligations.filter((entry) => entry.security === 'unsecured' && entry.balance > 0 && ['current', 'late'].includes(entry.status));
+  if (eligible.length < 2) return null;
+  const balance = eligible.reduce((sum, entry) => sum + entry.balance, 0);
+  const weightedApr = eligible.reduce((sum, entry) => sum + entry.apr * entry.balance, 0) / Math.max(1, balance);
+  const scoreFactor = clamp((current.creditScore - 600) / 250, 0, 1);
+  const apr = Math.max(0.06, weightedApr - (0.01 + scoreFactor * 0.025));
+  const fee = balance * 0.025;
+  return { debtIds: eligible.map((entry) => entry.id), balance, fee, newBalance: balance + fee, weightedApr, apr };
+}
+
+export function consolidateDebts(state: GameState): GameState {
+  const quote = consolidationQuote(state);
+  if (!quote) return state;
+  const current = debtOf(state);
+  const sourceIds = new Set(quote.debtIds);
+  const gameMinute = state.time.gameMinute;
+  const replacement: DebtObligation = {
+    id: `consolidated-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+    productId: 'consolidation-note',
+    creditorName: 'Union Consolidation Desk',
+    creditorType: 'bank',
+    security: 'unsecured',
+    principal: quote.newBalance,
+    balance: quote.newBalance,
+    apr: quote.apr,
+    paymentPercent: 0.055,
+    paymentIntervalGameMinutes: 30 * DAY,
+    nextPaymentGameMinute: gameMinute + 30 * DAY,
+    graceGameMinutes: 7 * DAY,
+    defaultAfterMisses: 2,
+    missedPayments: 0,
+    status: 'current',
+    originatedAtGameMinute: gameMinute,
+    lastPaymentGameMinute: gameMinute,
+    defaultedAtGameMinute: null,
+    collateral: null,
+    autopayMode: 'minimum',
+    refinanceCount: 0,
+    refinancedFromIds: [...quote.debtIds],
+  };
+  const obligations = current.obligations.map((entry) => sourceIds.has(entry.id) ? { ...entry, balance: 0, status: 'paid' as const, autopayMode: 'off' as const } : entry);
+  return {
+    ...state,
+    debt: normalizeDebtState({
+      ...current,
+      obligations: [...obligations, replacement],
+      creditScore: current.creditScore - 4,
+      lifetimeConsolidated: current.lifetimeConsolidated + quote.balance,
+    }),
+    updatedAt: Date.now(),
+  };
+}
+
+export function mortgageQuote(state: GameState) {
+  const current = debtOf(state);
+  const nextHome = houseTiers.find((tier) => tier.level === state.houseLevel + 1);
+  if (!current.enabled || !nextHome || state.runStatus !== 'active' || current.creditScore < 580 || hasHomeLien(current)) return null;
+  const purchasePrice = nextHome.cost * state.rules.economy.purchasePriceMultiplier;
+  const downRate = current.creditScore >= 700 ? 0.15 : current.creditScore >= 640 ? 0.20 : 0.30;
+  const downPayment = purchasePrice * downRate;
+  const financed = purchasePrice - downPayment;
+  const apr = current.creditScore >= 740 ? 0.0625 : current.creditScore >= 700 ? 0.0725 : current.creditScore >= 640 ? 0.09 : 0.115;
+  return { nextHome, purchasePrice, downRate, downPayment, financed, apr, affordable: state.cash >= downPayment };
+}
+
+export function financeNextHome(state: GameState): GameState {
+  const quote = mortgageQuote(state);
+  if (!quote || !quote.affordable) return state;
+  const current = debtOf(state);
+  const gameMinute = state.time.gameMinute;
+  const obligation: DebtObligation = {
+    id: `mortgage-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+    productId: 'home-mortgage',
+    creditorName: 'G-Six Home Finance',
+    creditorType: 'mortgage-lender',
+    security: 'home',
+    principal: quote.financed,
+    balance: quote.financed,
+    apr: quote.apr,
+    paymentPercent: 0.01,
+    paymentIntervalGameMinutes: 30 * DAY,
+    nextPaymentGameMinute: gameMinute + 30 * DAY,
+    graceGameMinutes: 14 * DAY,
+    defaultAfterMisses: 3,
+    missedPayments: 0,
+    status: 'current',
+    originatedAtGameMinute: gameMinute,
+    lastPaymentGameMinute: gameMinute,
+    defaultedAtGameMinute: null,
+    collateral: { kind: 'home', houseLevel: quote.nextHome.level, pledgedValue: quote.purchasePrice },
+    autopayMode: 'minimum',
+    refinanceCount: 0,
+    refinancedFromIds: [],
+  };
+  const cash = state.cash - quote.downPayment;
+  return {
+    ...state,
+    cash,
+    totalSpent: state.totalSpent + quote.purchasePrice,
+    houseLevel: quote.nextHome.level,
+    lowestCash: Math.min(state.lowestCash, cash),
+    debt: normalizeDebtState({
+      ...current,
+      obligations: [...current.obligations, obligation],
+      lifetimeBorrowed: current.lifetimeBorrowed + quote.financed,
+      creditScore: current.creditScore - 3,
+    }),
+    updatedAt: Date.now(),
+  };
+}
+
 export function settleCourtCase(state: GameState, caseId: string): GameState {
   const current = debtOf(state);
   const court = current.courtCases.find((entry) => entry.id === caseId);
@@ -133,11 +303,17 @@ export function settleCourtCase(state: GameState, caseId: string): GameState {
     debt: normalizeDebtState({
       ...current,
       lastAdvancedGameMinute: state.time.gameMinute,
-      obligations: current.obligations.map((entry) => entry.id === debt.id ? { ...entry, balance: 0, status: 'paid' as const, missedPayments: 0 } : entry),
+      obligations: current.obligations.map((entry) => entry.id === debt.id ? { ...entry, balance: 0, status: 'paid' as const, missedPayments: 0, autopayMode: 'off' as const } : entry),
       courtCases: current.courtCases.map((entry) => entry.id === caseId ? { ...entry, stage: 'settled' as const, nextEventGameMinute: 0 } : entry),
       lifetimeRepaid: current.lifetimeRepaid + settlement,
       creditScore: current.creditScore + 4,
     }),
     updatedAt: Date.now(),
   };
+}
+
+export function debtLeverageRatio(state: GameState) {
+  const debt = debtSummary(debtOf(state)).totalDebt;
+  const worth = Math.max(1, leveragedNetWorth(state));
+  return debt / worth;
 }
