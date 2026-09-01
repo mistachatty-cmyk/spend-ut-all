@@ -1,3 +1,4 @@
+import { lokRuntime } from '@/integrations/lok/runtime';
 import { normalizeBusinessPortfolio } from './businesses';
 import { normalizeCityEconomy } from './city-economy';
 import { normalizeIncomeStreams } from './earnings';
@@ -9,6 +10,7 @@ const DEFAULT_EVENT_INTERVAL_MS = 120_000;
 export function normalizeGameState(state: GameState, now = Date.now()): GameState {
   const cash = Number.isFinite(state.cash) ? state.cash : 0;
   const inferredActivePlayMs = Math.max(0, Math.min((state.updatedAt ?? now) - (state.createdAt ?? now), 24 * 60 * 60 * 1000));
+  const lok = lokRuntime.migrateRun(state.lokTokens ?? 0, state.lokProgressMs ?? 0);
   return {
     ...state,
     cash,
@@ -34,5 +36,7 @@ export function normalizeGameState(state: GameState, now = Date.now()): GameStat
     lowestCash: Math.min(state.lowestCash ?? cash, cash),
     activePlayMs: Math.max(0, state.activePlayMs ?? inferredActivePlayMs),
     runAchievements: state.runAchievements ?? {},
+    lokTokens: lok.balance,
+    lokProgressMs: lok.progressMs,
   };
 }
