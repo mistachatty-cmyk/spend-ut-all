@@ -25,8 +25,10 @@ export function normalizeGameState(state: GameState, now = Date.now()): GameStat
     riskMode: state.riskMode ?? false,
     runStatus: state.runStatus ?? 'active',
     bankruptcyDeadline: state.bankruptcyDeadline ?? 0,
+    bankruptcyWarnings: state.bankruptcyWarnings ?? 0,
     peakCash: Math.max(state.peakCash ?? cash, cash),
     peakNetWorth: Math.max(0, state.peakNetWorth ?? 0),
     lowestCash: Math.min(state.lowestCash ?? cash, cash),
+    runAchievements: state.runAchievements ?? {},
   };
 }
