@@ -76,6 +76,12 @@ export function syncMetaProgression(metaInput: MetaState, state: GameState, metr
   if (state.totalSpent >= 1_000_000) meta = awardBadge(meta, 'first-million', state);
   if (state.totalSpent >= 1_000_000_000) meta = awardBadge(meta, 'billion-burner', state);
   if (state.totalSpent >= 1_000_000_000_000) meta = awardBadge(meta, 'trillion-burner', state);
+  if (state.runAchievements?.['spend-elon-benchmark']) meta = awardBadge(meta, 'spend-it-all-legacy', state);
+  if (state.runAchievements?.['spendutall-super']) meta = awardBadge(meta, 'spendutall-legacy', state);
+  if (state.runAchievements?.['nothing-million-speed-10m']) meta = awardBadge(meta, 'speedrunner-legacy', state);
+  if (state.runAchievements?.['wolf-risk-billionaire']) meta = awardBadge(meta, 'wolf-boss-legacy', state);
+  if (state.runAchievements?.['debt-billion-comeback']) meta = awardBadge(meta, 'comeback-legacy', state);
+
   if (metrics.incomePerSecond >= 100_000) meta = awardBadge(meta, 'cashflow-king', state);
   if (state.townLevel >= 5) meta = awardBadge(meta, 'city-founder', state);
   if (state.regionLevel >= 5) meta = awardBadge(meta, 'planetary', state);
