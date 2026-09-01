@@ -1,6 +1,7 @@
 import type { GameState } from '../types';
 import type { RunResult } from '../run-types';
 import { foundedBusinessCount } from './businesses';
+import { encodeChallengeCode } from './custom-scenarios';
 
 export const LEADERBOARD_KEY = 'spend-it-all-run-history-v1';
 
@@ -20,6 +21,8 @@ export function createRunResult(state: GameState, completed = false): RunResult 
     endedAt,
     result: state.runStatus === 'bankrupt' ? 'bankrupt' : 'completed',
     scenarioId: state.scenarioId,
+    scenarioName: state.customScenario?.name,
+    challengeCode: state.customScenario ? encodeChallengeCode(state.customScenario) : undefined,
     mode: state.mode,
     riskMode: state.riskMode,
     endingCash: state.cash,
