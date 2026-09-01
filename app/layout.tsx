@@ -9,6 +9,7 @@ import './achievements.css';
 import './time.css';
 import './settings.css';
 import './custom-scenarios.css';
+import './customizations.css';
 
 export const metadata: Metadata = {
   title: 'Spend It All',
