@@ -1,6 +1,7 @@
 import type { BusinessPortfolio } from './business-types';
 import type { CityEconomyState } from './city-types';
 import type { TimeSimulationState } from './time-types';
+import type { GameRules } from './rules-types';
 
 export type FinancialMode = 'simple' | 'advanced';
 export type ScenarioId = 'nothing' | 'freeplay' | 'ten-x' | 'hundred-x' | 'thousand-x' | 'billionaire' | 'trillionaire';
@@ -33,7 +34,7 @@ export type Achievement = { id: string; name: string; description: string; emoji
 
 export type GameState = {
   started: boolean; scenarioId: ScenarioId; mode: FinancialMode; cash: number; totalSpent: number; totalSold: number; lifetimeIncome: number;
-  owned: Record<string, number>; incomeStreams: Record<string, number>; businesses: BusinessPortfolio; cityEconomy: CityEconomyState; time: TimeSimulationState;
+  owned: Record<string, number>; incomeStreams: Record<string, number>; businesses: BusinessPortfolio; cityEconomy: CityEconomyState; time: TimeSimulationState; rules: GameRules;
   houseLevel: number; townLevel: number; regionLevel: number; upgrades: Record<string, number>; citySpecialization: CitySpecializationId | null;
   activeEventId: string | null; eventEndsAt: number; nextEventAt: number; lastOfflineIncome: number;
   riskMode: boolean; runStatus: RunStatus; bankruptcyDeadline: number; bankruptcyWarnings: number;
