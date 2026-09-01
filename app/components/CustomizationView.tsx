@@ -13,8 +13,8 @@ const tabs: Array<{ id: 'all' | CustomizationKind; label: string }> = [
   { id: 'all', label: 'All' },
   { id: 'theme', label: 'Themes' },
   { id: 'money-counter', label: 'Counters' },
-  { id: 'pet', label: 'LOK Pets' },
-  { id: 'pet-accessory', label: 'Pet Gear' },
+  { id: 'pet', label: 'Companions' },
+  { id: 'pet-accessory', label: 'Companion Gear' },
   { id: 'hud', label: 'HUDs' },
   { id: 'effect', label: 'Effects' },
   { id: 'profile-frame', label: 'Profile' },
@@ -60,7 +60,7 @@ export function CustomizationView({ state, setState, inventory, onInventoryChang
 
   return <section className="customization-shell">
     <section className="panel customization-hero">
-      <div><span className="eyebrow">LOK CUSTOMIZATION LAB</span><h2>Make the empire yours</h2><p>Themes, counters, companions and cosmetic rewards live outside individual runs. LOK purchases are cosmetic only and stay with this local profile.</p></div>
+      <div><span className="eyebrow">LOK CUSTOMIZATION LAB</span><h2>Make the empire yours</h2><p>Themes, counters, curated companions, and cosmetic rewards live outside individual runs. The much larger LOKdex collection is tracked separately so most LOK characters remain collectibles/cards rather than active advisors.</p></div>
       <div className="lok-store-balance"><small>Persistent wallet</small><b>◈ {state.lokTokens.toLocaleString()}</b><span>+1 every 10 seconds active</span></div>
     </section>
 
@@ -76,7 +76,7 @@ export function CustomizationView({ state, setState, inventory, onInventoryChang
       return <article className={`customization-card rarity-${item.rarity} ${equipped ? 'equipped' : ''}`} key={item.id}>
         <div className="customization-icon">{item.kind === 'pet' ? <PixelPetSprite petId={item.id} mood={owned ? 'happy' : 'idle'} silhouette={!owned} size={48} /> : item.emoji ?? '✨'}</div>
         <div className="customization-copy"><div className="customization-title"><h3>{item.name}</h3><span>{item.rarity}</span></div><p>{item.description}</p>
-          <div className="customization-tags"><span>{item.kind.replace('-', ' ')}</span>{item.acquisition.map((method) => <span key={method}>{method.replace('-', ' ')}</span>)}</div>
+          <div className="customization-tags"><span>{item.kind === 'pet' ? 'companion' : item.kind === 'pet-accessory' ? 'companion gear' : item.kind.replace('-', ' ')}</span>{item.acquisition.map((method) => <span key={method}>{method.replace('-', ' ')}</span>)}</div>
           {item.kind === 'pet' && 'personality' in item ? <small className="pet-personality">{String(item.personality)}</small> : null}
         </div>
         <div className="customization-action">
