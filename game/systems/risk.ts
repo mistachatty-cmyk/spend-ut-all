@@ -24,28 +24,17 @@ export function debtInterestPerSecond(state: GameState) {
   return Math.abs(state.cash) * DEBT_INTEREST_RATE_PER_SECOND;
 }
 
-export function updateRiskState(state: GameState, deltaMs: number, currentNetWorth: number, now = Date.now()): GameState {
+export function updateRiskState(state: GameState, currentNetWorth: number, now = Date.now()): GameState {
   if (!state.riskMode || state.runStatus !== 'active') return state;
-
-  const interest = debtInterestPerSecond(state) * (deltaMs / 1000);
-  let next: GameState = interest > 0 ? { ...state, cash: state.cash - interest } : state;
-  const limit = creditLimit(next, currentNetWorth);
+  const limit = creditLimit(state, currentNetWorth);
   const distressLine = -limit * 0.8;
   const recoveryLine = -limit * 0.5;
-  const distressed = next.cash <= distressLine || currentNetWorth <= 0;
+  const distressed = state.cash <= distressLine || currentNetWorth <= 0;
+  let next = state;
 
-  if (!distressed && next.bankruptcyDeadline && next.cash > recoveryLine && currentNetWorth > 0) {
-    next = { ...next, bankruptcyDeadline: 0 };
-  }
-
-  if (distressed && !next.bankruptcyDeadline) {
-    next = { ...next, bankruptcyDeadline: now + BANKRUPTCY_WINDOW_MS };
-  }
-
-  if (next.bankruptcyDeadline && now >= next.bankruptcyDeadline) {
-    next = { ...next, runStatus: 'bankrupt', bankruptcyDeadline: 0, updatedAt: now };
-  }
-
+  if (!distressed && state.bankruptcyDeadline && state.cash > recoveryLine && currentNetWorth > 0) next = { ...state, bankruptcyDeadline: 0 };
+  if (distressed && !next.bankruptcyDeadline) next = { ...next, bankruptcyDeadline: now + BANKRUPTCY_WINDOW_MS };
+  if (next.bankruptcyDeadline && now >= next.bankruptcyDeadline) next = { ...next, runStatus: 'bankrupt', bankruptcyDeadline: 0, updatedAt: now };
   return next;
 }
 
