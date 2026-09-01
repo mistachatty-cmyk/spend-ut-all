@@ -36,6 +36,13 @@ export type DiscoveryRecord = {
   kind: 'badge' | 'collectible' | 'set';
   discoveredAt: number;
   scenarioId: ScenarioId;
+  snapshot?: {
+    cash: number;
+    totalSpent: number;
+    houseLevel: number;
+    townLevel: number;
+    regionLevel: number;
+  };
 };
 
 export type MetaState = {
