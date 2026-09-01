@@ -8,6 +8,14 @@ function clamp(value: number, min: number, max: number) {
   return Math.min(max, Math.max(min, Number.isFinite(value) ? value : min));
 }
 
+function normalizeWinTarget(type: CustomWinConditionType, target: number) {
+  if (type === 'free') return 0;
+  if (type === 'town-level' || type === 'region-level') return Math.round(clamp(target, 1, 5));
+  if (type === 'wealth-multiplier') return clamp(target, 1.01, 1_000_000);
+  if (type === 'survive-minutes') return clamp(target, 0.1, 525_600);
+  return clamp(target, 0.0001, 1e30);
+}
+
 export function createCustomScenario(): CustomScenarioDefinition {
   return {
     version: VERSION,
@@ -37,6 +45,7 @@ const winTypes: CustomWinConditionType[] = ['free','net-worth','total-spent','we
 export function normalizeCustomScenario(value?: Partial<CustomScenarioDefinition> | null): CustomScenarioDefinition {
   const base = createCustomScenario();
   const winType = winTypes.includes(value?.winCondition?.type as CustomWinConditionType) ? value!.winCondition!.type! : base.winCondition.type;
+  const rawTarget = Number(value?.winCondition?.target ?? base.winCondition.target);
   return {
     ...base,
     ...value,
@@ -58,11 +67,13 @@ export function normalizeCustomScenario(value?: Partial<CustomScenarioDefinition
       jetLag: value?.time?.jetLag ?? base.time.jetLag,
     },
     restrictions: { sellingEnabled: value?.restrictions?.sellingEnabled ?? true },
-    winCondition: {
-      type: winType,
-      target: winType === 'free' ? 0 : clamp(Number(value?.winCondition?.target ?? base.winCondition.target), 0.0001, 1e30),
-    },
+    winCondition: { type: winType, target: normalizeWinTarget(winType, rawTarget) },
   };
+}
+
+export function customScenarioValidation(scenario: CustomScenarioDefinition) {
+  if (scenario.winCondition.type === 'wealth-multiplier' && scenario.startingCash <= 0) return 'Wealth multiplier challenges need starting cash above $0.';
+  return null;
 }
 
 export function customGoalLabel(scenario: CustomScenarioDefinition) {
