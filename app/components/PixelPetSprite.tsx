@@ -12,7 +12,7 @@ export function PixelPetSprite({ petId, mood = 'idle', silhouette = false, size 
   const sprite = looperSpriteById(petId);
   const motionPrefs = useMicroMotionPreferences();
   const hudPrefs = useHudPreferences();
-  const classic = hudPrefs.looperArtStyle === 'classic' ? classicPetSprites[petId] ?? null : null;
+  const classic = hudPrefs.looperArtStyle === 'classic' ? classicPetSprites[petId] ?? classicPetSprites[sprite.petId] ?? null : null;
   const baseGrid = classic?.grid ?? sprite.grid;
   const palette = classic?.palette ?? sprite.palette;
   const animated = motionPrefs.enabled && motionPrefs.amplificationLevel >= 2;
@@ -32,7 +32,7 @@ export function PixelPetSprite({ petId, mood = 'idle', silhouette = false, size 
   const cell = size / columns;
   const signature = animated && !silhouette && !classic && sprite.signatureClass ? sprite.signatureClass : '';
 
-  return <span className={`pixel-pet-wrap ${signature} ${classic ? 'looper-art-classic' : 'looper-art-pixel-plus'}`} style={{ width: size, height: size }} aria-hidden="true">
+  return <span className={`pixel-pet-wrap ${signature} ${classic ? 'looper-art-classic' : 'looper-art-pixel-plus'}`} data-looper-art={classic ? 'classic' : 'pixel-plus'} data-looper-motion={animated ? 'animated' : 'static'} style={{ width: size, height: size }} aria-hidden="true">
     <span className={`pixel-pet pixel-pet-${animation} effects-level-${motionPrefs.amplificationLevel} ${silhouette ? 'pixel-pet-silhouette' : ''}`} style={{ width: size, height: size, gridTemplateColumns: `repeat(${columns}, ${cell}px)`, gridAutoRows: `${cell}px` }}>
       {grid.flatMap((row, y) => row.split('').map((token, x) => <i key={`${x}-${y}`} style={{ background: token === '0' ? 'transparent' : silhouette ? 'currentColor' : palette[token] ?? 'transparent' }} />))}
     </span>
