@@ -7,6 +7,7 @@ import type { CustomizationInventory } from '@/game/customization-types';
 import type { LokDexCollection } from '@/game/lokdex-types';
 import {
   claimFreeCardPack,
+  createCardShopState,
   ensureCardShopStarterGrant,
   freePackReady,
   freePackRemainingMs,
@@ -24,7 +25,6 @@ import {
 import type { CardShopPull, CardShopState } from '@/game/card-shop-types';
 
 const affinityEmoji: Record<string,string> = { coin:'🪙', work:'🧰', tech:'💾', nature:'🌿', market:'📈', risk:'⚠️', travel:'✈️', cosmic:'🪐', mystery:'❓' };
-const rarityOrder = ['common','uncommon','rare','epic','legendary','mythic','secret'];
 
 function timeLabel(ms: number) {
   const seconds = Math.max(0, Math.ceil(ms / 1000));
@@ -33,18 +33,19 @@ function timeLabel(ms: number) {
 }
 
 export function CardShopView({ inventory }: { inventory: CustomizationInventory }) {
-  const [shop, setShop] = useState<CardShopState>(() => ensureCardShopStarterGrant(loadCardShopState()));
+  const [shop, setShop] = useState<CardShopState>(() => ensureCardShopStarterGrant(createCardShopState()));
   const [collection, setCollection] = useState<LokDexCollection>(() => createLokDexCollection());
   const [loaded, setLoaded] = useState(false);
   const [tab, setTab] = useState<'packs'|'decks'|'binder'|'recycle'>('packs');
   const [message, setMessage] = useState('Welcome to the Card Shop. Your first 350 Card Credits are on the house.');
   const [lastPulls, setLastPulls] = useState<CardShopPull[]>([]);
-  const [now, setNow] = useState(Date.now());
+  const [now, setNow] = useState(0);
 
   useEffect(() => {
     const synced = syncCompanionsToLokDex(loadLokDexCollection(), inventory);
     setCollection(saveLokDexCollection(synced));
     setShop(saveCardShopState(ensureCardShopStarterGrant(loadCardShopState())));
+    setNow(Date.now());
     setLoaded(true);
   }, []);
 
@@ -61,15 +62,16 @@ export function CardShopView({ inventory }: { inventory: CustomizationInventory 
   }, [inventory.ownedIds, loaded]);
 
   useEffect(() => {
+    if (!loaded) return;
     const timer = window.setInterval(() => setNow(Date.now()), 1000);
     return () => window.clearInterval(timer);
-  }, []);
+  }, [loaded]);
 
   const discovered = collection.discoveredIds.length;
   const uniqueCharacters = new Set(collection.cards.map((card) => card.characterId)).size;
   const duplicateGroups = useMemo(() => lokDexEntries.map((character) => ({ character, cards:collection.cards.filter((card) => card.characterId === character.id) })).filter((entry) => entry.cards.length > 1), [collection.cards]);
-  const ready = freePackReady(shop, now);
-  const remaining = freePackRemainingMs(shop, now);
+  const ready = loaded && freePackReady(shop, now);
+  const remaining = loaded ? freePackRemainingMs(shop, now) : 0;
 
   const openProduct = (id: string) => {
     const result = purchaseCardProduct(shop, collection, id);
@@ -82,7 +84,7 @@ export function CardShopView({ inventory }: { inventory: CustomizationInventory 
   };
 
   const claimFree = () => {
-    const result = claimFreeCardPack(shop, collection, now);
+    const result = claimFreeCardPack(shop, collection, now || Date.now());
     if (!result.success) return;
     setShop(result.shop);
     setCollection(result.collection);
@@ -115,7 +117,7 @@ export function CardShopView({ inventory }: { inventory: CustomizationInventory 
 
     <section className="panel free-pack-strip">
       <div><span className="free-pack-icon">🎁</span><div><b>Free Sample Pack</b><small>3 cards · Uncommon+ final slot · refreshes every 20 minutes</small></div></div>
-      <button disabled={!ready} onClick={claimFree}>{ready ? 'Open Free Pack' : `Ready in ${timeLabel(remaining)}`}</button>
+      <button disabled={!ready} onClick={claimFree}>{!loaded ? 'Loading…' : ready ? 'Open Free Pack' : `Ready in ${timeLabel(remaining)}`}</button>
     </section>
 
     <nav className="card-shop-tabs">
@@ -133,14 +135,14 @@ export function CardShopView({ inventory }: { inventory: CustomizationInventory 
       return <article className={`pulled-card rarity-${character.rarity} variant-${pull.variant}`} key={pull.instanceId}><small>#{String(character.number).padStart(3,'0')} · {pull.variant}</small><span>{affinityEmoji[character.affinity]}</span><b>{character.name}</b><em>{character.rarity}{pull.isNewCharacter ? ' · NEW' : ''}</em></article>;
     })}</div></section> : null}
 
-    {tab === 'packs' ? <><section className="card-product-grid">{cardShopProducts.filter((product) => product.kind === 'pack').map((product) => <article className={`panel card-product accent-${product.accent}`} key={product.id}><div className="pack-art">{product.emoji}</div><div><div className="product-title"><h3>{product.name}</h3>{product.featured ? <span>FEATURED</span> : null}</div><p>{product.description}</p><div className="product-tags"><span>{product.cardCount} cards</span>{product.guarantee?.minRarity ? <span>{product.guarantee.minRarity}+ guarantee</span> : null}{product.guarantee?.variantBoost ? <span>{product.guarantee.variantBoost}× variant odds</span> : null}</div></div><button disabled={shop.credits < product.priceCredits} onClick={() => openProduct(product.id)}>◫ {product.priceCredits}</button></article>)}</section>
+    {tab === 'packs' ? <><section className="card-product-grid">{cardShopProducts.filter((product) => product.kind === 'pack').map((product) => <article className={`panel card-product accent-${product.accent}`} key={product.id}><div className="pack-art">{product.emoji}</div><div><div className="product-title"><h3>{product.name}</h3>{product.featured ? <span>FEATURED</span> : null}</div><p>{product.description}</p><div className="product-tags"><span>{product.cardCount} cards</span>{product.guarantee?.minRarity ? <span>{product.guarantee.minRarity}+ guarantee</span> : null}{product.guarantee?.variantBoost ? <span>{product.guarantee.variantBoost}× variant odds</span> : null}</div></div><button disabled={!loaded || shop.credits < product.priceCredits} onClick={() => openProduct(product.id)}>◫ {product.priceCredits}</button></article>)}</section>
       <section className="panel pack-rules"><span className="eyebrow">PACK RULES</span><h3>Transparent by design</h3><p>Characters are pulled from the current Gen 1 roster with rarer characters weighted lower. A pack guarantee applies to its final card. Base premium-variant chances are approximately 7% foil, 2.5% holo, 0.9% negative, 0.5% glitch, and 0.2% gold before a pack-specific boost. Secret characters are not in normal random packs.</p><small>Randomized packs currently use local Card Credits only. They are not sold for real money or purchased LOK.</small></section></> : null}
 
     {tab === 'decks' ? <section className="deck-build-grid">{cardDeckBlueprints.map((deck) => {
       const owned = shop.ownedDeckBlueprintIds.includes(deck.id);
       const progress = deckProgress(deck.id);
       const kit = cardShopProducts.find((product) => product.deckBlueprintId === deck.id);
-      return <article className={`panel deck-build-card ${owned ? 'owned' : ''}`} key={deck.id}><div className="deck-build-head"><span>{deck.emoji}</span><div><small>{owned ? 'BLUEPRINT OWNED' : 'DECK KIT'}</small><h3>{deck.name}</h3></div></div><p>{deck.description}</p><div className="deck-style">{deck.style}</div><div className="deck-progress"><span><i style={{width:`${(progress/deck.targetSize)*100}%`}} /></span><b>{progress}/{deck.targetSize} matching cards</b></div><div className="product-tags">{deck.recommendedAffinities.map((affinity) => <span key={affinity}>{affinityEmoji[affinity]} {affinity}</span>)}</div>{!owned && kit ? <button disabled={shop.credits < kit.priceCredits} onClick={() => openProduct(kit.id)}>Buy deck kit · ◫ {kit.priceCredits}</button> : <button disabled>{owned ? 'Build available for future card play' : 'Kit unavailable'}</button>}</article>;
+      return <article className={`panel deck-build-card ${owned ? 'owned' : ''}`} key={deck.id}><div className="deck-build-head"><span>{deck.emoji}</span><div><small>{owned ? 'BLUEPRINT OWNED' : 'DECK KIT'}</small><h3>{deck.name}</h3></div></div><p>{deck.description}</p><div className="deck-style">{deck.style}</div><div className="deck-progress"><span><i style={{width:`${(progress/deck.targetSize)*100}%`}} /></span><b>{progress}/{deck.targetSize} matching cards</b></div><div className="product-tags">{deck.recommendedAffinities.map((affinity) => <span key={affinity}>{affinityEmoji[affinity]} {affinity}</span>)}</div>{!owned && kit ? <button disabled={!loaded || shop.credits < kit.priceCredits} onClick={() => openProduct(kit.id)}>Buy deck kit · ◫ {kit.priceCredits}</button> : <button disabled>{owned ? 'Build available for future card play' : 'Kit unavailable'}</button>}</article>;
     })}</section> : null}
 
     {tab === 'binder' ? <section className="binder-grid">{lokDexEntries.map((character) => {
