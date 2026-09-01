@@ -14,7 +14,7 @@ import { achievementUnlockedByRule, syncAchievementUnlocks } from './systems/ach
 export function newGame(scenarioId: ScenarioId, mode: GameState['mode'], riskMode = false): GameState {
   const scenario = scenarios.find((entry) => entry.id === scenarioId) ?? scenarios[0];
   const now = Date.now();
-  return { started: true, scenarioId, mode, cash: scenario.startingCash, totalSpent: 0, totalSold: 0, lifetimeIncome: 0, owned: {}, incomeStreams: {}, businesses: {}, cityEconomy: createCityEconomyState(now), houseLevel: 0, townLevel: 0, regionLevel: 0, upgrades: {}, citySpecialization: null, activeEventId: null, eventEndsAt: 0, nextEventAt: now + EVENT_INTERVAL_MS, lastOfflineIncome: 0, riskMode, runStatus: 'active', bankruptcyDeadline: 0, bankruptcyWarnings: 0, peakCash: scenario.startingCash, peakNetWorth: scenario.startingCash, lowestCash: scenario.startingCash, runAchievements: {}, lokTokens: 0, lokProgressMs: 0, theme: 'light', createdAt: now, updatedAt: now };
+  return { started: true, scenarioId, mode, cash: scenario.startingCash, totalSpent: 0, totalSold: 0, lifetimeIncome: 0, owned: {}, incomeStreams: {}, businesses: {}, cityEconomy: createCityEconomyState(now), houseLevel: 0, townLevel: 0, regionLevel: 0, upgrades: {}, citySpecialization: null, activeEventId: null, eventEndsAt: 0, nextEventAt: now + EVENT_INTERVAL_MS, lastOfflineIncome: 0, riskMode, runStatus: 'active', bankruptcyDeadline: 0, bankruptcyWarnings: 0, peakCash: scenario.startingCash, peakNetWorth: scenario.startingCash, lowestCash: scenario.startingCash, activePlayMs: 0, runAchievements: {}, lokTokens: 0, lokProgressMs: 0, theme: 'light', createdAt: now, updatedAt: now };
 }
 
 export function normalizeState(state: GameState): GameState { return normalizeGameState(state); }
@@ -77,7 +77,7 @@ export function advance(state: GameState, deltaMs: number): GameState {
   const income = passiveCashPerSecond(safeState) * (deltaMs / 1000);
   const lok = lokRuntime.accrue(safeState.lokTokens, safeState.lokProgressMs, deltaMs);
   const cash = safeState.cash + income;
-  let next = { ...safeState, cash, lifetimeIncome: safeState.lifetimeIncome + Math.max(0, income), lokTokens: lok.balance, lokProgressMs: lok.progressMs, lastOfflineIncome: 0, lowestCash: Math.min(safeState.lowestCash, cash), updatedAt: now };
+  let next = { ...safeState, cash, lifetimeIncome: safeState.lifetimeIncome + Math.max(0, income), activePlayMs: safeState.activePlayMs + deltaMs, lokTokens: lok.balance, lokProgressMs: lok.progressMs, lastOfflineIncome: 0, lowestCash: Math.min(safeState.lowestCash, cash), updatedAt: now };
   let worth = netWorth(next);
   next = { ...next, peakCash: Math.max(next.peakCash, next.cash), peakNetWorth: Math.max(next.peakNetWorth, worth) };
   next = updateRiskState(next, worth, now);
