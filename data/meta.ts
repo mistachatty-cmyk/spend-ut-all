@@ -9,6 +9,12 @@ export const badges: BadgeDefinition[] = [
   { id: 'planetary', name: 'Planetary Capitalist', emoji: '🌍', description: 'Reach Planetary Economy influence.', rarity: 'mythic', titleReward: 'Planetary Capitalist' },
   { id: 'collector-100', name: 'Collector', emoji: '📦', description: 'Own 100 total marketplace items at once.', rarity: 'uncommon', titleReward: 'Collector' },
   { id: 'scenario-finisher', name: 'Mission Accomplished', emoji: '✅', description: 'Complete any scenario objective.', rarity: 'rare', titleReward: 'Scenario Breaker' },
+  { id: 'self-made-millionaire', name: 'Self-Made Millionaire', emoji: '🧗', description: 'Start with $0 and build a $1M net worth.', rarity: 'epic', titleReward: 'Self-Made' },
+  { id: 'self-made-billionaire', name: 'Zero to Billion', emoji: '🚀', description: 'Start with $0 and build a $1B net worth.', rarity: 'legendary', titleReward: 'Zero to Billion' },
+  { id: 'wealth-10x', name: 'Tenfold', emoji: '✖️', description: 'Complete the 10× Wealth challenge.', rarity: 'uncommon', titleReward: 'Tenfold' },
+  { id: 'wealth-100x', name: 'Centuple', emoji: '💯', description: 'Complete the 100× Wealth challenge.', rarity: 'rare', titleReward: '100× Builder' },
+  { id: 'wealth-1000x', name: 'Thousandfold', emoji: '⚡', description: 'Complete the 1,000× Wealth challenge.', rarity: 'epic', titleReward: '1,000× Builder' },
+  { id: 'never-sell', name: 'Never Sell', emoji: '💎', description: 'Reach $1M from nothing without selling a marketplace item.', rarity: 'secret', hidden: true, titleReward: 'Diamond Grip' },
   { id: 'yacht-before-house', name: 'Priorities', emoji: '🛥️', description: 'Own a Superyacht before upgrading your permanent home.', rarity: 'secret', hidden: true, titleReward: 'Questionable Priorities' },
   { id: 'pc-404', name: 'Not Found', emoji: '404', description: 'Own at least 404 Gaming PCs.', rarity: 'secret', hidden: true, titleReward: 'Error 404' },
 ];
