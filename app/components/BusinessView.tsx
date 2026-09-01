@@ -2,17 +2,41 @@
 
 import { businessDefinitions, hqTiers } from '@/data/businesses';
 import { addBusinessLocation, businessSnapshot, foundBusiness, hireEmployees, reduceEmployees, upgradeBusinessHq, upgradeBusinessManagement } from '@/game/business-actions';
+import { addHousing, upgradeInfrastructure } from '@/game/city-actions';
 import { hqUpgradeCost, locationCost, managementUpgradeCost, portfolioEconomics } from '@/game/systems/businesses';
+import { cityEconomySnapshot, housingExpansionCost, infrastructureUpgradeCost } from '@/game/systems/city-economy';
 import { money } from '@/game/format';
 import type { GameState } from '@/game/types';
 
 export function BusinessView({ state, setState }: { state: GameState; setState: React.Dispatch<React.SetStateAction<GameState | null>> }) {
-  const portfolio = portfolioEconomics(state.businesses ?? {});
+  const city = cityEconomySnapshot(state.cityEconomy, state.businesses ?? {}, state.townLevel);
+  const portfolio = portfolioEconomics(state.businesses ?? {}, { demandMultiplier: city.businessDemandMultiplier, laborCostMultiplier: city.laborCostMultiplier });
   const founded = businessDefinitions.filter((definition) => state.businesses?.[definition.id]?.founded).length;
+  const housingCost = housingExpansionCost(state.cityEconomy);
+  const infrastructureCost = infrastructureUpgradeCost(state.cityEconomy);
 
   return <section className="business-shell">
+    <section className="panel city-economy-card">
+      <div className="city-economy-copy"><span className="eyebrow">LIVING CITY ECONOMY</span><h2>{Math.round(city.population).toLocaleString()} residents reacting to your empire</h2><p>Jobs pull people in, housing constrains growth, labor shortages raise wages, and consumer demand now changes business revenue.</p></div>
+      <div className="city-metrics">
+        <span><small>Population</small><b>{Math.round(city.population).toLocaleString()}</b></span>
+        <span><small>Jobs</small><b>{city.availableJobs.toLocaleString()}</b></span>
+        <span><small>Unemployment</small><b>{Math.round(city.unemploymentRate * 100)}%</b></span>
+        <span><small>Housing pressure</small><b>{city.housingPressure.toFixed(2)}×</b></span>
+        <span><small>Wage index</small><b>{city.averageWageIndex.toFixed(2)}×</b></span>
+        <span><small>Demand</small><b>{city.consumerDemand.toFixed(2)}×</b></span>
+        <span><small>Cost of living</small><b>{city.costOfLiving.toFixed(2)}×</b></span>
+        <span><small>Happiness</small><b>{Math.round(city.happiness)}%</b></span>
+      </div>
+      <div className="city-actions">
+        <button disabled={state.cash < housingCost} onClick={() => setState((current) => current ? addHousing(current, 50) : current)}>+50 Homes · {money(housingCost)}</button>
+        <button disabled={state.cash < infrastructureCost} onClick={() => setState((current) => current ? upgradeInfrastructure(current) : current)}>Infrastructure Lv {state.cityEconomy.infrastructureLevel + 1} · {money(infrastructureCost)}</button>
+      </div>
+      <div className="city-signal-row"><span>Business demand <b>×{city.businessDemandMultiplier.toFixed(2)}</b></span><span>Labor cost <b>×{city.laborCostMultiplier.toFixed(2)}</b></span><span>Local GDP <b>{money(city.localGdpPerSecond)}/s</b></span><span>Housing <b>{state.cityEconomy.housingUnits.toLocaleString()} units</b></span></div>
+    </section>
+
     <section className="panel business-hero">
-      <div><span className="eyebrow">BUSINESS EMPIRE</span><h2>Build companies, not just assets</h2><p>Found companies, open locations, hire staff, build headquarters and improve marketing, operations and quality. These businesses create jobs and feed directly into your cash flow.</p></div>
+      <div><span className="eyebrow">BUSINESS EMPIRE</span><h2>Build companies, not just assets</h2><p>Found companies, open locations, hire staff, build headquarters and improve marketing, operations and quality. Businesses now compete against the limits and opportunities of your city economy.</p></div>
       <div className="business-summary"><span><b>{founded}</b> companies</span><span><b>{portfolio.jobs.toLocaleString()}</b> jobs</span><span><b>{money(portfolio.revenuePerSecond)}/s</b> revenue</span><span><b className={portfolio.profitPerSecond >= 0 ? 'positive' : 'negative'}>{money(portfolio.profitPerSecond)}/s</b> profit</span></div>
     </section>
 
