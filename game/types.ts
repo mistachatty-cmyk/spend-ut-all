@@ -5,6 +5,7 @@ export type FinancialMode = 'simple' | 'advanced';
 export type ScenarioId = 'freeplay' | 'billionaire' | 'trillionaire';
 export type ItemCategory = 'everyday' | 'luxury' | 'property' | 'business' | 'infrastructure';
 export type CitySpecializationId = 'finance' | 'technology' | 'industrial' | 'tourism';
+export type RunStatus = 'active' | 'bankrupt';
 
 export type GameItem = { id: string; name: string; emoji: string; category: ItemCategory; basePrice: number; growthRate: number; incomePerSecond?: number; upkeepPerSecond?: number; unlockSpent?: number; description: string; };
 export type Scenario = { id: ScenarioId; name: string; description: string; startingCash: number; targetSpent?: number; targetNetWorth?: number; goalLabel: string; };
@@ -25,6 +26,7 @@ export type GameState = {
   totalSold: number;
   lifetimeIncome: number;
   owned: Record<string, number>;
+  incomeStreams: Record<string, number>;
   businesses: BusinessPortfolio;
   cityEconomy: CityEconomyState;
   houseLevel: number;
@@ -36,6 +38,11 @@ export type GameState = {
   eventEndsAt: number;
   nextEventAt: number;
   lastOfflineIncome: number;
+  riskMode: boolean;
+  runStatus: RunStatus;
+  bankruptcyDeadline: number;
+  peakCash: number;
+  peakNetWorth: number;
   lokTokens: number;
   lokProgressMs: number;
   theme: 'light' | 'midnight';
