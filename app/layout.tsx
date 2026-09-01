@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { DiscoveryNotifier } from '@/app/components/DiscoveryNotifier';
+import { MicroAnimationLayer } from '@/app/components/MicroAnimationLayer';
 import './globals.css';
 import './empire.css';
 import './collection.css';
@@ -13,6 +14,7 @@ import './customizations.css';
 import './pixel-pets.css';
 import './lokdex.css';
 import './card-shop.css';
+import './micro-animations.css';
 import './debt.css';
 
 export const metadata: Metadata = {
@@ -21,5 +23,5 @@ export const metadata: Metadata = {
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
-  return <html lang="en"><body>{children}<DiscoveryNotifier /></body></html>;
+  return <html lang="en"><body>{children}<DiscoveryNotifier /><MicroAnimationLayer /></body></html>;
 }
