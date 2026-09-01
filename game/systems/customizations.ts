@@ -6,6 +6,7 @@ export const CUSTOMIZATION_KEY = 'spend-it-all-customization-v1';
 export const CUSTOMIZATION_VERSION = 1;
 
 const starterIds = allCustomizations.filter((entry) => entry.acquisition.includes('starter')).map((entry) => entry.id);
+const darkThemeKeys = new Set(['midnight','executive-glass','market-terminal','neon-pulse','aurora-ledger','deep-ocean','retrofuture','gilded-empire','orbital-command','living-city','singularity-finance','quantum-casino','lunar-office']);
 
 export function createCustomizationInventory(now = Date.now()): CustomizationInventory {
   return {
@@ -43,17 +44,12 @@ export function normalizeCustomizationInventory(value?: Partial<CustomizationInv
   const owned = new Set(ownedIds);
   const source = value?.equipped ?? base.equipped;
   const unlocks: CustomizationInventory['unlocks'] = { ...base.unlocks };
-
   if (value?.unlocks && typeof value.unlocks === 'object') {
     for (const [id, record] of Object.entries(value.unlocks)) {
       if (!owned.has(id) || !record || typeof record !== 'object') continue;
-      unlocks[id] = {
-        acquiredAt: Number.isFinite(record.acquiredAt) ? record.acquiredAt : Date.now(),
-        method: record.method ?? 'starter',
-      };
+      unlocks[id] = { acquiredAt: Number.isFinite(record.acquiredAt) ? record.acquiredAt : Date.now(), method: record.method ?? 'starter' };
     }
   }
-
   return {
     version: CUSTOMIZATION_VERSION,
     ownedIds,
@@ -67,9 +63,7 @@ export function normalizeCustomizationInventory(value?: Partial<CustomizationInv
       titleStyleId: validEquipped(source.titleStyleId, 'title-style', owned),
       effectId: validEquipped(source.effectId, 'effect', owned),
       petId: validEquipped(source.petId, 'pet', owned) ?? 'pet-lok-slime',
-      petAccessoryIds: Array.isArray(source.petAccessoryIds)
-        ? source.petAccessoryIds.filter((id) => owned.has(id) && customizationById(id)?.kind === 'pet-accessory')
-        : [],
+      petAccessoryIds: Array.isArray(source.petAccessoryIds) ? source.petAccessoryIds.filter((id) => owned.has(id) && customizationById(id)?.kind === 'pet-accessory') : [],
     },
   };
 }
@@ -79,10 +73,7 @@ export function loadCustomizationInventory() {
   const raw = window.localStorage.getItem(CUSTOMIZATION_KEY);
   if (!raw) return createCustomizationInventory();
   try { return normalizeCustomizationInventory(JSON.parse(raw)); }
-  catch {
-    window.localStorage.removeItem(CUSTOMIZATION_KEY);
-    return createCustomizationInventory();
-  }
+  catch { window.localStorage.removeItem(CUSTOMIZATION_KEY); return createCustomizationInventory(); }
 }
 
 export function saveCustomizationInventory(inventory: CustomizationInventory) {
@@ -96,23 +87,15 @@ export function grantCustomization(inventory: CustomizationInventory, id: string
   if (!definition) return normalizeCustomizationInventory(inventory);
   const current = normalizeCustomizationInventory(inventory);
   if (current.ownedIds.includes(id)) return current;
-  return normalizeCustomizationInventory({
-    ...current,
-    ownedIds: [...current.ownedIds, id],
-    unlocks: { ...current.unlocks, [id]: { acquiredAt: now, method } },
-  });
+  return normalizeCustomizationInventory({ ...current, ownedIds: [...current.ownedIds, id], unlocks: { ...current.unlocks, [id]: { acquiredAt: now, method } } });
 }
 
 export function syncCustomizationUnlocks(inventory: CustomizationInventory, state: GameState, now = Date.now()) {
   let next = normalizeCustomizationInventory(inventory);
   for (const item of allCustomizations) {
     if (next.ownedIds.includes(item.id) || !item.requirementId) continue;
-    if (item.acquisition.includes('achievement') && state.runAchievements?.[item.requirementId]) {
-      next = grantCustomization(next, item.id, 'achievement', now);
-    }
-    if (item.requirementId === 'region-planetary' && state.regionLevel >= 5) {
-      next = grantCustomization(next, item.id, 'scenario', now);
-    }
+    if (item.acquisition.includes('achievement') && state.runAchievements?.[item.requirementId]) next = grantCustomization(next, item.id, 'achievement', now);
+    if (item.requirementId === 'region-planetary' && state.regionLevel >= 5) next = grantCustomization(next, item.id, 'scenario', now);
   }
   return next;
 }
@@ -137,15 +120,7 @@ export function equipCustomization(inventory: CustomizationInventory, id: string
   if (!item || !current.ownedIds.includes(id)) return current;
   if (item.kind === 'pet-accessory') {
     const equipped = current.equipped.petAccessoryIds.includes(id);
-    return normalizeCustomizationInventory({
-      ...current,
-      equipped: {
-        ...current.equipped,
-        petAccessoryIds: equipped
-          ? current.equipped.petAccessoryIds.filter((entry) => entry !== id)
-          : [...current.equipped.petAccessoryIds, id],
-      },
-    });
+    return normalizeCustomizationInventory({ ...current, equipped: { ...current.equipped, petAccessoryIds: equipped ? current.equipped.petAccessoryIds.filter((entry) => entry !== id) : [...current.equipped.petAccessoryIds, id] } });
   }
   const field = equippedFieldForKind(item.kind);
   if (!field) return current;
@@ -158,8 +133,23 @@ export function isEquipped(inventory: CustomizationInventory, item: Customizatio
   return field ? inventory.equipped[field] === item.id : false;
 }
 
+function cosmeticClass(id: string | null | undefined, prefix: string) {
+  const key = customizationById(id)?.previewKey;
+  return key ? `${prefix}-${key}` : '';
+}
+
+/** Returns the complete visual class bundle for the active cosmetic loadout. */
 export function themeClass(inventory: CustomizationInventory) {
-  return `theme-${customizationById(inventory.equipped.themeId)?.previewKey ?? 'classic-ledger'}`;
+  const themeKey = customizationById(inventory.equipped.themeId)?.previewKey ?? 'classic-ledger';
+  return [
+    darkThemeKeys.has(themeKey) ? 'midnight' : '',
+    `theme-${themeKey}`,
+    cosmeticClass(inventory.equipped.backgroundId, 'background'),
+    cosmeticClass(inventory.equipped.hudId, 'hud'),
+    cosmeticClass(inventory.equipped.profileFrameId, 'frame'),
+    cosmeticClass(inventory.equipped.titleStyleId, 'title'),
+    cosmeticClass(inventory.equipped.effectId, 'effect'),
+  ].filter(Boolean).join(' ');
 }
 
 export function moneyCounterClass(inventory: CustomizationInventory) {
@@ -167,5 +157,5 @@ export function moneyCounterClass(inventory: CustomizationInventory) {
 }
 
 export function hudClass(inventory: CustomizationInventory) {
-  return inventory.equipped.hudId === 'hud-compact' ? 'hud-compact' : 'hud-default';
+  return cosmeticClass(inventory.equipped.hudId, 'hud') || 'hud-default';
 }
