@@ -1,7 +1,7 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import { achievementCategoryMeta, achievements } from '@/data/achievements';
+import { achievementCategoryMeta, achievements } from '@/data/achievement-catalog';
 import type { AchievementCategory, GameState } from '@/game/types';
 
 const categoryOrder: AchievementCategory[] = ['wealth','scenario','speedrunner','wolf-boss','comeback','spending','income','business','empire','collection','risk','secret'];
@@ -15,7 +15,7 @@ export function AchievementsView({ state }: { state: GameState }) {
 
   return <section className="achievements-shell">
     <section className="panel achievement-hero">
-      <div><span className="eyebrow">ACHIEVEMENT VAULT</span><h2>{unlockedIds.size}/{achievements.length} unlocked</h2><p>Achievements are permanent for this run once triggered. Timed achievements stay unlocked even after their timer expires.</p></div>
+      <div><span className="eyebrow">ACHIEVEMENT VAULT</span><h2>{unlockedIds.size}/{achievements.length} unlocked</h2><p>Achievements are permanent for this run once triggered. Timed achievements use active playtime, so closing the game does not ruin a speedrun split.</p></div>
       <div className="achievement-score"><b>{totalPoints.toLocaleString()}</b><span>achievement points</span></div>
     </section>
 
