@@ -1,0 +1,14 @@
+import type { Achievement } from '@/game/types';
+
+export const debtAchievements: Achievement[] = [
+  { id: 'explicit-first-loan', name: 'First Signature', description: 'Take your first explicit loan from a creditor.', emoji: '✍️', kind: 'combo', threshold: 1, condition: 'explicit-first-loan', category: 'risk', subgroup: 'Credit & Leverage', points: 15 },
+  { id: 'explicit-million-leverage', name: 'Seven-Figure Leverage', description: 'Carry at least $1M of explicit debt while remaining solvent.', emoji: '🏦', kind: 'combo', threshold: 1, condition: 'explicit-million-leverage', category: 'risk', subgroup: 'Credit & Leverage', points: 75 },
+  { id: 'explicit-clean-payoff', name: 'Clean Payoff', description: 'Fully repay a loan without ever recording a default.', emoji: '✅', kind: 'combo', threshold: 1, condition: 'explicit-clean-payoff', category: 'risk', subgroup: 'Credit & Leverage', points: 50 },
+  { id: 'explicit-debt-free', name: 'Debt Free', description: 'Borrow meaningful money, then return to zero explicit debt.', emoji: '🕊️', kind: 'combo', threshold: 1, condition: 'explicit-debt-free', category: 'comeback', subgroup: 'Credit Recovery', points: 75 },
+  { id: 'explicit-seizure', name: 'Repo Came Calling', description: 'Lose a pledged asset after defaulting on secured debt.', emoji: '🚛', kind: 'combo', threshold: 1, condition: 'explicit-seizure', category: 'risk', subgroup: 'Collateral Damage', points: 70 },
+  { id: 'explicit-court-filed', name: 'See You in Court', description: 'Have an unsecured creditor file a civil collection case.', emoji: '⚖️', kind: 'combo', threshold: 1, condition: 'explicit-court-filed', category: 'risk', subgroup: 'Courtroom', points: 60 },
+  { id: 'explicit-court-settled', name: 'Settled Out of Court', description: 'Resolve a creditor case through settlement.', emoji: '🤝', kind: 'combo', threshold: 1, condition: 'explicit-court-settled', category: 'comeback', subgroup: 'Courtroom', points: 90 },
+  { id: 'explicit-judgment', name: 'Judgment Day', description: 'Allow a creditor case to reach a civil judgment.', emoji: '🔨', kind: 'combo', threshold: 1, condition: 'explicit-judgment', category: 'risk', subgroup: 'Courtroom', points: 100 },
+  { id: 'explicit-credit-recovery', name: 'Phoenix Credit', description: 'Default at least once, clear every explicit debt, and rebuild your credit score to 650 or better.', emoji: '🔥', kind: 'combo', threshold: 1, condition: 'explicit-credit-recovery', category: 'comeback', subgroup: 'Credit Recovery', points: 200, super: true },
+  { id: 'explicit-house-of-cards', name: 'House of Cards', description: 'Carry at least $10M in debt while your actual leveraged net worth is below the amount you owe.', emoji: '🃏', kind: 'combo', threshold: 1, condition: 'explicit-house-of-cards', category: 'risk', subgroup: 'Extreme Leverage', points: 175, super: true },
+];
