@@ -1,3 +1,4 @@
+import { normalizeBusinessPortfolio } from './businesses';
 import { GameState } from '../types';
 
 const DEFAULT_EVENT_INTERVAL_MS = 120_000;
@@ -6,6 +7,7 @@ export function normalizeGameState(state: GameState, now = Date.now()): GameStat
   return {
     ...state,
     totalSold: state.totalSold ?? 0,
+    businesses: normalizeBusinessPortfolio(state.businesses),
     townLevel: state.townLevel ?? 0,
     regionLevel: state.regionLevel ?? 0,
     upgrades: state.upgrades ?? {},
