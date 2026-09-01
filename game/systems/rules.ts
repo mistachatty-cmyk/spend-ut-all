@@ -44,5 +44,5 @@ export function applyRulePreset(_: GameRules, presetId: RulePresetId) {
 }
 
 export function markRulesCustom(rules: GameRules): GameRules {
-  return { ...normalizeGameRules(rules), presetId: 'sandbox' };
+  return { ...normalizeGameRules(rules), presetId: 'custom' };
 }
