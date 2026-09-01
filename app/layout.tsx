@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { DiscoveryNotifier } from '@/app/components/DiscoveryNotifier';
 import './globals.css';
 import './empire.css';
 import './collection.css';
@@ -9,5 +10,5 @@ export const metadata: Metadata = {
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
-  return <html lang="en"><body>{children}</body></html>;
+  return <html lang="en"><body>{children}<DiscoveryNotifier /></body></html>;
 }
