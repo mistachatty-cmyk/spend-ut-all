@@ -11,6 +11,7 @@ Completed in the first production pass:
 - Pixel+ / Classic preference stored with HUD preferences
 - Settings-only visual control surface for switching Looper art style
 - semantic animation mappings for every production sprite
+- actual pixel-frame animation generation for all semantic moods
 - shared Pixel+ movement library
 - signature FX layers for Firstlight characters
 - global Effects ceiling integration
@@ -40,8 +41,11 @@ Single lookup registry used by runtime UI.
 `data/classic-pet-sprites.ts`
 Preserved legacy compact companion art.
 
+`game/systems/looper-frame-animation.ts`
+Generates real pixel-frame sequences from canonical grids for idle, happy, excited, worried, sleepy, traveling, and celebrating states.
+
 `app/components/PixelPetSprite.tsx`
-Shared runtime renderer. This is the only component normal UI code should need to render a Looper.
+Shared runtime renderer. This is the only component normal UI code should need to render a Looper. It combines frame animation, body motion, art-style selection, signature FX, and the global Effects ceiling.
 
 `app/looper-animations.css`
 Shared motion archetypes and first signature FX set.
@@ -54,20 +58,20 @@ Card/Binder presentation.
 
 ## Animation quality stages
 
-Stage A — current
-Every Looper has semantic moods mapped to body animation plus optional signature FX. This is lightweight and scalable.
+Stage A — complete
+Every Looper has semantic moods mapped to body animation plus optional signature FX.
 
-Stage B — next
-Add pose-frame support to the sprite schema so selected characters can change actual pixel arrangements for blink, notice, sleep, celebrate, and signature actions rather than relying only on transforms.
+Stage B — complete
+Every Looper now receives actual pixel-grid frame changes in addition to transforms. Static/Nothing effects remain still.
 
-Stage C
-Create 3–6 hand-authored frame sequences for the starter trio:
+Stage C — next polish pass
+Add bespoke hand-authored pose frames for the starter trio on top of the shared generator:
 - LOK Slime: blink, squash, internal mote pop, celebrate burst
 - Coin Cat: blink, ear flick, tail curl, coin toss/catch
 - Espresso Bot: eye panel expressions, servo arm, steam puff, coffee reaction
 
 Stage D
-Roll pose-frame sequences through Rare/Epic/Legendary/Mythic characters, prioritizing Orbit Owl, Signalsilk Moth, Glassfang Cobra, Moon Gecko, Wolf Pup, and Singularity Sprite.
+Add bespoke signature poses to Rare/Epic/Legendary/Mythic characters, prioritizing Orbit Owl, Signalsilk Moth, Glassfang Cobra, Moon Gecko, Wolf Pup, and Singularity Sprite.
 
 Stage E
 Add event-specific semantic reactions: moneyUp, moneyDown, purchaseReaction, worldEvent, notice, tip, signature.
@@ -112,7 +116,7 @@ Next companion polish:
 
 ## Performance rules
 
-- Static/Nothing effects never run character FX loops.
+- Static/Nothing effects never run character frame or FX loops.
 - Animated is the normal production target.
 - High/Uber/Absurd may layer additional global particles, but core character readability comes first.
 - Avoid more than one expensive filter/backdrop effect per portrait.
