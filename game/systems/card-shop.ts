@@ -7,6 +7,13 @@ import { grantLokDexCard, normalizeLokDexCollection } from './lokdex';
 
 export const CARD_SHOP_KEY = 'spend-it-all-card-shop-v1';
 export const CARD_SHOP_VERSION = 1;
+export const CARD_COLLECTION_REWARDS = [
+  { discovered:5, credits:100 },
+  { discovered:10, credits:175 },
+  { discovered:15, credits:250 },
+  { discovered:20, credits:400 },
+  { discovered:24, credits:750 },
+] as const;
 
 const rarityRank: Record<CustomizationRarity, number> = { common:0, uncommon:1, rare:2, epic:3, legendary:4, mythic:5, secret:6 };
 const rarityRecycle: Record<CustomizationRarity, number> = { common:8, uncommon:14, rare:28, epic:65, legendary:150, mythic:400, secret:600 };
@@ -22,6 +29,8 @@ export function createCardShopState(): CardShopState {
     cardsPulled:0,
     cardsRecycled:0,
     creditsFromRecycling:0,
+    creditsFromCollectionRewards:0,
+    claimedCollectionMilestones:[],
     ownedDeckBlueprintIds:[],
     lastFreePackAt:0,
     freePacksClaimed:0,
@@ -43,6 +52,8 @@ export function normalizeCardShopState(input?: Partial<CardShopState> | null): C
     cardsPulled:Math.max(0, Math.floor(Number.isFinite(input?.cardsPulled) ? Number(input!.cardsPulled) : 0)),
     cardsRecycled:Math.max(0, Math.floor(Number.isFinite(input?.cardsRecycled) ? Number(input!.cardsRecycled) : 0)),
     creditsFromRecycling:Math.max(0, Number.isFinite(input?.creditsFromRecycling) ? Number(input!.creditsFromRecycling) : 0),
+    creditsFromCollectionRewards:Math.max(0, Number.isFinite(input?.creditsFromCollectionRewards) ? Number(input!.creditsFromCollectionRewards) : 0),
+    claimedCollectionMilestones:Array.isArray(input?.claimedCollectionMilestones) ? [...new Set(input!.claimedCollectionMilestones.filter((value): value is number => Number.isFinite(value)).map((value) => Math.floor(value)))] : [],
     ownedDeckBlueprintIds:Array.isArray(input?.ownedDeckBlueprintIds) ? [...new Set(input!.ownedDeckBlueprintIds.filter((id): id is string => typeof id === 'string'))] : [],
     lastFreePackAt:Math.max(0, Number.isFinite(input?.lastFreePackAt) ? Number(input!.lastFreePackAt) : 0),
     freePacksClaimed:Math.max(0, Math.floor(Number.isFinite(input?.freePacksClaimed) ? Number(input!.freePacksClaimed) : 0)),
@@ -76,6 +87,23 @@ export function ensureCardShopStarterGrant(input: CardShopState) {
     lifetimeCreditsEarned:state.lifetimeCreditsEarned + CARD_SHOP_STARTER_CREDITS,
     starterGrantClaimed:true,
   };
+}
+
+export function applyCardCollectionMilestones(shopInput: CardShopState, collectionInput: LokDexCollection) {
+  let shop = normalizeCardShopState(shopInput);
+  const collection = normalizeLokDexCollection(collectionInput);
+  const discovered = new Set(collection.discoveredIds).size;
+  const newlyClaimed = CARD_COLLECTION_REWARDS.filter((reward) => discovered >= reward.discovered && !shop.claimedCollectionMilestones.includes(reward.discovered));
+  if (!newlyClaimed.length) return { shop, creditsAwarded:0, milestones:[] as number[] };
+  const creditsAwarded = newlyClaimed.reduce((sum, reward) => sum + reward.credits, 0);
+  shop = normalizeCardShopState({
+    ...shop,
+    credits:shop.credits + creditsAwarded,
+    lifetimeCreditsEarned:shop.lifetimeCreditsEarned + creditsAwarded,
+    creditsFromCollectionRewards:shop.creditsFromCollectionRewards + creditsAwarded,
+    claimedCollectionMilestones:[...shop.claimedCollectionMilestones, ...newlyClaimed.map((reward) => reward.discovered)],
+  });
+  return { shop, creditsAwarded, milestones:newlyClaimed.map((reward) => reward.discovered) };
 }
 
 function weightedCharacter(product: CardShopProduct, guarantee = false) {
@@ -154,7 +182,9 @@ export function purchaseCardProduct(shopInput: CardShopState, collectionInput: L
     ownedDeckBlueprintIds:product.deckBlueprintId ? [...shop.ownedDeckBlueprintIds, product.deckBlueprintId] : shop.ownedDeckBlueprintIds,
     recentPulls:[...opened.pulls, ...shop.recentPulls].slice(0,24),
   });
-  return { success:true as const, shop, collection:opened.collection, pulls:opened.pulls, discoveryBonus };
+  const milestone = applyCardCollectionMilestones(shop, opened.collection);
+  shop = milestone.shop;
+  return { success:true as const, shop, collection:opened.collection, pulls:opened.pulls, discoveryBonus, milestoneBonus:milestone.creditsAwarded, milestones:milestone.milestones };
 }
 
 export function freePackReady(shopInput: CardShopState, now = Date.now()) {
@@ -180,7 +210,8 @@ export function claimFreeCardPack(shopInput: CardShopState, collectionInput: Lok
     cardsPulled:shop.cardsPulled + opened.pulls.length,
     recentPulls:[...opened.pulls, ...shop.recentPulls].slice(0,24),
   });
-  return { success:true as const, shop, collection:opened.collection, pulls:opened.pulls };
+  const milestone = applyCardCollectionMilestones(shop, opened.collection);
+  return { success:true as const, shop:milestone.shop, collection:opened.collection, pulls:opened.pulls, milestoneBonus:milestone.creditsAwarded, milestones:milestone.milestones };
 }
 
 export function recycleValue(card: LokDexOwnedCard) {
