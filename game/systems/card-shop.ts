@@ -107,7 +107,7 @@ export function applyCardCollectionMilestones(shopInput: CardShopState, collecti
 }
 
 function weightedCharacter(product: CardShopProduct, guarantee = false) {
-  let pool = lokDexEntries.filter((entry) => entry.rarity !== 'secret');
+  let pool = lokDexEntries.filter((entry) => entry.acquisition.includes('pack') && entry.rarity !== 'secret');
   const g = product.guarantee;
   if (guarantee && g?.minRarity) {
     const min = rarityRank[g.minRarity];
