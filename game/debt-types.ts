@@ -3,6 +3,7 @@ export type DebtSecurityType = 'unsecured' | 'item' | 'home';
 export type DebtStatus = 'current' | 'late' | 'default' | 'paid' | 'seized' | 'judgment';
 export type CourtStage = 'filed' | 'hearing' | 'judgment' | 'settled' | 'dismissed';
 export type AutopayMode = 'off' | 'minimum' | 'full';
+export type CourtRepresentation = 'self' | 'local-counsel' | 'elite-firm';
 
 export type DebtProductDefinition = {
   id: string;
@@ -75,6 +76,12 @@ export type CourtCase = {
   filedAtGameMinute: number;
   nextEventGameMinute: number;
   judgmentAmount: number | null;
+  representation?: CourtRepresentation;
+  continuances?: number;
+  settlementDiscount?: number;
+  legalSpend?: number;
+  paymentPlan?: boolean;
+  lastAction?: string;
 };
 
 export type DebtState = {
