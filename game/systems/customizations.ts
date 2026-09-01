@@ -165,3 +165,7 @@ export function themeClass(inventory: CustomizationInventory) {
 export function moneyCounterClass(inventory: CustomizationInventory) {
   return `counter-${customizationById(inventory.equipped.moneyCounterId)?.previewKey ?? 'smooth'}`;
 }
+
+export function hudClass(inventory: CustomizationInventory) {
+  return inventory.equipped.hudId === 'hud-compact' ? 'hud-compact' : 'hud-default';
+}
