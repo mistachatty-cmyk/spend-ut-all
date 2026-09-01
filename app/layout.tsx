@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from 'next';
+import { CardDistrictLink } from '@/app/components/CardDistrictLink';
 import { DiscoveryNotifier } from '@/app/components/DiscoveryNotifier';
 import { MicroAnimationLayer } from '@/app/components/MicroAnimationLayer';
 import './globals.css';
@@ -33,5 +34,5 @@ export const viewport: Viewport = {
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
-  return <html lang="en" data-effects-level="1"><body>{children}<DiscoveryNotifier /><MicroAnimationLayer /></body></html>;
+  return <html lang="en" data-effects-level="1"><body><CardDistrictLink />{children}<DiscoveryNotifier /><MicroAnimationLayer /></body></html>;
 }
