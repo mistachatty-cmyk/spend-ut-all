@@ -1,5 +1,13 @@
 import type { GameRules, RulePresetId } from '@/game/rules-types';
 
+const standardRules: GameRules = {
+  presetId: 'standard',
+  economy: { incomeMultiplier: 1, costMultiplier: 1, purchasePriceMultiplier: 1, businessDemandMultiplier: 1, laborCostMultiplier: 1, inflationMultiplier: 1 },
+  world: { marketEventsEnabled: true, eventIntensity: 1, offlineIncomeEnabled: true, offlineIncomeMultiplier: 1 },
+  difficulty: { activeIncomeMultiplier: 1, investmentRiskMultiplier: 1, debtPressureMultiplier: 1 },
+  progression: { scenarioGoalMultiplier: 1, achievementTimingMultiplier: 1 },
+};
+
 export const RULE_PRESETS: Record<RulePresetId, GameRules> = {
   casual: {
     presetId: 'casual',
@@ -8,13 +16,7 @@ export const RULE_PRESETS: Record<RulePresetId, GameRules> = {
     difficulty: { activeIncomeMultiplier: 1.5, investmentRiskMultiplier: 0.7, debtPressureMultiplier: 0.7 },
     progression: { scenarioGoalMultiplier: 0.8, achievementTimingMultiplier: 1.25 },
   },
-  standard: {
-    presetId: 'standard',
-    economy: { incomeMultiplier: 1, costMultiplier: 1, purchasePriceMultiplier: 1, businessDemandMultiplier: 1, laborCostMultiplier: 1, inflationMultiplier: 1 },
-    world: { marketEventsEnabled: true, eventIntensity: 1, offlineIncomeEnabled: true, offlineIncomeMultiplier: 1 },
-    difficulty: { activeIncomeMultiplier: 1, investmentRiskMultiplier: 1, debtPressureMultiplier: 1 },
-    progression: { scenarioGoalMultiplier: 1, achievementTimingMultiplier: 1 },
-  },
+  standard: standardRules,
   simulation: {
     presetId: 'simulation',
     economy: { incomeMultiplier: 0.95, costMultiplier: 1.08, purchasePriceMultiplier: 1.05, businessDemandMultiplier: 1, laborCostMultiplier: 1.08, inflationMultiplier: 1.1 },
@@ -36,6 +38,7 @@ export const RULE_PRESETS: Record<RulePresetId, GameRules> = {
     difficulty: { activeIncomeMultiplier: 5, investmentRiskMultiplier: 0, debtPressureMultiplier: 0 },
     progression: { scenarioGoalMultiplier: 0.25, achievementTimingMultiplier: 3 },
   },
+  custom: { ...standardRules, presetId: 'custom', economy: { ...standardRules.economy }, world: { ...standardRules.world }, difficulty: { ...standardRules.difficulty }, progression: { ...standardRules.progression } },
 };
 
 export const RULE_PRESET_INFO = [
