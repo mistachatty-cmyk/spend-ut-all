@@ -110,6 +110,12 @@ export function achievementUnlockedByRule(state: GameState, achievement: Achieve
 
     case 'explicit-first-loan': return explicitDebt.lifetimeBorrowed > 0;
     case 'explicit-million-leverage': return debtTotals.totalDebt >= 1_000_000 && metrics.netWorth > 0;
+    case 'explicit-autopay': return explicitDebt.lifetimeAutopayPaid >= 1_000;
+    case 'explicit-refinanced': return explicitDebt.lifetimeRefinanced >= 10_000;
+    case 'explicit-consolidated': return explicitDebt.lifetimeConsolidated >= 25_000;
+    case 'explicit-mortgage': return explicitDebt.obligations.some((entry) => entry.collateral?.kind === 'home');
+    case 'explicit-home-free': return explicitDebt.obligations.some((entry) => entry.collateral?.kind === 'home' && entry.status === 'paid') && !explicitDebt.obligations.some((entry) => entry.collateral?.kind === 'home' && entry.balance > 0 && !['paid','seized'].includes(entry.status));
+    case 'explicit-foreclosure': return explicitDebt.lifetimeForeclosures >= 1;
     case 'explicit-clean-payoff': return explicitDebt.lifetimeRepaid >= 1_000 && explicitDebt.lifetimeDefaults === 0 && debtTotals.totalDebt <= 0.01 && explicitDebt.obligations.some((entry) => entry.status === 'paid');
     case 'explicit-debt-free': return explicitDebt.lifetimeBorrowed >= 10_000 && debtTotals.totalDebt <= 0.01;
     case 'explicit-seizure': return explicitDebt.lifetimeSeizures >= 1;
