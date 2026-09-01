@@ -8,6 +8,7 @@ export type LokAssetKind =
   | 'title-style'
   | 'effect'
   | 'pet'
+  | 'companion-profile'
   | 'pet-accessory'
   | 'collectible'
   | 'card';
@@ -89,6 +90,7 @@ export type LokAssetTransferRecord = {
   sourceGame: string;
 };
 
+/** Portable metadata for a character/card inside the broad LOKdex universe. */
 export type LokPetCardMetadata = {
   species: string;
   generation?: number;
@@ -98,4 +100,18 @@ export type LokPetCardMetadata = {
   cardNumber?: string;
   evolutionFamily?: string;
   powerProfile?: Record<string, number>;
+};
+
+/**
+ * A companion profile is a separate presentation/behavior asset that references a LOKdex character.
+ * Only curated characters receive one; card ownership alone never grants advisor behavior.
+ */
+export type LokCompanionProfileMetadata = {
+  characterAssetId: string;
+  hostGame: string;
+  advisorRole: 'starter' | 'money' | 'work' | 'risk' | 'travel' | 'general';
+  preferredAnchor: 'money-counter' | 'sidebar' | 'footer' | 'room' | 'free';
+  reactionIds: string[];
+  dialogueSetId?: string;
+  animationSetId?: string;
 };
