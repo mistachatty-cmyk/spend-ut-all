@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from 'next';
+import { AdvancedInterfaceControl } from '@/app/components/AdvancedInterfaceControl';
 import { CardDistrictLink } from '@/app/components/CardDistrictLink';
 import { DiscoveryNotifier } from '@/app/components/DiscoveryNotifier';
 import { MicroAnimationLayer } from '@/app/components/MicroAnimationLayer';
@@ -23,6 +24,7 @@ import './debt.css';
 import './game-shell.css';
 import './card-access.css';
 import './card-district-access.css';
+import './advanced-interface.css';
 
 export const metadata: Metadata = {
   title: 'Spend It All',
@@ -37,5 +39,5 @@ export const viewport: Viewport = {
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
-  return <html lang="en" data-effects-level="1"><body><CardDistrictLink /><StarterCompanionPrompt />{children}<DiscoveryNotifier /><MicroAnimationLayer /></body></html>;
+  return <html lang="en" data-effects-level="1" data-interface-mode="simple"><body><CardDistrictLink /><StarterCompanionPrompt />{children}<AdvancedInterfaceControl /><DiscoveryNotifier /><MicroAnimationLayer /></body></html>;
 }
