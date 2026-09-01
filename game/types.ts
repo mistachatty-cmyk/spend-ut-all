@@ -36,7 +36,7 @@ export type Achievement = { id: string; name: string; description: string; emoji
 
 export type GameState = {
   started: boolean; scenarioId: ScenarioId; customScenario: CustomScenarioDefinition | null; mode: FinancialMode; cash: number; totalSpent: number; totalSold: number; lifetimeIncome: number;
-  owned: Record<string, number>; incomeStreams: Record<string, number>; businesses: BusinessPortfolio; cityEconomy: CityEconomyState; time: TimeSimulationState; rules: GameRules; debt: DebtState;
+  owned: Record<string, number>; incomeStreams: Record<string, number>; businesses: BusinessPortfolio; cityEconomy: CityEconomyState; time: TimeSimulationState; rules: GameRules; debt?: DebtState;
   houseLevel: number; townLevel: number; regionLevel: number; upgrades: Record<string, number>; citySpecialization: CitySpecializationId | null;
   activeEventId: string | null; eventEndsAt: number; nextEventAt: number; lastOfflineIncome: number;
   riskMode: boolean; runStatus: RunStatus; bankruptcyDeadline: number; bankruptcyWarnings: number;
