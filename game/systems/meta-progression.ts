@@ -80,6 +80,14 @@ export function syncMetaProgression(metaInput: MetaState, state: GameState, metr
   if (state.townLevel >= 5) meta = awardBadge(meta, 'city-founder', state);
   if (state.regionLevel >= 5) meta = awardBadge(meta, 'planetary', state);
   if (metrics.totalOwned >= 100) meta = awardBadge(meta, 'collector-100', state);
+
+  if (state.scenarioId === 'nothing' && metrics.netWorth >= 1_000_000) meta = awardBadge(meta, 'self-made-millionaire', state);
+  if (state.scenarioId === 'nothing' && metrics.netWorth >= 1_000_000_000) meta = awardBadge(meta, 'self-made-billionaire', state);
+  if (state.scenarioId === 'nothing' && state.totalSold === 0 && metrics.netWorth >= 1_000_000) meta = awardBadge(meta, 'never-sell', state);
+  if (state.scenarioId === 'ten-x' && metrics.netWorth >= 1_000_000) meta = awardBadge(meta, 'wealth-10x', state);
+  if (state.scenarioId === 'hundred-x' && metrics.netWorth >= 10_000_000) meta = awardBadge(meta, 'wealth-100x', state);
+  if (state.scenarioId === 'thousand-x' && metrics.netWorth >= 100_000_000) meta = awardBadge(meta, 'wealth-1000x', state);
+
   if (metrics.scenarioComplete) {
     meta = awardBadge(meta, 'scenario-finisher', state);
     if (!meta.scenariosCompleted.includes(state.scenarioId)) meta = { ...meta, scenariosCompleted: [...meta.scenariosCompleted, state.scenarioId] };
