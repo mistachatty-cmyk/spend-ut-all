@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import './globals.css';
 import './empire.css';
+import './collection.css';
 
 export const metadata: Metadata = {
   title: 'Spend It All',
