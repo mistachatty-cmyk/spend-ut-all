@@ -1,4 +1,4 @@
-import { Achievement, GameItem, HouseTier, Scenario, TownTier } from '@/game/types';
+import { Achievement, CitySpecialization, EmpireUpgrade, GameItem, HouseTier, MarketEvent, RegionTier, Scenario, TownTier } from '@/game/types';
 
 export const scenarios: Scenario[] = [
   { id: 'freeplay', name: 'Millionaire Sandbox', description: 'Start with $10M and grow from purchases into an empire.', startingCash: 10_000_000, targetNetWorth: 100_000_000, goalLabel: 'Reach $100M net worth' },
@@ -12,20 +12,28 @@ export const items: GameItem[] = [
   { id: 'gaming-pc', name: 'Gaming PC', emoji: '🖥️', category: 'everyday', basePrice: 4_000, growthRate: 1.015, description: 'Top-tier hardware.' },
   { id: 'watch', name: 'Luxury Watch', emoji: '⌚', category: 'luxury', basePrice: 35_000, growthRate: 1.02, unlockSpent: 10_000, description: 'A collectible status symbol with almost no practical effect.' },
   { id: 'supercar', name: 'Supercar', emoji: '🏎️', category: 'luxury', basePrice: 350_000, growthRate: 1.025, upkeepPerSecond: 0.08, unlockSpent: 100_000, description: 'Fast, expensive, and increasingly difficult to store.' },
-  { id: 'yacht', name: 'Superyacht', emoji: '🛥️', category: 'luxury', basePrice: 180_000_000, growthRate: 1.04, upkeepPerSecond: 45, unlockSpent: 20_000_000, description: 'Floating luxury with a permanent operating bill.' },
   { id: 'private-jet', name: 'Private Jet', emoji: '✈️', category: 'luxury', basePrice: 65_000_000, growthRate: 1.035, upkeepPerSecond: 18, unlockSpent: 5_000_000, description: 'Convenience at an industrial operating cost.' },
+  { id: 'yacht', name: 'Superyacht', emoji: '🛥️', category: 'luxury', basePrice: 180_000_000, growthRate: 1.04, upkeepPerSecond: 45, unlockSpent: 20_000_000, description: 'Floating luxury with a permanent operating bill.' },
+  { id: 'island', name: 'Private Island', emoji: '🏝️', category: 'luxury', basePrice: 420_000_000, growthRate: 1.045, upkeepPerSecond: 70, unlockSpent: 80_000_000, description: 'A private destination, resort opportunity, and logistics headache.' },
   { id: 'starter-home', name: 'Starter Home', emoji: '🏠', category: 'property', basePrice: 450_000, growthRate: 1.04, incomePerSecond: 1.2, upkeepPerSecond: 0.12, unlockSpent: 50_000, description: 'A real asset that can appreciate into a larger property portfolio.' },
   { id: 'apartments', name: 'Apartment Building', emoji: '🏢', category: 'property', basePrice: 8_000_000, growthRate: 1.055, incomePerSecond: 28, upkeepPerSecond: 6, unlockSpent: 1_000_000, description: 'Rental cash flow and the beginning of a real-estate empire.' },
   { id: 'hotel', name: 'Luxury Hotel', emoji: '🏨', category: 'property', basePrice: 95_000_000, growthRate: 1.065, incomePerSecond: 360, upkeepPerSecond: 115, unlockSpent: 15_000_000, description: 'Hospitality, property value, and a lot of staff.' },
+  { id: 'skyscraper', name: 'Skyscraper', emoji: '🏙️', category: 'property', basePrice: 700_000_000, growthRate: 1.08, incomePerSecond: 1_900, upkeepPerSecond: 450, unlockSpent: 100_000_000, description: 'A skyline-defining commercial asset.' },
+  { id: 'resort-district', name: 'Resort District', emoji: '🌴', category: 'property', basePrice: 2_400_000_000, growthRate: 1.09, incomePerSecond: 7_500, upkeepPerSecond: 2_200, unlockSpent: 350_000_000, description: 'Hotels, entertainment, retail, and premium property in one district.' },
   { id: 'restaurant', name: 'Restaurant', emoji: '🍽️', category: 'business', basePrice: 650_000, growthRate: 1.06, incomePerSecond: 7, upkeepPerSecond: 2.5, unlockSpent: 250_000, description: 'An operating business with both revenue and costs.' },
   { id: 'retail-chain', name: 'Retail Chain', emoji: '🏪', category: 'business', basePrice: 4_500_000, growthRate: 1.065, incomePerSecond: 42, upkeepPerSecond: 17, unlockSpent: 750_000, description: 'Multiple locations, inventory, payroll, and brand reach.' },
   { id: 'software-company', name: 'Software Company', emoji: '💻', category: 'business', basePrice: 12_000_000, growthRate: 1.07, incomePerSecond: 95, upkeepPerSecond: 24, unlockSpent: 2_000_000, description: 'High-margin growth if you can afford the team.' },
   { id: 'factory', name: 'Factory', emoji: '🏭', category: 'business', basePrice: 85_000_000, growthRate: 1.075, incomePerSecond: 520, upkeepPerSecond: 210, unlockSpent: 12_000_000, description: 'Industrial production with heavy operating costs.' },
-  { id: 'skyscraper', name: 'Skyscraper', emoji: '🏙️', category: 'property', basePrice: 700_000_000, growthRate: 1.08, incomePerSecond: 1_900, upkeepPerSecond: 450, unlockSpent: 100_000_000, description: 'A skyline-defining commercial asset.' },
+  { id: 'media-company', name: 'Media Company', emoji: '📺', category: 'business', basePrice: 450_000_000, growthRate: 1.085, incomePerSecond: 2_400, upkeepPerSecond: 720, unlockSpent: 70_000_000, description: 'Advertising, subscriptions, licensing, and cultural reach.' },
   { id: 'sports-team', name: 'Pro Sports Franchise', emoji: '🏟️', category: 'business', basePrice: 6_000_000_000, growthRate: 1.1, incomePerSecond: 8_500, upkeepPerSecond: 3_000, unlockSpent: 500_000_000, description: 'Prestige, media rights, payroll, and huge operating scale.' },
+  { id: 'bank', name: 'National Bank', emoji: '🏦', category: 'business', basePrice: 22_000_000_000, growthRate: 1.11, incomePerSecond: 42_000, upkeepPerSecond: 12_000, unlockSpent: 2_500_000_000, description: 'Deposits, lending, investments, and enormous financial leverage.' },
   { id: 'airport', name: 'International Airport', emoji: '🛫', category: 'infrastructure', basePrice: 18_000_000_000, growthRate: 1.1, incomePerSecond: 22_000, upkeepPerSecond: 8_500, unlockSpent: 2_000_000_000, description: 'Moves people, goods, and business through your growing region.' },
+  { id: 'high-speed-rail', name: 'High-Speed Rail Network', emoji: '🚄', category: 'infrastructure', basePrice: 55_000_000_000, growthRate: 1.115, incomePerSecond: 70_000, upkeepPerSecond: 27_000, unlockSpent: 8_000_000_000, description: 'Connects cities and radically increases regional productivity.' },
   { id: 'space-program', name: 'Private Space Program', emoji: '🚀', category: 'infrastructure', basePrice: 30_000_000_000, growthRate: 1.12, incomePerSecond: 35_000, upkeepPerSecond: 18_000, unlockSpent: 3_000_000_000, description: 'The first bridge from billionaire toys to civilization-scale projects.' },
+  { id: 'fusion-grid', name: 'Fusion Energy Grid', emoji: '⚛️', category: 'infrastructure', basePrice: 140_000_000_000, growthRate: 1.13, incomePerSecond: 260_000, upkeepPerSecond: 82_000, unlockSpent: 20_000_000_000, description: 'Massive clean-energy infrastructure powering an advanced economy.' },
   { id: 'megacity', name: 'Megacity Development', emoji: '🌆', category: 'infrastructure', basePrice: 250_000_000_000, growthRate: 1.15, incomePerSecond: 500_000, upkeepPerSecond: 175_000, unlockSpent: 25_000_000_000, description: 'Housing, transit, utilities, business districts, and millions of residents.' },
+  { id: 'orbital-city', name: 'Orbital City', emoji: '🛰️', category: 'infrastructure', basePrice: 2_500_000_000_000, growthRate: 1.17, incomePerSecond: 7_500_000, upkeepPerSecond: 2_900_000, unlockSpent: 500_000_000_000, description: 'A permanent off-world economy with residents, industry, and trade.' },
+  { id: 'moon-colony', name: 'Lunar Colony', emoji: '🌕', category: 'infrastructure', basePrice: 18_000_000_000_000, growthRate: 1.19, incomePerSecond: 65_000_000, upkeepPerSecond: 24_000_000, unlockSpent: 3_000_000_000_000, description: 'A true second-world economy and the beginning of civilization-scale ownership.' },
 ];
 
 export const houseTiers: HouseTier[] = [
@@ -46,13 +54,51 @@ export const townTiers: TownTier[] = [
   { level: 5, name: 'Metropolis', cost: 500_000_000_000, requiredNetWorth: 1_000_000_000_000, population: 2_000_000, jobs: 1_100_000, description: 'A major urban economy ready for regional expansion.' },
 ];
 
+export const regionTiers: RegionTier[] = [
+  { level: 0, name: 'Single Metropolis', cost: 0, requiredNetWorth: 0, population: 2_000_000, economy: 'Urban', description: 'One major city anchors your economic influence.' },
+  { level: 1, name: 'Metro Region', cost: 1_500_000_000_000, requiredNetWorth: 3_000_000_000_000, population: 8_000_000, economy: 'Regional', description: 'Satellite cities, logistics, suburbs, and industry link into one economy.' },
+  { level: 2, name: 'Statewide Network', cost: 6_000_000_000_000, requiredNetWorth: 12_000_000_000_000, population: 25_000_000, economy: 'State', description: 'Multiple cities, transport corridors, utilities, and financial hubs work together.' },
+  { level: 3, name: 'National Power', cost: 30_000_000_000_000, requiredNetWorth: 60_000_000_000_000, population: 120_000_000, economy: 'National', description: 'Your holdings influence an entire national economy.' },
+  { level: 4, name: 'Global Network', cost: 150_000_000_000_000, requiredNetWorth: 300_000_000_000_000, population: 1_500_000_000, economy: 'Global', description: 'Trade, finance, infrastructure, and companies span continents.' },
+  { level: 5, name: 'Planetary Economy', cost: 1_000_000_000_000_000, requiredNetWorth: 2_000_000_000_000_000, population: 8_000_000_000, economy: 'Planetary', description: 'You have reached civilization-scale economic influence.' },
+];
+
+export const empireUpgrades: EmpireUpgrade[] = [
+  { id: 'operations', name: 'Operations Playbook', emoji: '📋', description: 'Standardize processes across every revenue-producing asset.', baseCost: 5_000_000, growthRate: 4, maxLevel: 5, incomeMultiplierPerLevel: 0.08 },
+  { id: 'automation', name: 'Automation', emoji: '🤖', description: 'Automate repetitive work and reduce operating costs.', baseCost: 50_000_000, growthRate: 5, maxLevel: 5, upkeepReductionPerLevel: 0.07 },
+  { id: 'brand', name: 'Global Brand', emoji: '✨', description: 'Turn reputation into pricing power and stronger demand.', baseCost: 500_000_000, growthRate: 5, maxLevel: 5, incomeMultiplierPerLevel: 0.12, requiredTownLevel: 2 },
+  { id: 'logistics', name: 'Logistics Network', emoji: '🚚', description: 'Connect suppliers, warehouses, businesses, and customers.', baseCost: 5_000_000_000, growthRate: 6, maxLevel: 5, incomeMultiplierPerLevel: 0.1, upkeepReductionPerLevel: 0.03, requiredTownLevel: 3 },
+  { id: 'ai-economy', name: 'AI Economy', emoji: '🧠', description: 'Use advanced systems to optimize pricing, staffing, forecasting, and capital allocation.', baseCost: 250_000_000_000, growthRate: 7, maxLevel: 5, incomeMultiplierPerLevel: 0.2, requiredTownLevel: 5 },
+  { id: 'global-trade', name: 'Global Trade Grid', emoji: '🌐', description: 'Coordinate trade across your regional and global holdings.', baseCost: 5_000_000_000_000, growthRate: 8, maxLevel: 5, incomeMultiplierPerLevel: 0.3, requiredRegionLevel: 1 },
+];
+
+export const citySpecializations: CitySpecialization[] = [
+  { id: 'finance', name: 'Financial Capital', emoji: '🏦', description: 'Banks, investment firms, and capital markets dominate the skyline.', incomeMultiplier: 1.18, upkeepMultiplier: 1.04 },
+  { id: 'technology', name: 'Technology Hub', emoji: '🧬', description: 'High-value software, research, and advanced industry drive growth.', incomeMultiplier: 1.22, upkeepMultiplier: 1.08 },
+  { id: 'industrial', name: 'Industrial Engine', emoji: '🏭', description: 'Manufacturing and logistics scale efficiently across the region.', incomeMultiplier: 1.15, upkeepMultiplier: 0.9 },
+  { id: 'tourism', name: 'Luxury Destination', emoji: '🌴', description: 'Hospitality, entertainment, events, and premium experiences attract spending.', incomeMultiplier: 1.16, upkeepMultiplier: 0.96 },
+];
+
+export const marketEvents: MarketEvent[] = [
+  { id: 'boom', name: 'Economic Boom', emoji: '📈', description: 'Demand surges across your economy.', incomeMultiplier: 1.35, upkeepMultiplier: 1.05, durationMs: 60_000 },
+  { id: 'recession', name: 'Recession', emoji: '📉', description: 'Consumers and businesses pull back spending.', incomeMultiplier: 0.72, upkeepMultiplier: 0.94, durationMs: 60_000 },
+  { id: 'supply-shock', name: 'Supply Shock', emoji: '📦', description: 'Input costs rise while logistics struggle.', incomeMultiplier: 0.92, upkeepMultiplier: 1.3, durationMs: 45_000 },
+  { id: 'viral-demand', name: 'Viral Demand', emoji: '🔥', description: 'Your brands become the thing everyone wants.', incomeMultiplier: 1.55, upkeepMultiplier: 1.08, durationMs: 35_000 },
+  { id: 'efficiency-wave', name: 'Efficiency Wave', emoji: '⚡', description: 'A productivity breakthrough lowers operating costs.', incomeMultiplier: 1.08, upkeepMultiplier: 0.7, durationMs: 50_000 },
+];
+
 export const achievements: Achievement[] = [
   { id: 'first-million-spent', name: 'Big Spender', description: 'Spend $1M in a run.', emoji: '💸', kind: 'spent', threshold: 1_000_000 },
   { id: 'billion-spent', name: 'Money Furnace', description: 'Spend $1B in a run.', emoji: '🔥', kind: 'spent', threshold: 1_000_000_000 },
+  { id: 'trillion-spent', name: 'Capital Singularity', description: 'Spend $1T in a run.', emoji: '🌀', kind: 'spent', threshold: 1_000_000_000_000 },
   { id: 'income-1k', name: 'Cashflow', description: 'Earn $1K per second.', emoji: '📈', kind: 'income', threshold: 1_000 },
   { id: 'income-100k', name: 'Economic Engine', description: 'Earn $100K per second.', emoji: '⚙️', kind: 'income', threshold: 100_000 },
+  { id: 'income-10m', name: 'Money Machine', description: 'Earn $10M per second.', emoji: '💰', kind: 'income', threshold: 10_000_000 },
   { id: 'house-estate', name: 'Home Empire', description: 'Reach house level 5.', emoji: '🏰', kind: 'house', threshold: 5 },
   { id: 'found-town', name: 'Founder', description: 'Build your first hamlet.', emoji: '🏘️', kind: 'town', threshold: 1 },
   { id: 'metropolis', name: 'City Maker', description: 'Reach metropolis level.', emoji: '🌇', kind: 'town', threshold: 5 },
+  { id: 'regional-power', name: 'Regional Power', description: 'Build a metro region.', emoji: '🗺️', kind: 'region', threshold: 1 },
+  { id: 'planetary', name: 'Planetary Economy', description: 'Reach planetary economic scale.', emoji: '🌍', kind: 'region', threshold: 5 },
   { id: 'collector', name: 'Collector', description: 'Own 100 total items.', emoji: '📦', kind: 'collection', threshold: 100 },
+  { id: 'mega-collector', name: 'Warehouse Required', description: 'Own 10,000 total items.', emoji: '🏗️', kind: 'collection', threshold: 10_000 },
 ];
