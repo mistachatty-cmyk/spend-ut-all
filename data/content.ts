@@ -1,7 +1,11 @@
 import { Achievement, CitySpecialization, EmpireUpgrade, GameItem, HouseTier, MarketEvent, RegionTier, Scenario, TownTier } from '@/game/types';
 
 export const scenarios: Scenario[] = [
-  { id: 'freeplay', name: 'Millionaire Sandbox', description: 'Start with $10M and grow from purchases into an empire.', startingCash: 10_000_000, targetNetWorth: 100_000_000, goalLabel: 'Reach $100M net worth' },
+  { id: 'nothing', name: 'Start From Nothing', description: 'Start at $0. Work your way from tiny active earnings into passive income, businesses, property, cities, and eventually an empire.', startingCash: 0, targetNetWorth: 1_000_000, goalLabel: 'Build from $0 to $1M net worth' },
+  { id: 'freeplay', name: 'Free Mode', description: 'No finish line. Pick your own goals and keep growing for as long as you want.', startingCash: 10_000_000, goalLabel: 'No finish line — build forever', freeMode: true },
+  { id: 'ten-x', name: '10× Wealth', description: 'Start with $100K and multiply your wealth tenfold.', startingCash: 100_000, targetMultiplier: 10, goalLabel: 'Turn $100K into $1M' },
+  { id: 'hundred-x', name: '100× Wealth', description: 'Start with $100K and build a one-hundred-times larger fortune.', startingCash: 100_000, targetMultiplier: 100, goalLabel: 'Turn $100K into $10M' },
+  { id: 'thousand-x', name: '1,000× Wealth', description: 'Start with $100K and turn it into a nine-figure empire.', startingCash: 100_000, targetMultiplier: 1_000, goalLabel: 'Turn $100K into $100M' },
   { id: 'billionaire', name: 'Billionaire Run', description: 'Start with $100B. Spend it, invest it, and build something bigger.', startingCash: 100_000_000_000, targetSpent: 90_000_000_000, goalLabel: 'Spend $90B' },
   { id: 'trillionaire', name: 'Trillionaire Run', description: 'Extreme scale with megaprojects unlocked much earlier.', startingCash: 1_000_000_000_000, targetSpent: 900_000_000_000, goalLabel: 'Spend $900B' },
 ];
@@ -88,17 +92,70 @@ export const marketEvents: MarketEvent[] = [
 ];
 
 export const achievements: Achievement[] = [
+  { id: 'first-dollar', name: 'First Dollar', description: 'Get your cash balance above $0.', emoji: '🪙', kind: 'cash', threshold: 1 },
+  { id: 'first-hundred', name: 'Pocket Money', description: 'Reach $100 cash.', emoji: '💵', kind: 'cash', threshold: 100 },
+  { id: 'first-thousand', name: 'Four Figures', description: 'Reach $1,000 net worth.', emoji: '💳', kind: 'netWorth', threshold: 1_000 },
+  { id: 'ten-thousand', name: 'Five Figures', description: 'Reach $10,000 net worth.', emoji: '🧾', kind: 'netWorth', threshold: 10_000 },
+  { id: 'hundred-thousand', name: 'Six Figures', description: 'Reach $100,000 net worth.', emoji: '💼', kind: 'netWorth', threshold: 100_000 },
+  { id: 'millionaire', name: 'Millionaire', description: 'Reach $1M net worth.', emoji: '💎', kind: 'netWorth', threshold: 1_000_000 },
+  { id: 'ten-million', name: 'Eight Figures', description: 'Reach $10M net worth.', emoji: '🏦', kind: 'netWorth', threshold: 10_000_000 },
+  { id: 'hundred-million', name: 'Nine Figures', description: 'Reach $100M net worth.', emoji: '🦈', kind: 'netWorth', threshold: 100_000_000 },
+  { id: 'billionaire-worth', name: 'Billionaire', description: 'Reach $1B net worth.', emoji: '👑', kind: 'netWorth', threshold: 1_000_000_000 },
+  { id: 'trillionaire-worth', name: 'Trillionaire', description: 'Reach $1T net worth.', emoji: '🌐', kind: 'netWorth', threshold: 1_000_000_000_000 },
+  { id: 'quadrillionaire', name: 'Quadrillionaire', description: 'Reach $1Q net worth.', emoji: '🌌', kind: 'netWorth', threshold: 1_000_000_000_000_000 },
+
+  { id: 'nothing-millionaire', name: 'Self-Made Millionaire', description: 'Start with absolutely nothing and reach $1M net worth.', emoji: '🧗', kind: 'combo', threshold: 1, condition: 'nothing-millionaire' },
+  { id: 'nothing-billionaire', name: 'Zero to Billion', description: 'Reach $1B net worth in Start From Nothing.', emoji: '🚀', kind: 'combo', threshold: 1, condition: 'nothing-billionaire' },
+  { id: 'nothing-trillionaire', name: 'From Nothing to Everything', description: 'Reach $1T net worth in Start From Nothing.', emoji: '🌠', kind: 'combo', threshold: 1, condition: 'nothing-trillionaire' },
+  { id: 'nothing-business', name: 'Worker to Owner', description: 'Found your first managed company in Start From Nothing.', emoji: '🧑‍💼', kind: 'combo', threshold: 1, condition: 'nothing-first-business' },
+  { id: 'nothing-home', name: 'Keys From Nothing', description: 'Buy your first permanent home in Start From Nothing.', emoji: '🔑', kind: 'combo', threshold: 1, condition: 'nothing-first-home' },
+  { id: 'nothing-town', name: 'Build a Community', description: 'Create a Hamlet after starting from $0.', emoji: '🏘️', kind: 'combo', threshold: 1, condition: 'nothing-town' },
+  { id: 'nothing-metropolis', name: 'Built This City', description: 'Reach Metropolis after starting with nothing.', emoji: '🌇', kind: 'combo', threshold: 1, condition: 'nothing-metropolis' },
+  { id: 'nothing-planetary', name: 'Zero to Planetary', description: 'Reach a Planetary Economy from a $0 start.', emoji: '🌍', kind: 'combo', threshold: 1, condition: 'nothing-planetary' },
+
+  { id: 'ten-x-win', name: '10×', description: 'Complete the 10× Wealth challenge.', emoji: '✖️', kind: 'combo', threshold: 1, condition: 'ten-x-win' },
+  { id: 'hundred-x-win', name: '100×', description: 'Complete the 100× Wealth challenge.', emoji: '💯', kind: 'combo', threshold: 1, condition: 'hundred-x-win' },
+  { id: 'thousand-x-win', name: '1,000×', description: 'Complete the 1,000× Wealth challenge.', emoji: '⚡', kind: 'combo', threshold: 1, condition: 'thousand-x-win' },
+
   { id: 'first-million-spent', name: 'Big Spender', description: 'Spend $1M in a run.', emoji: '💸', kind: 'spent', threshold: 1_000_000 },
   { id: 'billion-spent', name: 'Money Furnace', description: 'Spend $1B in a run.', emoji: '🔥', kind: 'spent', threshold: 1_000_000_000 },
   { id: 'trillion-spent', name: 'Capital Singularity', description: 'Spend $1T in a run.', emoji: '🌀', kind: 'spent', threshold: 1_000_000_000_000 },
+  { id: 'earned-1m', name: 'Earned, Not Given', description: 'Generate $1M of lifetime income in one run.', emoji: '🛠️', kind: 'lifetimeIncome', threshold: 1_000_000 },
+  { id: 'earned-1b', name: 'Income Empire', description: 'Generate $1B of lifetime income.', emoji: '🏭', kind: 'lifetimeIncome', threshold: 1_000_000_000 },
+  { id: 'earned-1t', name: 'Economic Gravity', description: 'Generate $1T of lifetime income.', emoji: '🪐', kind: 'lifetimeIncome', threshold: 1_000_000_000_000 },
+
+  { id: 'income-1', name: 'Money While You Watch', description: 'Reach $1 per second.', emoji: '⏱️', kind: 'income', threshold: 1 },
+  { id: 'income-100', name: 'Bills Covered', description: 'Reach $100 per second.', emoji: '📬', kind: 'income', threshold: 100 },
   { id: 'income-1k', name: 'Cashflow', description: 'Earn $1K per second.', emoji: '📈', kind: 'income', threshold: 1_000 },
   { id: 'income-100k', name: 'Economic Engine', description: 'Earn $100K per second.', emoji: '⚙️', kind: 'income', threshold: 100_000 },
+  { id: 'income-1m', name: 'Million a Second', description: 'Earn $1M per second.', emoji: '💵', kind: 'income', threshold: 1_000_000 },
   { id: 'income-10m', name: 'Money Machine', description: 'Earn $10M per second.', emoji: '💰', kind: 'income', threshold: 10_000_000 },
+  { id: 'income-1b', name: 'Billion-Second Economy', description: 'Earn $1B per second.', emoji: '🌊', kind: 'income', threshold: 1_000_000_000 },
+
+  { id: 'first-stream', name: 'First Passive Dollar', description: 'Own your first passive income stream.', emoji: '🪴', kind: 'incomeStreams', threshold: 1 },
+  { id: 'ten-streams', name: 'Income Stack', description: 'Own 10 passive income streams.', emoji: '🧱', kind: 'incomeStreams', threshold: 10 },
+  { id: 'hundred-streams', name: 'Income Web', description: 'Own 100 passive income streams.', emoji: '🕸️', kind: 'incomeStreams', threshold: 100 },
+  { id: 'first-company', name: 'Founder CEO', description: 'Found your first managed company.', emoji: '🏢', kind: 'businesses', threshold: 1 },
+  { id: 'three-companies', name: 'Serial Founder', description: 'Own 3 managed companies.', emoji: '🧠', kind: 'businesses', threshold: 3 },
+  { id: 'all-companies', name: 'Conglomerate', description: 'Found every managed business type.', emoji: '🏛️', kind: 'combo', threshold: 1, condition: 'all-businesses' },
+
   { id: 'house-estate', name: 'Home Empire', description: 'Reach house level 5.', emoji: '🏰', kind: 'house', threshold: 5 },
   { id: 'found-town', name: 'Founder', description: 'Build your first hamlet.', emoji: '🏘️', kind: 'town', threshold: 1 },
   { id: 'metropolis', name: 'City Maker', description: 'Reach metropolis level.', emoji: '🌇', kind: 'town', threshold: 5 },
   { id: 'regional-power', name: 'Regional Power', description: 'Build a metro region.', emoji: '🗺️', kind: 'region', threshold: 1 },
   { id: 'planetary', name: 'Planetary Economy', description: 'Reach planetary economic scale.', emoji: '🌍', kind: 'region', threshold: 5 },
+
   { id: 'collector', name: 'Collector', description: 'Own 100 total items.', emoji: '📦', kind: 'collection', threshold: 100 },
+  { id: 'collector-1k', name: 'Storage Problem', description: 'Own 1,000 total items.', emoji: '🏚️', kind: 'collection', threshold: 1_000 },
   { id: 'mega-collector', name: 'Warehouse Required', description: 'Own 10,000 total items.', emoji: '🏗️', kind: 'collection', threshold: 10_000 },
+
+  { id: 'no-sales-millionaire', name: 'Never Sell', description: 'Reach $1M from nothing without selling a marketplace item.', emoji: '💎', kind: 'combo', threshold: 1, condition: 'no-sales-millionaire' },
+  { id: 'debt-comeback', name: 'Back in the Black', description: 'Go into debt in Risk Mode and recover to positive cash.', emoji: '🩹', kind: 'combo', threshold: 1, condition: 'debt-comeback' },
+  { id: 'deep-debt-comeback', name: 'Impossible Comeback', description: 'Recover after falling at least $1M into debt.', emoji: '🦅', kind: 'combo', threshold: 1, condition: 'deep-debt-comeback' },
+  { id: 'risk-millionaire', name: 'Danger Millionaire', description: 'Reach $1M net worth with Risk Mode enabled.', emoji: '⚠️', kind: 'combo', threshold: 1, condition: 'risk-millionaire' },
+  { id: 'diversified', name: 'Three-Legged Empire', description: 'Own a marketplace asset, a passive income stream, and a managed business.', emoji: '🔺', kind: 'combo', threshold: 1, condition: 'diversified' },
+  { id: 'positive-million-income', name: 'Counter Blur', description: 'Have positive cash while earning at least $1M every second.', emoji: '💨', kind: 'combo', threshold: 1, condition: 'positive-million-income' },
+  { id: 'exact-zero', name: 'Spend It ALL', description: 'Get your cash balance within one cent of exactly $0.', emoji: '0️⃣', kind: 'combo', threshold: 1, condition: 'exact-zero', hidden: true },
+  { id: 'moon-metropolis', name: 'Grounded in Space', description: 'Own a Lunar Colony while maintaining a Metropolis.', emoji: '🌕', kind: 'combo', threshold: 1, condition: 'moon-and-metropolis' },
+  { id: 'collector-cashflow', name: 'Everything Everywhere', description: 'Own 1,000 items while earning at least $100K per second.', emoji: '🧺', kind: 'combo', threshold: 1, condition: 'collector-cashflow' },
 ];
