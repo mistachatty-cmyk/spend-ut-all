@@ -11,6 +11,8 @@ import './settings.css';
 import './custom-scenarios.css';
 import './customizations.css';
 import './pixel-pets.css';
+import './lokdex.css';
+import './card-shop.css';
 import './debt.css';
 
 export const metadata: Metadata = {
