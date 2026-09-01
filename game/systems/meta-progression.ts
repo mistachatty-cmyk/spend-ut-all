@@ -2,7 +2,7 @@ import { badges, collectibleSets, collectibles } from '@/data/meta';
 import type { GameState } from '../types';
 import type { MetaMetrics, MetaState } from '../meta-types';
 
-export const META_VERSION = 1;
+export const META_VERSION = 2;
 
 export function createMetaState(): MetaState {
   return { version: META_VERSION, badges: [], collectibles: [], completedSets: [], titles: [], equippedTitle: null, showcaseBadges: [], discoveries: [], scenariosCompleted: [] };
@@ -27,7 +27,22 @@ export function normalizeMetaState(input: Partial<MetaState> | null | undefined)
 
 function addDiscovery(meta: MetaState, id: string, kind: 'badge' | 'collectible' | 'set', state: GameState) {
   if (meta.discoveries.some((entry) => entry.id === id && entry.kind === kind)) return meta;
-  return { ...meta, discoveries: [{ id, kind, discoveredAt: Date.now(), scenarioId: state.scenarioId }, ...meta.discoveries].slice(0, 100) };
+  return {
+    ...meta,
+    discoveries: [{
+      id,
+      kind,
+      discoveredAt: Date.now(),
+      scenarioId: state.scenarioId,
+      snapshot: {
+        cash: state.cash,
+        totalSpent: state.totalSpent,
+        houseLevel: state.houseLevel,
+        townLevel: state.townLevel,
+        regionLevel: state.regionLevel,
+      },
+    }, ...meta.discoveries].slice(0, 150),
+  };
 }
 
 function awardBadge(meta: MetaState, id: string, state: GameState) {
