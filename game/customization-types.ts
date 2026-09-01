@@ -30,6 +30,8 @@ export type CustomizationDefinition = {
   rarity: CustomizationRarity;
   acquisition: AcquisitionMethod[];
   lokPrice?: number;
+  /** Optional progression gate. This never spends extra LOK; it only asks the player to have earned this much over time. */
+  lokLifetimeRequired?: number;
   requirementId?: string;
   previewKey?: string;
 };
