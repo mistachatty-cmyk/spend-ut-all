@@ -1,4 +1,4 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import { DiscoveryNotifier } from '@/app/components/DiscoveryNotifier';
 import { MicroAnimationLayer } from '@/app/components/MicroAnimationLayer';
 import './globals.css';
@@ -18,10 +18,18 @@ import './card-releases.css';
 import './micro-animations.css';
 import './effects-levels.css';
 import './debt.css';
+import './game-shell.css';
 
 export const metadata: Metadata = {
   title: 'Spend It All',
   description: 'A wealth, business, building, and economy incremental sandbox.',
+};
+
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  viewportFit: 'cover',
+  themeColor: '#f4f5f7',
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
