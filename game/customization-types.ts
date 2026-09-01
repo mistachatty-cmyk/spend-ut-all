@@ -36,10 +36,16 @@ export type CustomizationDefinition = {
 
 export type PetMood = 'idle' | 'happy' | 'excited' | 'worried' | 'sleepy' | 'traveling' | 'celebrating';
 
+/**
+ * Spend It All companions are a curated subset of the much larger LOKdex.
+ * Owning a LOKdex character does not automatically make it an advisor.
+ */
 export type LokPetDefinition = CustomizationDefinition & {
   kind: 'pet';
+  dexCharacterId: string;
   species: string;
   personality: string;
+  advisorRole: 'starter' | 'money' | 'work' | 'risk' | 'travel' | 'general';
   preferredAnchor: 'money-counter' | 'sidebar' | 'footer' | 'room' | 'free';
   reactions: Array<'money-up' | 'money-down' | 'achievement' | 'bankruptcy-warning' | 'purchase' | 'travel' | 'coffee' | 'day-night'>;
 };
