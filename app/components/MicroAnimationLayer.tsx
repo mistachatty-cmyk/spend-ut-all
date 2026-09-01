@@ -10,7 +10,7 @@ type RenderedMotion = MicroMotionEvent & {
   targetColor: string | null;
 };
 
-type MotionStyle = CSSProperties & Record<'--micro-dx' | '--micro-dy' | '--micro-duration' | '--micro-delay' | '--micro-intensity' | '--micro-scale' | '--micro-glow', string>;
+type MotionStyle = CSSProperties & Record<'--micro-dx' | '--micro-dy' | '--micro-duration' | '--micro-delay' | '--micro-intensity' | '--micro-scale' | '--micro-glow-size' | '--micro-echo-duration', string>;
 
 function resolveTarget(event: MicroMotionEvent) {
   if (typeof document === 'undefined') return { point:null as MicroMotionPoint | null, color:null as string | null };
@@ -28,6 +28,11 @@ export function MicroAnimationLayer() {
   const [motions, setMotions] = useState<RenderedMotion[]>([]);
 
   useEffect(() => subscribeMicroMotionPreferences(setPrefs), []);
+  useEffect(() => {
+    const profile = microMotionProfile(prefs.amplificationLevel);
+    document.documentElement.dataset.effectsLevel = String(profile.level);
+    document.documentElement.dataset.effectsName = profile.name.toLowerCase();
+  }, [prefs.amplificationLevel]);
   useEffect(() => subscribeMicroMotion((event) => {
     const current = loadMicroMotionPreferences();
     const profile = microMotionProfile(current.amplificationLevel);
@@ -63,7 +68,8 @@ export function MicroAnimationLayer() {
         '--micro-delay':`${delay}ms`,
         '--micro-intensity':String(prefs.intensity),
         '--micro-scale':String(profile.scale),
-        '--micro-glow':String(profile.glow),
+        '--micro-glow-size':`${14 * profile.glow}px`,
+        '--micro-echo-duration':`${duration * .75}ms`,
       };
       return <div key={motion.id} className={`micro-motion micro-${motion.tone} micro-kind-${motion.kind} ${prefs.paletteReactive ? 'palette-reactive' : ''}`} style={style}>
         {Array.from({ length:profile.echoes }).map((_, index) => <span className="micro-echo" key={`echo-${index}`} style={{ animationDelay:`${80 + index * 70}ms` }} />)}
