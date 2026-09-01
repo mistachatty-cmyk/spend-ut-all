@@ -9,7 +9,6 @@ export const customizationCatalog: CustomizationDefinition[] = [
   { id: 'theme-lunar-office', kind: 'theme', name: 'Lunar Office', emoji: '🌕', description: 'A late-game lunar command treatment earned through planetary progression.', rarity: 'legendary', acquisition: ['scenario'], requirementId: 'region-planetary', previewKey: 'lunar-office' },
 
   { id: 'hud-default', kind: 'hud', name: 'Classic HUD', emoji: '🧭', description: 'The standard money, LOK, time, and world counters.', rarity: 'common', acquisition: ['starter'] },
-  { id: 'hud-compact', kind: 'hud', name: 'Compact Mobile HUD', emoji: '📱', description: 'A tighter HUD treatment for smaller screens.', rarity: 'uncommon', acquisition: ['lok'], lokPrice: 35 },
 
   { id: 'counter-smooth', kind: 'money-counter', name: 'Smooth Roller', emoji: '💵', description: 'The standard animated money counter.', rarity: 'common', acquisition: ['starter'], previewKey: 'smooth' },
   { id: 'counter-flip', kind: 'money-counter', name: 'Flip Board', emoji: '🔢', description: 'Mechanical split-flap inspired money presentation.', rarity: 'uncommon', acquisition: ['lok'], lokPrice: 30, previewKey: 'flip' },
