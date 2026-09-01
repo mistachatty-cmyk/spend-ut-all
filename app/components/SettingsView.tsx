@@ -1,9 +1,12 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import { DebtView } from '@/app/components/DebtView';
 import { RULE_PRESET_INFO } from '@/data/rule-presets';
 import { applyRulePreset, markRulesCustom, normalizeGameRules } from '@/game/systems/rules';
 import { debtSummary, normalizeDebtState } from '@/game/systems/debt';
+import { loadMicroMotionPreferences, saveMicroMotionPreferences, subscribeMicroMotionPreferences } from '@/game/systems/micro-animations';
+import type { MicroMotionPreferences } from '@/game/micro-animation-types';
 import { setDebtSystemEnabled } from '@/game/debt-actions';
 import { lokRuntime } from '@/integrations/lok/runtime';
 import type { GameState } from '@/game/types';
@@ -15,6 +18,9 @@ export function SettingsView({ state, setState }: { state: GameState; setState: 
   const challengeLocked = state.scenarioId === 'custom' && !!state.customScenario?.rulesLocked;
   const debt = normalizeDebtState(state.debt);
   const debtInfo = debtSummary(debt);
+  const [motionPrefs, setMotionPrefs] = useState<MicroMotionPreferences>(() => loadMicroMotionPreferences());
+  useEffect(() => subscribeMicroMotionPreferences(setMotionPrefs), []);
+  const patchMotion = (patch: Partial<MicroMotionPreferences>) => setMotionPrefs((current) => saveMicroMotionPreferences({ ...current, ...patch }));
   const patchRules = (section: RuleSection, patch: Record<string, number | boolean>) => setState((current) => {
     if (!current || (current.scenarioId === 'custom' && current.customScenario?.rulesLocked)) return current;
     const nextRules = normalizeGameRules({ ...current.rules, [section]: { ...current.rules[section], ...patch } } as GameState['rules']);
@@ -81,6 +87,18 @@ export function SettingsView({ state, setState }: { state: GameState; setState: 
       <Toggle label="Hours" checked={state.time.display.showHours} onChange={(v) => patchDisplay({showHours:v})}/>
       <Toggle label="Days" checked={state.time.display.showDays} onChange={(v) => patchDisplay({showDays:v})}/>
       <p className="muted">The live debt counter is controlled separately from the Counters ⚙ menu under the main balance, and only appears when the debt system is enabled.</p>
+    </section>
+
+    <section className="panel settings-group"><span className="eyebrow">MICRO MOTION</span><h2>Value trails & count animations</h2>
+      <p className="muted">Actions can emit a tiny visual token from the button/card/business that caused the change toward the counter that owns the value. This presentation layer never changes game math.</p>
+      <Toggle label="Micro animations" checked={motionPrefs.enabled} onChange={(v) => patchMotion({enabled:v})}/>
+      <Toggle label="Flying value trails" checked={motionPrefs.flyoutsEnabled} onChange={(v) => patchMotion({flyoutsEnabled:v})}/>
+      <Toggle label="Animated counter counting" checked={motionPrefs.counterCountingEnabled} onChange={(v) => patchMotion({counterCountingEnabled:v})}/>
+      <Toggle label="Match active palette / counter color" checked={motionPrefs.paletteReactive} onChange={(v) => patchMotion({paletteReactive:v})}/>
+      <Toggle label="Respect reduced-motion preference" checked={motionPrefs.respectReducedMotion} onChange={(v) => patchMotion({respectReducedMotion:v})}/>
+      <Range label="Motion intensity" value={motionPrefs.intensity} min={.25} max={2} step={.05} suffix="×" onChange={(v) => patchMotion({intensity:v})}/>
+      <label className="settings-toggle"><span>Floating symbol treatment</span><select value={motionPrefs.symbolStyle} onChange={(e) => patchMotion({symbolStyle:e.target.value as MicroMotionPreferences['symbolStyle']})}><option value="auto">Auto</option><option value="minimal">Minimal</option><option value="burst">Burst</option></select></label>
+      <small>Future cosmetic packs can replace trail symbols, particles, and motion styles without changing the underlying currency event.</small>
     </section>
 
     <DebtView state={state} setState={setState} />
