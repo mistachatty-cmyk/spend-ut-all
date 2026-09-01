@@ -78,13 +78,13 @@ export function MoneyCounter({ state, income }: { state: GameState; income: numb
   const patchPref = (key: keyof HudPrefs) => setPrefs((current) => ({ ...current, [key]: !current[key] }));
 
   return <div className={`live-money live-money-${status}`}>
-    <div className="balance">{money(display)}</div>
+    <div className="balance" data-motion-target="cash">{money(display)}</div>
     <div className={income >= 0 ? 'positive' : 'negative'}>{income >= 0 ? '+' : ''}{money(income)}/sec</div>
 
     <section className="counter-hud" aria-label="Run counters">
       {prefs.showLok ? <div className="counter-card lok-counter">
         <span className="counter-label">LOK TOKENS</span>
-        <div className="counter-value"><b>◈ {state.lokTokens.toLocaleString()}</b><small>+1 every 10s active</small></div>
+        <div className="counter-value"><b data-motion-target="lok">◈ {state.lokTokens.toLocaleString()}</b><small>+1 every 10s active</small></div>
         <div className="counter-progress"><span style={{ width: `${lokProgress * 100}%` }} /></div>
         <small>{(lokMsRemaining / 1000).toFixed(1)}s until next LOK</small>
       </div> : null}
@@ -106,7 +106,7 @@ export function MoneyCounter({ state, income }: { state: GameState; income: numb
 
       {prefs.showDebt && debt.enabled ? <div className={`counter-card debt-counter ${debtInfo.defaultedDebt > 0 ? 'debt-counter-danger' : ''}`}>
         <span className="counter-label">TOTAL DEBT</span>
-        <div className="counter-value"><b>{money(debtInfo.totalDebt)}</b><small>{debtInfo.activeObligations} creditor{debtInfo.activeObligations === 1 ? '' : 's'}</small></div>
+        <div className="counter-value"><b data-motion-target="debt">{money(debtInfo.totalDebt)}</b><small>{debtInfo.activeObligations} creditor{debtInfo.activeObligations === 1 ? '' : 's'}</small></div>
         <div className="counter-unit-row"><span>{debt.creditScore} credit</span><span>{money(debtInfo.monthlyEquivalentInterest)}/mo interest</span>{debtInfo.activeCourtCases ? <span>⚖️ {debtInfo.activeCourtCases} court</span> : null}</div>
       </div> : null}
     </section>
