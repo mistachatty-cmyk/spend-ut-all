@@ -1,12 +1,14 @@
 import type { LokDexAffinity, LokDexArchetype, LokDexCardVariant } from './lokdex-types';
 
 export type CardShopProductKind = 'pack' | 'deck-kit';
+export type CardShopReleaseType = 'core' | 'capsule' | 'event' | 'collector';
 
 export type CardPackGuarantee = {
   minRarity?: 'uncommon' | 'rare' | 'epic' | 'legendary';
   affinity?: LokDexAffinity[];
   archetype?: LokDexArchetype[];
   variantBoost?: number;
+  editionChance?: number;
 };
 
 export type CardShopProduct = {
@@ -18,8 +20,11 @@ export type CardShopProduct = {
   priceCredits: number;
   cardCount: number;
   accent: string;
+  releaseId: string;
+  releaseType: CardShopReleaseType;
   guarantee?: CardPackGuarantee;
   fixedCharacterIds?: string[];
+  editionPoolIds?: string[];
   deckBlueprintId?: string;
   featured?: boolean;
 };
@@ -38,6 +43,8 @@ export type CardDeckBlueprint = {
 export type CardShopPull = {
   instanceId: string;
   characterId: string;
+  editionId?: string;
+  releaseId?: string;
   variant: LokDexCardVariant;
   rarity: string;
   isNewCharacter: boolean;
