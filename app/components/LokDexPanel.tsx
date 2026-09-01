@@ -33,7 +33,7 @@ export function LokDexPanel({ inventory }: { inventory: CustomizationInventory }
 
   return <section className="panel lokdex-panel">
     <div className="lokdex-head">
-      <div><span className="eyebrow">GEN 1 LOKDEX · ORIGIN SET</span><h2>{discovered}/{lokDexEntries.length} characters discovered</h2><p>The LOKdex is the larger collectible/card universe. Spend It All currently supports only <b>{companionCount}</b> curated companion/advisors; owning other LOKdex characters does not automatically make them talking pets.</p></div>
+      <div><span className="eyebrow">GEN 1 LOKDEX · FIRSTLIGHT</span><h2>{discovered}/{lokDexEntries.length} characters discovered</h2><p>Firstlight is the broad opening set of the larger LOKverse—not a finance-only roster. Spend It All currently supports only <b>{companionCount}</b> curated companion/advisors; owning other LOKdex characters does not automatically make them talking pets.</p></div>
       <div className="lokdex-progress"><b>{progress}%</b><span><i style={{ width: `${progress}%` }} /></span><small>{collection.cards.length} local card {collection.cards.length === 1 ? 'copy' : 'copies'}</small></div>
     </div>
     <div className="lokdex-grid">{lokDexEntries.map((entry) => {
