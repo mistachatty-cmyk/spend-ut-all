@@ -13,6 +13,8 @@ export type GeneratedPetBlueprint = {
   temperament: string;
   mutation: string | null;
   rarity: LokAssetRarity;
+  /** Generated LOKdex characters are cards/collectibles first. Companion promotion is curated separately. */
+  companionEligible: false;
   metadata: LokPetCardMetadata;
 };
 
@@ -86,6 +88,7 @@ export function generatePetBlueprint(seed: string, generation = 1): GeneratedPet
     temperament,
     mutation,
     rarity,
+    companionEligible: false,
     metadata: {
       species,
       generation,
