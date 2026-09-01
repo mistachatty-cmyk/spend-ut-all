@@ -24,7 +24,8 @@ export type AchievementConditionId =
   | 'play-1s' | 'play-10s' | 'play-1m' | 'play-10m' | 'play-1h' | 'play-6h' | 'play-24h' | 'play-7d'
   | 'risk-survive-30m' | 'nothing-million-under-60s' | 'spendutall-after-24h'
   | 'explicit-first-loan' | 'explicit-million-leverage' | 'explicit-clean-payoff' | 'explicit-debt-free' | 'explicit-seizure'
-  | 'explicit-court-filed' | 'explicit-court-settled' | 'explicit-judgment' | 'explicit-credit-recovery' | 'explicit-house-of-cards';
+  | 'explicit-court-filed' | 'explicit-court-settled' | 'explicit-judgment' | 'explicit-credit-recovery' | 'explicit-house-of-cards'
+  | 'explicit-autopay' | 'explicit-refinanced' | 'explicit-consolidated' | 'explicit-mortgage' | 'explicit-foreclosure' | 'explicit-home-free';
 
 export type GameItem = { id: string; name: string; emoji: string; category: ItemCategory; basePrice: number; growthRate: number; incomePerSecond?: number; upkeepPerSecond?: number; unlockSpent?: number; description: string; };
 export type Scenario = { id: ScenarioId; name: string; description: string; startingCash: number; targetSpent?: number; targetNetWorth?: number; targetMultiplier?: number; goalLabel: string; freeMode?: boolean; };
