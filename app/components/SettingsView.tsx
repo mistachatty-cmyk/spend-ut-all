@@ -1,5 +1,6 @@
 'use client';
 
+import { DebtView } from '@/app/components/DebtView';
 import { RULE_PRESET_INFO } from '@/data/rule-presets';
 import { applyRulePreset, markRulesCustom, normalizeGameRules } from '@/game/systems/rules';
 import { debtSummary, normalizeDebtState } from '@/game/systems/debt';
@@ -81,6 +82,8 @@ export function SettingsView({ state, setState }: { state: GameState; setState: 
       <Toggle label="Days" checked={state.time.display.showDays} onChange={(v) => patchDisplay({showDays:v})}/>
       <p className="muted">The live debt counter is controlled separately from the Counters ⚙ menu under the main balance, and only appears when the debt system is enabled.</p>
     </section>
+
+    <DebtView state={state} setState={setState} />
 
     <section className="panel account-settings"><div><span className="eyebrow">ACCOUNT & PERSISTENCE</span><h2>Local-first today, portable later</h2><p>Your active run, Legacy Collection, leaderboard and LOK wallet are local for now. Future account sync will let Apple, Discord, GitHub or G-Six identity carry them between devices without making an account mandatory to play.</p></div><div className="persistence-cards"><span><small>LOK wallet</small><b>◈ {wallet.balance.toLocaleString()}</b><em>Local persistent wallet</em></span><span><small>Identity</small><b>Local</b><em>Cloud linking planned</em></span><span><small>LOK Pass</small><b>Future</b><em>$2.99 supporter/ad-free entitlement</em></span><span><small>Cloud saves</small><b>Future</b><em>Server adapter ready</em></span></div></section>
   </section>;
