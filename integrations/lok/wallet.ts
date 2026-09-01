@@ -8,6 +8,7 @@ export type LokWallet = {
   balance: number;
   progressMs: number;
   lifetimeEarned: number;
+  lifetimeSpent: number;
   updatedAt: number;
   owner: {
     provider: LokIdentityProvider;
@@ -26,6 +27,7 @@ export function createLokWallet(): LokWallet {
     balance: 0,
     progressMs: 0,
     lifetimeEarned: 0,
+    lifetimeSpent: 0,
     updatedAt: Date.now(),
     owner: { provider: 'local', subject: null },
   };
@@ -40,6 +42,7 @@ export function normalizeLokWallet(value: Partial<LokWallet> | null | undefined)
     balance: Math.max(0, Math.floor(Number.isFinite(value?.balance) ? Number(value?.balance) : 0)),
     progressMs: Math.max(0, Number.isFinite(value?.progressMs) ? Number(value?.progressMs) : 0),
     lifetimeEarned: Math.max(0, Math.floor(Number.isFinite(value?.lifetimeEarned) ? Number(value?.lifetimeEarned) : Number(value?.balance ?? 0))),
+    lifetimeSpent: Math.max(0, Math.floor(Number.isFinite(value?.lifetimeSpent) ? Number(value?.lifetimeSpent) : 0)),
     owner: {
       provider: value?.owner?.provider ?? 'local',
       subject: value?.owner?.subject ?? null,
@@ -70,10 +73,25 @@ export const localLokWalletAdapter: LokWalletAdapter = {
   },
 };
 
+export function canSpendLok(wallet: LokWallet, amount: number) {
+  return Number.isFinite(amount) && amount >= 0 && wallet.balance >= Math.floor(amount);
+}
+
+export function spendLok(wallet: LokWallet, amount: number): LokWallet {
+  const cost = Math.max(0, Math.floor(amount));
+  if (!canSpendLok(wallet, cost)) return wallet;
+  return normalizeLokWallet({
+    ...wallet,
+    balance: wallet.balance - cost,
+    lifetimeSpent: wallet.lifetimeSpent + cost,
+  });
+}
+
 /**
  * The game talks to a wallet adapter rather than directly to authentication.
  * A future G-Six server adapter can replace local storage and bind the same
  * wallet to Apple, Discord, GitHub, or a first-party G-Six identity.
+ * Server-backed cosmetic purchases should validate/debit there, not trust the client.
  */
 export function mergeRunIntoWallet(wallet: LokWallet, runBalance: number, runProgressMs: number): LokWallet {
   const balance = Math.max(wallet.balance, Math.max(0, Math.floor(runBalance || 0)));
@@ -82,6 +100,6 @@ export function mergeRunIntoWallet(wallet: LokWallet, runBalance: number, runPro
     ...wallet,
     balance,
     progressMs,
-    lifetimeEarned: Math.max(wallet.lifetimeEarned, balance),
+    lifetimeEarned: Math.max(wallet.lifetimeEarned, balance + wallet.lifetimeSpent),
   });
 }
