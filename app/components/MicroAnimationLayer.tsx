@@ -32,7 +32,8 @@ export function MicroAnimationLayer() {
     const profile = microMotionProfile(prefs.amplificationLevel);
     document.documentElement.dataset.effectsLevel = String(profile.level);
     document.documentElement.dataset.effectsName = profile.name.toLowerCase();
-  }, [prefs.amplificationLevel]);
+    document.documentElement.dataset.effectsIgnoreReducedMotion = String(!prefs.respectReducedMotion);
+  }, [prefs.amplificationLevel, prefs.respectReducedMotion]);
   useEffect(() => subscribeMicroMotion((event) => {
     const current = loadMicroMotionPreferences();
     const profile = microMotionProfile(current.amplificationLevel);
