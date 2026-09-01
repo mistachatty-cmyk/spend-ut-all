@@ -1,4 +1,4 @@
-export type RulePresetId = 'casual' | 'standard' | 'simulation' | 'hardcore' | 'sandbox';
+export type RulePresetId = 'casual' | 'standard' | 'simulation' | 'hardcore' | 'sandbox' | 'custom';
 
 export type GameRules = {
   presetId: RulePresetId;
