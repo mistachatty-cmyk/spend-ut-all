@@ -18,6 +18,7 @@ import './pixel-pets.css';
 import './looper-animations.css';
 import './looper-signature-fx.css';
 import './looper-showcase.css';
+import './looper-card-art.css';
 import './lokdex.css';
 import './card-shop.css';
 import './card-releases.css';
