@@ -1,6 +1,8 @@
 import { businessDefinitions, hqTiers } from '@/data/businesses';
 import type { BusinessDefinition, BusinessEconomics, BusinessPortfolio, ManagedBusiness } from '../business-types';
 
+export type BusinessEnvironment = { demandMultiplier?: number; laborCostMultiplier?: number };
+
 export function emptyManagedBusiness(): ManagedBusiness {
   return { founded: false, locations: 0, employees: 0, hqLevel: 0, marketingLevel: 0, operationsLevel: 0, qualityLevel: 0 };
 }
@@ -35,7 +37,7 @@ export function managementUpgradeCost(definition: BusinessDefinition, kind: 'mar
   return definition.foundingCost * 0.65 * Math.pow(2.4, level);
 }
 
-export function businessEconomics(definition: BusinessDefinition, business: ManagedBusiness): BusinessEconomics {
+export function businessEconomics(definition: BusinessDefinition, business: ManagedBusiness, environment: BusinessEnvironment = {}): BusinessEconomics {
   if (!business.founded) return { revenuePerSecond: 0, payrollPerSecond: 0, operatingCostPerSecond: 0, profitPerSecond: 0, margin: 0, jobs: 0 };
   const locations = Math.max(1, business.locations);
   const targetEmployees = locations * definition.employeesPerLocation;
@@ -44,16 +46,18 @@ export function businessEconomics(definition: BusinessDefinition, business: Mana
   const marketingMultiplier = 1 + business.marketingLevel * 0.12;
   const qualityMultiplier = 1 + business.qualityLevel * 0.1;
   const operationsMultiplier = Math.max(0.5, 1 - business.operationsLevel * 0.055);
-  const revenuePerSecond = definition.baseRevenuePerSecond * locations * (0.35 + staffing * 0.65) * hqMultiplier * marketingMultiplier * qualityMultiplier;
-  const payrollPerSecond = business.employees * definition.basePayrollPerEmployee;
+  const demand = environment.demandMultiplier ?? 1;
+  const labor = environment.laborCostMultiplier ?? 1;
+  const revenuePerSecond = definition.baseRevenuePerSecond * locations * (0.35 + staffing * 0.65) * hqMultiplier * marketingMultiplier * qualityMultiplier * demand;
+  const payrollPerSecond = business.employees * definition.basePayrollPerEmployee * labor;
   const operatingCostPerSecond = definition.baseRevenuePerSecond * locations * 0.24 * operationsMultiplier;
   const profitPerSecond = revenuePerSecond - payrollPerSecond - operatingCostPerSecond;
   return { revenuePerSecond, payrollPerSecond, operatingCostPerSecond, profitPerSecond, margin: revenuePerSecond > 0 ? profitPerSecond / revenuePerSecond : 0, jobs: business.employees };
 }
 
-export function portfolioEconomics(portfolio: BusinessPortfolio): BusinessEconomics {
+export function portfolioEconomics(portfolio: BusinessPortfolio, environment: BusinessEnvironment = {}): BusinessEconomics {
   return businessDefinitions.reduce<BusinessEconomics>((total, definition) => {
-    const current = businessEconomics(definition, portfolio[definition.id] ?? emptyManagedBusiness());
+    const current = businessEconomics(definition, portfolio[definition.id] ?? emptyManagedBusiness(), environment);
     const revenuePerSecond = total.revenuePerSecond + current.revenuePerSecond;
     const profitPerSecond = total.profitPerSecond + current.profitPerSecond;
     return {
