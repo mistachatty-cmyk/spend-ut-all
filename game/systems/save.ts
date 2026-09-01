@@ -27,5 +27,6 @@ export function normalizeGameState(state: GameState, now = Date.now()): GameStat
     bankruptcyDeadline: state.bankruptcyDeadline ?? 0,
     peakCash: Math.max(state.peakCash ?? cash, cash),
     peakNetWorth: Math.max(0, state.peakNetWorth ?? 0),
+    lowestCash: Math.min(state.lowestCash ?? cash, cash),
   };
 }
