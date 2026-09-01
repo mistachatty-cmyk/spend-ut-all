@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { TimeView } from './TimeView';
 import { activeEarnings, incomeStreams } from '@/data/earnings';
 import { investments } from '@/data/investments';
 import { activeEarningUnlocked, buyIncomeStream, performActiveEarning } from '@/game/earning-actions';
@@ -18,6 +19,8 @@ export function EarningsView({ state, setState }: { state: GameState; setState: 
     <section className="panel earnings-hero"><div><span className="eyebrow">WAYS TO EARN</span><h2>Make $25 or make $150B every second</h2><p>Work manually when you are small, buy scalable income streams as you grow, and optionally take investment risk. Every source feeds the live money counter.</p></div><div><b>{money(passive)}/s</b><span>earnings-stream income</span></div></section>
 
     <section className="panel"><span className="eyebrow">ACTIVE EARNINGS</span><h2>Make money right now</h2><div className="earning-grid">{activeEarnings.map((earning) => { const unlocked = activeEarningUnlocked(state, earning.id); return <button key={earning.id} disabled={!unlocked || state.runStatus !== 'active'} onClick={() => setState((current) => current ? performActiveEarning(current, earning) : current)}><span>{earning.emoji}</span><div><b>{earning.name}</b><small>{earning.description}</small></div><em>+{money(earning.payout)}</em></button>; })}</div></section>
+
+    <TimeView state={state} setState={setState} />
 
     <section className="panel"><span className="eyebrow">PASSIVE INCOME</span><h2>Build the money machine</h2><div className="stream-grid">{incomeStreams.map((stream) => { const owned = state.incomeStreams?.[stream.id] ?? 0; const cost = incomeStreamUnitCost(state, stream); const unlocked = canUnlockIncomeStream(state, stream); return <article key={stream.id}><span>{stream.emoji}</span><div><b>{stream.name}</b><small>{stream.description}</small><em>Owned {owned} · +{money(stream.incomePerSecond * owned)}/s</em></div><button disabled={!unlocked || state.cash < cost || state.runStatus !== 'active'} onClick={() => setState((current) => current ? buyIncomeStream(current, stream) : current)}>Buy · {money(cost)}</button></article>; })}</div></section>
 
