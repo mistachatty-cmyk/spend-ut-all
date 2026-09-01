@@ -27,12 +27,15 @@ export type ItemDebtCollateral = {
   itemId: string;
   quantity: number;
   pledgedValue: number;
+  houseLevel?: never;
 };
 
 export type HomeDebtCollateral = {
   kind: 'home';
   houseLevel: number;
   pledgedValue: number;
+  itemId?: never;
+  quantity?: never;
 };
 
 export type DebtCollateral = ItemDebtCollateral | HomeDebtCollateral;
