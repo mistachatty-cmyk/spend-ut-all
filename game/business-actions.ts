@@ -2,6 +2,7 @@ import { hqTiers } from '@/data/businesses';
 import type { BusinessDefinition } from './business-types';
 import type { GameState } from './types';
 import { businessEconomics, emptyManagedBusiness, hqUpgradeCost, locationCost, managementUpgradeCost } from './systems/businesses';
+import { cityEconomySnapshot } from './systems/city-economy';
 
 function currentBusiness(state: GameState, definition: BusinessDefinition) {
   return state.businesses?.[definition.id] ?? emptyManagedBusiness();
@@ -60,5 +61,6 @@ export function businessCanAffordLocation(state: GameState, definition: Business
 
 export function businessSnapshot(state: GameState, definition: BusinessDefinition) {
   const business = currentBusiness(state, definition);
-  return { business, economics: businessEconomics(definition, business) };
+  const city = cityEconomySnapshot(state.cityEconomy, state.businesses ?? {}, state.townLevel);
+  return { business, economics: businessEconomics(definition, business, { demandMultiplier: city.businessDemandMultiplier, laborCostMultiplier: city.laborCostMultiplier }) };
 }
