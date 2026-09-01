@@ -4,7 +4,7 @@ import { useMemo, useState } from 'react';
 import { RULE_PRESET_INFO } from '@/data/rule-presets';
 import type { CustomScenarioDefinition, CustomWinConditionType } from '@/game/custom-scenario-types';
 import { createGameRules, markRulesCustom } from '@/game/systems/rules';
-import { createCustomScenario, customGoalLabel, decodeChallengeCode, encodeChallengeCode, normalizeCustomScenario } from '@/game/systems/custom-scenarios';
+import { createCustomScenario, customGoalLabel, customScenarioValidation, decodeChallengeCode, encodeChallengeCode, normalizeCustomScenario } from '@/game/systems/custom-scenarios';
 
 const winOptions: { id: CustomWinConditionType; label: string; defaultTarget: number }[] = [
   { id: 'net-worth', label: 'Reach net worth', defaultTarget: 1_000_000 },
@@ -22,6 +22,7 @@ export function CustomScenarioBuilder({ onStart, onClose }: { onStart: (scenario
   const [codeInput, setCodeInput] = useState('');
   const [message, setMessage] = useState('');
   const challengeCode = useMemo(() => encodeChallengeCode(draft), [draft]);
+  const validation = customScenarioValidation(draft);
 
   const update = (patch: Partial<CustomScenarioDefinition>) => setDraft((current) => normalizeCustomScenario({ ...current, ...patch }));
   const customRules = (change: (rules: CustomScenarioDefinition['rules']) => CustomScenarioDefinition['rules']) => setDraft((current) => normalizeCustomScenario({ ...current, rules: markRulesCustom(change(current.rules)) }));
@@ -50,6 +51,7 @@ export function CustomScenarioBuilder({ onStart, onClose }: { onStart: (scenario
         <label>Win condition<select value={draft.winCondition.type} onChange={(e) => setWinType(e.target.value as CustomWinConditionType)}>{winOptions.map((option) => <option key={option.id} value={option.id}>{option.label}</option>)}</select></label>
         {draft.winCondition.type !== 'free' ? <label>Target<input type="number" min="0.0001" step="1" value={draft.winCondition.target} onChange={(e) => update({ winCondition: { ...draft.winCondition, target: Number(e.target.value) } })}/></label> : null}
         <div className="custom-goal-preview"><small>Goal preview</small><b>{customGoalLabel(draft)}</b></div>
+        {validation ? <div className="builder-warning">⚠️ {validation}</div> : null}
       </section>
 
       <section className="custom-builder-section">
@@ -86,7 +88,7 @@ export function CustomScenarioBuilder({ onStart, onClose }: { onStart: (scenario
       </section>
     </div>
 
-    <div className="custom-builder-footer"><div><span className="eyebrow">READY TO PLAY</span><b>{draft.name}</b><small>{customGoalLabel(draft)} · {draft.riskMode ? 'Risk Mode' : 'No Risk Mode'} · {draft.rulesLocked ? 'Rules locked' : 'Rules editable'}</small></div><button type="button" className="primary" onClick={() => onStart(normalizeCustomScenario(draft))}>Start Custom Challenge</button></div>
+    <div className="custom-builder-footer"><div><span className="eyebrow">READY TO PLAY</span><b>{draft.name}</b><small>{customGoalLabel(draft)} · {draft.riskMode ? 'Risk Mode' : 'No Risk Mode'} · {draft.rulesLocked ? 'Rules locked' : 'Rules editable'}</small></div><button type="button" className="primary" disabled={!!validation} onClick={() => onStart(normalizeCustomScenario(draft))}>Start Custom Challenge</button></div>
   </section>;
 }
 
