@@ -20,6 +20,7 @@ import './micro-animations.css';
 import './effects-levels.css';
 import './debt.css';
 import './game-shell.css';
+import './card-access.css';
 
 export const metadata: Metadata = {
   title: 'Spend It All',
