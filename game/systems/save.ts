@@ -4,6 +4,7 @@ import { normalizeCityEconomy } from './city-economy';
 import { normalizeIncomeStreams } from './earnings';
 import { normalizeTimeSimulation } from './time-simulation';
 import { normalizeGameRules } from './rules';
+import { normalizeCustomScenario } from './custom-scenarios';
 import { GameState } from '../types';
 
 const DEFAULT_EVENT_INTERVAL_MS = 120_000;
@@ -15,6 +16,7 @@ export function normalizeGameState(state: GameState, now = Date.now()): GameStat
   return {
     ...state,
     cash,
+    customScenario: state.scenarioId === 'custom' && state.customScenario ? normalizeCustomScenario(state.customScenario) : null,
     totalSold: state.totalSold ?? 0,
     businesses: normalizeBusinessPortfolio(state.businesses),
     cityEconomy: normalizeCityEconomy(state.cityEconomy, now),
