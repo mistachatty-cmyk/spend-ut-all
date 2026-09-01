@@ -2,20 +2,22 @@ import type { BusinessPortfolio } from './business-types';
 import type { CityEconomyState } from './city-types';
 
 export type FinancialMode = 'simple' | 'advanced';
-export type ScenarioId = 'freeplay' | 'billionaire' | 'trillionaire';
+export type ScenarioId = 'nothing' | 'freeplay' | 'ten-x' | 'hundred-x' | 'thousand-x' | 'billionaire' | 'trillionaire';
 export type ItemCategory = 'everyday' | 'luxury' | 'property' | 'business' | 'infrastructure';
 export type CitySpecializationId = 'finance' | 'technology' | 'industrial' | 'tourism';
 export type RunStatus = 'active' | 'bankrupt';
+export type AchievementKind = 'spent' | 'netWorth' | 'income' | 'house' | 'town' | 'region' | 'collection' | 'cash' | 'lifetimeIncome' | 'businesses' | 'incomeStreams' | 'combo';
+export type AchievementConditionId = 'nothing-millionaire' | 'nothing-billionaire' | 'nothing-trillionaire' | 'nothing-first-business' | 'nothing-first-home' | 'nothing-town' | 'nothing-metropolis' | 'nothing-planetary' | 'ten-x-win' | 'hundred-x-win' | 'thousand-x-win' | 'no-sales-millionaire' | 'debt-comeback' | 'deep-debt-comeback' | 'diversified' | 'all-businesses' | 'positive-million-income' | 'exact-zero' | 'moon-and-metropolis' | 'collector-cashflow' | 'risk-millionaire';
 
 export type GameItem = { id: string; name: string; emoji: string; category: ItemCategory; basePrice: number; growthRate: number; incomePerSecond?: number; upkeepPerSecond?: number; unlockSpent?: number; description: string; };
-export type Scenario = { id: ScenarioId; name: string; description: string; startingCash: number; targetSpent?: number; targetNetWorth?: number; goalLabel: string; };
+export type Scenario = { id: ScenarioId; name: string; description: string; startingCash: number; targetSpent?: number; targetNetWorth?: number; targetMultiplier?: number; goalLabel: string; freeMode?: boolean; };
 export type HouseTier = { level: number; name: string; cost: number; requiredNetWorth: number; rooms: number; description: string; };
 export type TownTier = { level: number; name: string; cost: number; requiredNetWorth: number; population: number; jobs: number; description: string; };
 export type RegionTier = { level: number; name: string; cost: number; requiredNetWorth: number; population: number; economy: string; description: string; };
 export type EmpireUpgrade = { id: string; name: string; emoji: string; description: string; baseCost: number; growthRate: number; maxLevel: number; incomeMultiplierPerLevel?: number; upkeepReductionPerLevel?: number; requiredTownLevel?: number; requiredRegionLevel?: number; };
 export type CitySpecialization = { id: CitySpecializationId; name: string; emoji: string; description: string; incomeMultiplier: number; upkeepMultiplier: number; };
 export type MarketEvent = { id: string; name: string; emoji: string; description: string; incomeMultiplier: number; upkeepMultiplier: number; durationMs: number; };
-export type Achievement = { id: string; name: string; description: string; emoji: string; kind: 'spent' | 'netWorth' | 'income' | 'house' | 'town' | 'region' | 'collection'; threshold: number; };
+export type Achievement = { id: string; name: string; description: string; emoji: string; kind: AchievementKind; threshold: number; condition?: AchievementConditionId; hidden?: boolean; };
 
 export type GameState = {
   started: boolean;
@@ -43,6 +45,7 @@ export type GameState = {
   bankruptcyDeadline: number;
   peakCash: number;
   peakNetWorth: number;
+  lowestCash: number;
   lokTokens: number;
   lokProgressMs: number;
   theme: 'light' | 'midnight';
