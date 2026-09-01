@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import { findPixelPetSprite } from '@/data/pixel-pet-sprites';
+import { findLooperSprite } from '@/data/looper-sprite-registry';
 import { lokDexEntries } from '@/data/lokdex';
 import { lokPets } from '@/data/customizations';
 import type { CustomizationInventory } from '@/game/customization-types';
@@ -34,7 +34,7 @@ export function LokDexPanel({ inventory }: { inventory: CustomizationInventory }
 
   return <section className="panel lokdex-panel">
     <div className="lokdex-head">
-      <div><span className="eyebrow">GEN 1 LOKDEX · FIRSTLIGHT</span><h2>{discovered}/{lokDexEntries.length} characters discovered</h2><p>Firstlight is the broad opening set of the larger LOKverse. Production Pixel+ art now replaces symbol placeholders as each Looper is completed; classic sprites remain compatible for companions while the roster is upgraded.</p></div>
+      <div><span className="eyebrow">GEN 1 LOKDEX · FIRSTLIGHT</span><h2>{discovered}/{lokDexEntries.length} characters discovered</h2><p>Firstlight is the broad opening set of the larger LOKverse. All 24 canonical Gen 1 entries now have production Pixel+ sprite coverage; curated companion/advisors remain a separate equippable subset.</p></div>
       <div className="lokdex-progress"><b>{progress}%</b><span><i style={{ width: `${progress}%` }} /></span><small>{collection.cards.length} local card {collection.cards.length === 1 ? 'copy' : 'copies'}</small></div>
     </div>
     <div className="lokdex-grid">{lokDexEntries.map((entry) => {
@@ -42,7 +42,7 @@ export function LokDexPanel({ inventory }: { inventory: CustomizationInventory }
       const companion = entry.companionCustomizationId ? lokPets.find((candidate) => candidate.id === entry.companionCustomizationId) ?? null : null;
       const companionOwned = companion ? inventory.ownedIds.includes(companion.id) : false;
       const copies = cardCopiesForCharacter(collection, entry.id).length;
-      const productionSprite = findPixelPetSprite(entry.id);
+      const productionSprite = findLooperSprite(entry.id);
       const mood = companionOwned ? 'happy' : entry.rarity === 'legendary' || entry.rarity === 'mythic' ? 'excited' : 'idle';
       return <article className={`lokdex-card ${discoveredEntry ? 'discovered' : 'undiscovered'} rarity-${entry.rarity}`} key={entry.id}>
         <div className="lokdex-sprite">{productionSprite ? <PixelPetSprite petId={entry.id} mood={mood} silhouette={!discoveredEntry} size={64} /> : <span className="lokdex-placeholder" aria-hidden="true">{discoveredEntry ? affinityIcon[entry.affinity] ?? '◈' : '?'}</span>}</div>
