@@ -65,6 +65,7 @@ export type CourtCase = {
 export type DebtState = {
   version: number;
   enabled: boolean;
+  lastAdvancedGameMinute: number;
   obligations: DebtObligation[];
   courtCases: CourtCase[];
   creditScore: number;
