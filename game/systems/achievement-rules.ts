@@ -1,5 +1,6 @@
 import { empireUpgrades, items } from '@/data/content';
 import type { Achievement, GameState } from '../types';
+import { debtSummary, normalizeDebtState } from './debt';
 
 export const ELON_GAME_BENCHMARK = 2_000_000_000_000;
 export const SPENDUTALL_SUPER_THRESHOLD = ELON_GAME_BENCHMARK * 100;
@@ -35,6 +36,7 @@ function allEmpireUpgradesMaxed(state: GameState) {
 }
 
 export function achievementUnlockedByRule(state: GameState, achievement: Achievement, metrics: AchievementMetrics, now = Date.now()) {
+  void now;
   if (state.runAchievements?.[achievement.id]) return true;
   if (achievement.scenarioOnly?.length && !achievement.scenarioOnly.includes(state.scenarioId)) return false;
 
@@ -53,6 +55,8 @@ export function achievementUnlockedByRule(state: GameState, achievement: Achieve
   const elapsed = activeElapsedMs(state);
   const businesses = foundedBusinesses(state);
   const streams = ownedIncomeStreams(state);
+  const explicitDebt = normalizeDebtState(state.debt);
+  const debtTotals = debtSummary(explicitDebt);
 
   switch (achievement.condition) {
     case 'nothing-millionaire': return state.scenarioId === 'nothing' && metrics.netWorth >= 1_000_000;
@@ -103,6 +107,17 @@ export function achievementUnlockedByRule(state: GameState, achievement: Achieve
     case 'debt-100m-comeback': return state.riskMode && state.lowestCash <= -100_000_000 && state.cash > 0;
     case 'debt-billion-comeback': return state.riskMode && state.lowestCash <= -1_000_000_000 && state.cash > 0;
     case 'near-bankruptcy-comeback': return state.riskMode && (state.bankruptcyWarnings ?? 0) > 0 && state.bankruptcyDeadline === 0 && state.cash > 0 && state.runStatus === 'active';
+
+    case 'explicit-first-loan': return explicitDebt.lifetimeBorrowed > 0;
+    case 'explicit-million-leverage': return debtTotals.totalDebt >= 1_000_000 && metrics.netWorth > 0;
+    case 'explicit-clean-payoff': return explicitDebt.lifetimeRepaid >= 1_000 && explicitDebt.lifetimeDefaults === 0 && debtTotals.totalDebt <= 0.01 && explicitDebt.obligations.some((entry) => entry.status === 'paid');
+    case 'explicit-debt-free': return explicitDebt.lifetimeBorrowed >= 10_000 && debtTotals.totalDebt <= 0.01;
+    case 'explicit-seizure': return explicitDebt.lifetimeSeizures >= 1;
+    case 'explicit-court-filed': return explicitDebt.courtCases.length >= 1;
+    case 'explicit-court-settled': return explicitDebt.courtCases.some((entry) => entry.stage === 'settled');
+    case 'explicit-judgment': return explicitDebt.courtCases.some((entry) => entry.stage === 'judgment') || explicitDebt.obligations.some((entry) => entry.status === 'judgment');
+    case 'explicit-credit-recovery': return explicitDebt.lifetimeDefaults >= 1 && debtTotals.totalDebt <= 0.01 && explicitDebt.creditScore >= 650;
+    case 'explicit-house-of-cards': return debtTotals.totalDebt >= 10_000_000 && metrics.netWorth < debtTotals.totalDebt;
 
     case 'diversified': return streams >= 1 && businesses >= 1 && ownsMarketplaceAsset(state);
     case 'all-businesses': return businesses >= 7;
