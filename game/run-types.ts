@@ -5,6 +5,8 @@ export type RunResult = {
   endedAt: number;
   result: 'bankrupt' | 'completed';
   scenarioId: ScenarioId;
+  scenarioName?: string;
+  challengeCode?: string;
   mode: FinancialMode;
   riskMode: boolean;
   endingCash: number;
