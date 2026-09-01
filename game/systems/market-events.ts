@@ -1,11 +1,13 @@
 import { marketEvents } from '@/data/content';
+import { worldEvents } from '@/data/world-events';
 import { GameState, MarketEvent } from '../types';
 
 export const EVENT_INTERVAL_MS = 120_000;
+const allMarketEvents: MarketEvent[] = [...marketEvents, ...worldEvents];
 
 export function getActiveMarketEvent(state: GameState, now = Date.now()): MarketEvent | null {
   if (!state.activeEventId || now >= state.eventEndsAt) return null;
-  return marketEvents.find((event) => event.id === state.activeEventId) ?? null;
+  return allMarketEvents.find((event) => event.id === state.activeEventId) ?? null;
 }
 
 export function getEventMultipliers(state: GameState, now = Date.now()) {
@@ -28,9 +30,9 @@ export function updateMarketEventState(state: GameState, now = Date.now()): Game
     };
   }
 
-  if (!next.activeEventId && now >= next.nextEventAt && marketEvents.length > 0) {
-    const index = Math.floor(now / 1000) % marketEvents.length;
-    const event = marketEvents[index];
+  if (!next.activeEventId && now >= next.nextEventAt && allMarketEvents.length > 0) {
+    const index = Math.floor(now / 1000) % allMarketEvents.length;
+    const event = allMarketEvents[index];
     next = {
       ...next,
       activeEventId: event.id,
