@@ -1,13 +1,13 @@
 'use client';
 
 import { classicPetSprites } from '@/data/classic-pet-sprites';
-import { pixelPetSpriteById } from '@/data/pixel-pet-sprites';
+import { looperSpriteById } from '@/data/looper-sprite-registry';
 import { useHudPreferences } from '@/app/hooks/useHudPreferences';
 import { useMicroMotionPreferences } from '@/app/hooks/useMicroMotion';
 import type { PetMood } from '@/game/customization-types';
 
 export function PixelPetSprite({ petId, mood = 'idle', silhouette = false, size = 52 }: { petId: string; mood?: PetMood; silhouette?: boolean; size?: number }) {
-  const sprite = pixelPetSpriteById(petId);
+  const sprite = looperSpriteById(petId);
   const motionPrefs = useMicroMotionPreferences();
   const hudPrefs = useHudPreferences();
   const classic = hudPrefs.looperArtStyle === 'classic' ? classicPetSprites[petId] ?? null : null;
