@@ -1,4 +1,5 @@
 import type { BusinessPortfolio } from './business-types';
+import type { CityEconomyState } from './city-types';
 
 export type FinancialMode = 'simple' | 'advanced';
 export type ScenarioId = 'freeplay' | 'billionaire' | 'trillionaire';
@@ -25,6 +26,7 @@ export type GameState = {
   lifetimeIncome: number;
   owned: Record<string, number>;
   businesses: BusinessPortfolio;
+  cityEconomy: CityEconomyState;
   houseLevel: number;
   townLevel: number;
   regionLevel: number;
