@@ -1,6 +1,7 @@
-import { localLokWalletAdapter, mergeRunIntoWallet } from './wallet';
+import { localLokWalletAdapter, mergeRunIntoWallet, spendLok } from './wallet';
 
 export const LOK_PLAY_INTERVAL_MS = 10_000;
+const LOK_RUN_MIGRATION_KEY = 'gsix-lok-run-migrated-v1';
 
 export type LokAccrual = {
   balance: number;
@@ -8,9 +9,9 @@ export type LokAccrual = {
   awarded: number;
 };
 
-export function accrueLok(balance: number, progressMs: number, deltaMs: number): LokAccrual {
-  const stored = mergeRunIntoWallet(localLokWalletAdapter.load(), balance, progressMs);
-  const accumulator = stored.progressMs + deltaMs;
+export function accrueLok(_balance: number, _progressMs: number, deltaMs: number): LokAccrual {
+  const stored = localLokWalletAdapter.load();
+  const accumulator = stored.progressMs + Math.max(0, deltaMs);
   const awarded = Math.floor(accumulator / LOK_PLAY_INTERVAL_MS);
   const next = localLokWalletAdapter.save({
     ...stored,
@@ -31,7 +32,20 @@ export function snapshotLok() {
 }
 
 export function migrateRunLok(balance: number, progressMs: number) {
-  return localLokWalletAdapter.save(mergeRunIntoWallet(localLokWalletAdapter.load(), balance, progressMs));
+  const stored = localLokWalletAdapter.load();
+  if (typeof window === 'undefined') return stored;
+  if (window.localStorage.getItem(LOK_RUN_MIGRATION_KEY) === '1') return stored;
+
+  const merged = localLokWalletAdapter.save(mergeRunIntoWallet(stored, balance, progressMs));
+  window.localStorage.setItem(LOK_RUN_MIGRATION_KEY, '1');
+  return merged;
+}
+
+export function spendPersistentLok(amount: number) {
+  const wallet = localLokWalletAdapter.load();
+  const spent = spendLok(wallet, amount);
+  if (spent === wallet) return { success: false, wallet };
+  return { success: true, wallet: localLokWalletAdapter.save(spent) };
 }
 
 /**
@@ -44,4 +58,5 @@ export const lokRuntime = {
   accrue: accrueLok,
   snapshot: snapshotLok,
   migrateRun: migrateRunLok,
+  spend: spendPersistentLok,
 };
