@@ -1,6 +1,7 @@
 import { incomeStreams } from '@/data/earnings';
 import type { GameState } from '../types';
 import type { IncomeStreamDefinition } from '../income-types';
+import { lifeMeetsSkill } from './life-progression';
 
 export function normalizeIncomeStreams(input: Record<string, number> | null | undefined) {
   const next: Record<string, number> = { ...(input ?? {}) };
@@ -17,6 +18,7 @@ export function canUnlockIncomeStream(state: GameState, stream: IncomeStreamDefi
   if ((stream.unlockSpent ?? 0) > state.totalSpent) return false;
   if ((stream.requiredTownLevel ?? 0) > state.townLevel) return false;
   if ((stream.requiredRegionLevel ?? 0) > state.regionLevel) return false;
+  if (!lifeMeetsSkill(state, stream.requiredSkillId, stream.requiredSkillLevel ?? 0)) return false;
   return true;
 }
 
