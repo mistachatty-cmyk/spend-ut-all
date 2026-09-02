@@ -29,6 +29,8 @@ jobs:
         run: npm run validate:careers
       - name: Validate education
         run: npm run validate:education
+      - name: Validate freelance progression
+        run: npm run validate:freelance
       - name: Typecheck
         run: npm run typecheck
       - name: Production build
