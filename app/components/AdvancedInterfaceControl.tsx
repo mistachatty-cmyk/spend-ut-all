@@ -17,7 +17,7 @@ export function AdvancedInterfaceControl() {
   }, [prefs.interfaceMode, prefs.looperArtStyle]);
 
   const advanced = prefs.interfaceMode === 'advanced';
-  const pixelPlus = prefs.looperArtStyle === 'pixel-plus';
+  const production = prefs.looperArtStyle === 'production';
   const looperAnimated = motionPrefs.enabled && motionPrefs.amplificationLevel >= 2;
   const patch = (nextPatch: Partial<HudPreferences>) => {
     const next = saveHudPreferences({ ...prefs, ...nextPatch });
@@ -42,19 +42,19 @@ export function AdvancedInterfaceControl() {
     <section className="interface-setting-block looper-art-setting">
       <div>
         <span className="eyebrow">LOOPER / COMPANION ART</span>
-        <b>{pixelPlus ? 'Pixel+ Production Art' : 'Classic Pixel Art'}</b>
-        <small>{pixelPlus ? 'Higher-detail canonical Firstlight sprites and signature visual layers.' : 'Original compact companion sprites preserved as the lightweight legacy option.'}</small>
-        <em>This switch changes the actual Looper renderer used in companions, LOKDEX and supported Card Shop surfaces.</em>
+        <b>{production ? 'Production Looper Art' : 'Classic Pixel Art'}</b>
+        <small>{production ? 'Canonical high-detail Firstlight characters with personality motifs, materials and signature visual layers.' : 'Original compact companion sprites preserved as the lightweight legacy option.'}</small>
+        <em>Production is the primary art direction. Classic remains available at any time for preference and lower visual load.</em>
       </div>
-      <button type="button" className={pixelPlus ? 'active' : ''} onClick={() => patch({ looperArtStyle: pixelPlus ? 'classic' : 'pixel-plus' })} aria-pressed={pixelPlus}>{pixelPlus ? 'Switch to Classic' : 'Switch to Pixel+'}</button>
+      <button type="button" className={production ? 'active' : ''} onClick={() => patch({ looperArtStyle: production ? 'classic' : 'production' })} aria-pressed={production}>{production ? 'Switch to Classic' : 'Use Production Art'}</button>
     </section>
 
     <section className="interface-setting-block looper-motion-setting">
       <div>
         <span className="eyebrow">LOOPER ANIMATION</span>
         <b>{looperAnimated ? 'Animations On' : 'Animations Off / Static'}</b>
-        <small>{looperAnimated ? `Effects level ${motionPrefs.amplificationLevel} is high enough for sprite-frame, body and signature animation.` : 'Looper animation starts at Effects level Animated (2). Static (1) intentionally keeps characters still.'}</small>
-        <em>You can fine-tune the full effect level from Settings → Effects.</em>
+        <small>{looperAnimated ? `Effects level ${motionPrefs.amplificationLevel} is high enough for body, face, tail, wing and signature animation.` : 'Looper animation starts at Effects level Animated (2). Static (1) intentionally keeps characters still.'}</small>
+        <em>Production Loopers use the same global performance ceiling and respect reduced-motion preferences.</em>
       </div>
       <button type="button" className={looperAnimated ? 'active' : ''} disabled={looperAnimated} onClick={enableLooperMotion}>{looperAnimated ? 'Animated ✓' : 'Enable Looper Animations'}</button>
     </section>
