@@ -3,11 +3,12 @@ import type { MicroMotionEvent, MicroMotionPoint, MicroMotionPreferences, MicroM
 export const MICRO_MOTION_EVENT = 'spend-it-all:micro-motion';
 export const MICRO_MOTION_PREFS_EVENT = 'spend-it-all:micro-motion-prefs';
 export const MICRO_MOTION_PREFS_KEY = 'spend-it-all-micro-motion-v1';
+const LOOPER_MOTION_ROLLOUT_KEY = 'spend-it-all-looper-motion-v2';
 
 export const MICRO_MOTION_PROFILES: Record<MicroMotionLevel, MicroMotionProfile> = {
   0:{ level:0, name:'Nothing', description:'No flyouts, particles, or animated counting.', moving:false, countCounters:false, particles:0, echoes:0, maxConcurrent:0, durationScale:.35, glow:0, scale:.85 },
-  1:{ level:1, name:'Static', description:'Tiny value pings with no travel. Default for maximum compatibility.', moving:false, countCounters:false, particles:0, echoes:0, maxConcurrent:4, durationScale:.5, glow:0, scale:.9 },
-  2:{ level:2, name:'Animated', description:'One lightweight value trail and smooth counter counting.', moving:true, countCounters:true, particles:1, echoes:0, maxConcurrent:8, durationScale:.8, glow:.15, scale:1 },
+  1:{ level:1, name:'Static', description:'Tiny value pings with no travel. Characters stay still.', moving:false, countCounters:false, particles:0, echoes:0, maxConcurrent:4, durationScale:.5, glow:0, scale:.9 },
+  2:{ level:2, name:'Animated', description:'Production Looper motion, one lightweight value trail and smooth counter counting.', moving:true, countCounters:true, particles:1, echoes:0, maxConcurrent:8, durationScale:.8, glow:.15, scale:1 },
   3:{ level:3, name:'High', description:'More particles, stronger arrival feedback, and richer trails.', moving:true, countCounters:true, particles:3, echoes:0, maxConcurrent:12, durationScale:1, glow:.35, scale:1.08 },
   4:{ level:4, name:'Uber', description:'Dense particles, echo tokens, brighter glows, and bigger motion.', moving:true, countCounters:true, particles:6, echoes:1, maxConcurrent:18, durationScale:1.12, glow:.65, scale:1.18 },
   5:{ level:5, name:'Absurd', description:'Intentionally excessive celebration mode for capable devices.', moving:true, countCounters:true, particles:10, echoes:2, maxConcurrent:26, durationScale:1.25, glow:1, scale:1.32 },
@@ -19,13 +20,13 @@ export const DEFAULT_MICRO_MOTION_PREFS: MicroMotionPreferences = {
   counterCountingEnabled: true,
   paletteReactive: true,
   respectReducedMotion: true,
-  amplificationLevel: 1,
+  amplificationLevel: 2,
   intensity: 1,
   symbolStyle: 'auto',
 };
 
 export function microMotionProfile(level: number | undefined | null) {
-  const normalized = Math.max(0, Math.min(5, Math.round(Number.isFinite(level) ? Number(level) : 1))) as MicroMotionLevel;
+  const normalized = Math.max(0, Math.min(5, Math.round(Number.isFinite(level) ? Number(level) : 2))) as MicroMotionLevel;
   return MICRO_MOTION_PROFILES[normalized];
 }
 
@@ -52,7 +53,16 @@ export function loadMicroMotionPreferences() {
   if (typeof window === 'undefined') return DEFAULT_MICRO_MOTION_PREFS;
   try {
     const raw = localStorage.getItem(MICRO_MOTION_PREFS_KEY);
-    return raw ? normalizeMicroMotionPreferences(JSON.parse(raw)) : DEFAULT_MICRO_MOTION_PREFS;
+    let next = raw ? normalizeMicroMotionPreferences(JSON.parse(raw)) : DEFAULT_MICRO_MOTION_PREFS;
+    // One-time Production Looper rollout. Existing installs that were on Static
+    // get Animated so the new live character system is actually visible. The
+    // player can immediately return to Static/Nothing afterward.
+    if (!localStorage.getItem(LOOPER_MOTION_ROLLOUT_KEY)) {
+      next = { ...next, enabled:true, amplificationLevel: Math.max(2, next.amplificationLevel) as MicroMotionLevel };
+      localStorage.setItem(LOOPER_MOTION_ROLLOUT_KEY, '1');
+      localStorage.setItem(MICRO_MOTION_PREFS_KEY, JSON.stringify(next));
+    }
+    return next;
   } catch {
     return DEFAULT_MICRO_MOTION_PREFS;
   }
@@ -61,7 +71,10 @@ export function loadMicroMotionPreferences() {
 export function saveMicroMotionPreferences(input: MicroMotionPreferences) {
   const next = normalizeMicroMotionPreferences(input);
   if (typeof window !== 'undefined') {
-    try { localStorage.setItem(MICRO_MOTION_PREFS_KEY, JSON.stringify(next)); } catch {}
+    try {
+      localStorage.setItem(MICRO_MOTION_PREFS_KEY, JSON.stringify(next));
+      localStorage.setItem(LOOPER_MOTION_ROLLOUT_KEY, '1');
+    } catch {}
     window.dispatchEvent(new CustomEvent(MICRO_MOTION_PREFS_EVENT, { detail: next }));
   }
   return next;
