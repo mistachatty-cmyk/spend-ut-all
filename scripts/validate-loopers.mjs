@@ -17,7 +17,9 @@ const recipes = read('data/looper-hd-recipes.ts');
 const manifests = read('data/looper-production-manifests.ts');
 const animationTypes = read('game/looper-production-types.ts');
 const motionCss = read('app/looper-character-motion.css');
+const vectorCss = read('app/looper-vector-runtime.css');
 const gateway = read('app/components/PixelPetSprite.tsx');
+const vectorRuntime = read('app/components/LooperVectorRuntimeSprite.tsx');
 const lab = read('app/components/LooperProductionLab.tsx');
 const vectorIndex = JSON.parse(read('public/assets/loopers/g1/index.json'));
 
@@ -64,10 +66,14 @@ for (let number = 1; number <= 24; number += 1) {
 for (const mood of moods) {
   if (!animationTypes.includes(`${mood}:`)) fail(`animation contract missing ${mood}`);
   if (!lab.includes(`id:'${mood}'`) && !lab.includes(`id: '${mood}'`)) fail(`Production Lab missing ${mood} state button`);
+  if (mood !== 'idle' && !vectorCss.includes(`looper-vector-${mood}`)) fail(`vector runtime CSS missing ${mood} state`);
 }
 
-if (!gateway.includes('LooperProductionSprite')) fail('PixelPetSprite is not routing to the Production renderer');
+if (!gateway.includes('LooperVectorRuntimeSprite')) fail('PixelPetSprite is not routing Production art to canonical SVG masters');
 if (!gateway.includes("looperArtStyle === 'classic'")) fail('Classic fallback is not preserved in the shared gateway');
+if (!vectorRuntime.includes('looperVectorAssetById')) fail('canonical vector runtime is not resolving the vector asset catalog');
+if (!vectorRuntime.includes('asset.master')) fail('canonical vector runtime is not loading master.svg assets');
+if (!vectorRuntime.includes('LooperProductionSprite')) fail('Forge/generated fallback was removed from vector runtime');
 if (!lab.includes('looperVectorAssetById')) fail('Production Lab is not exposing canonical vector masters');
 
 const requiredSurfaces = [
@@ -86,4 +92,4 @@ if (!fs.existsSync(path.join(root,'integrations/lok/collectibles/looper-forge.ts
 if (!fs.existsSync(path.join(root,'data/looper-vector-assets.ts'))) fail('missing application-side vector asset catalog');
 if (!fs.existsSync(path.join(root,'docs/LOOPER_VECTOR_ASSETS.md'))) fail('missing reusable vector asset documentation');
 
-if (!process.exitCode) console.log(`Looper production coverage OK: ${expected.length} canonical characters, ${moods.length} live states, ${vectorIndex.characters.length} scalable SVG masters + reusable animated vectors, Classic fallback, live surfaces and Forge verified.`);
+if (!process.exitCode) console.log(`Looper production coverage OK: ${expected.length} canonical characters, ${moods.length} live states, ${vectorIndex.characters.length} scalable SVG masters + reusable animated vectors, canonical live SVG runtime, Classic fallback and Forge verified.`);
