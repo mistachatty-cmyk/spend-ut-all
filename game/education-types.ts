@@ -1,0 +1,4 @@
+import type { LifeSkillId } from './life-types';
+export type CredentialId='food-handler'|'customer-service'|'forklift'|'trade-certificate'|'design-portfolio'|'it-support'|'bookkeeping'|'sales-certificate'|'property-certificate'|'management-certificate';
+export type EducationDefinition={id:CredentialId;name:string;emoji:string;description:string;skillId:LifeSkillId;requiredSkillLevel:number;cost:number;studyDays:number;skillXp:number;};
+export type EducationState={credentials:CredentialId[];activeCredentialId:CredentialId|null;studyDaysRemaining:number;lifetimeTuition:number;completedPrograms:number;};
