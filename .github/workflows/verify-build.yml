@@ -21,6 +21,8 @@ jobs:
         run: npm install --no-audit --no-fund
       - name: Validate Loopers
         run: npm run validate:loopers
+      - name: Check portable Looper animations
+        run: npm run check:looper-animated
       - name: Typecheck
         run: npm run typecheck
       - name: Production build
