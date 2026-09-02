@@ -1,17 +1,21 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { customizationById, lokPets } from '@/data/customizations';
 import type { CustomizationInventory, LokPetDefinition, PetMood } from '@/game/customization-types';
 import { getActiveMarketEvent } from '@/game/systems/market-events';
+import { subscribeMicroMotion } from '@/game/systems/micro-animations';
 import { bankruptcySecondsRemaining } from '@/game/systems/risk';
 import type { GameState } from '@/game/types';
 import { money } from '@/game/format';
+import type { MicroMotionEvent } from '@/game/micro-animation-types';
 import { PixelPetSprite } from './PixelPetSprite';
 
 const PET_ADVICE_KEY = 'spend-it-all-pet-advice-v1';
 
 type AdvisorRole = LokPetDefinition['advisorRole'];
+
+type TransientReaction = { mood: PetMood; message: string; until: number } | null;
 
 function petStatus(state: GameState, income: number, role: AdvisorRole): { mood: PetMood; message: string } {
   const countdown = bankruptcySecondsRemaining(state);
@@ -44,11 +48,35 @@ function petStatus(state: GameState, income: number, role: AdvisorRole): { mood:
   return { mood: 'idle', message: role === 'starter' ? 'Balanced guide active: I’ll watch milestones, debt, fatigue, world events, and side districts.' : 'I’ll keep an eye on the parts of the economy I’m best at.' };
 }
 
+function reactionFromMotion(event: MicroMotionEvent): TransientReaction {
+  const now = Date.now();
+  if (event.target === 'debt' || event.tone === 'debt' || event.tone === 'negative') return { mood:'worried', message:event.displayText ? `Careful — ${event.displayText}. I’m watching the downside.` : 'Careful. That moved the wrong direction.', until:now+2400 };
+  if (event.kind === 'card') return { mood:'celebrating', message:'New card activity! I’ll keep an eye on what just joined the collection.', until:now+2800 };
+  if (event.target === 'lok') return { mood:'excited', message:`LOK moved: ${event.displayText}. Cosmetic options are opening up.`, until:now+1800 };
+  if (event.kind === 'reward' || event.target === 'reward') return { mood:'celebrating', message:`Reward hit: ${event.displayText}. Nice milestone.`, until:now+2600 };
+  if (event.kind === 'purchase') return { mood:'happy', message:`Purchase registered: ${event.displayText}. I’ll watch what it does to the run.`, until:now+1700 };
+  return null;
+}
+
 export function PetCompanion({ state, income, inventory }: { state: GameState; income: number; inventory: CustomizationInventory }) {
   const [advice, setAdvice] = useState(true);
+  const [transient, setTransient] = useState<TransientReaction>(null);
+  const clearTimer = useRef<number | null>(null);
+
   useEffect(() => {
     try { const value = localStorage.getItem(PET_ADVICE_KEY); if (value !== null) setAdvice(value !== '0'); } catch {}
   }, []);
+
+  useEffect(() => subscribeMicroMotion((event) => {
+    const reaction = reactionFromMotion(event);
+    if (!reaction) return;
+    setTransient(reaction);
+    if (clearTimer.current) window.clearTimeout(clearTimer.current);
+    clearTimer.current = window.setTimeout(() => setTransient(null), Math.max(400, reaction.until - Date.now()));
+  }), []);
+
+  useEffect(() => () => { if (clearTimer.current) window.clearTimeout(clearTimer.current); }, []);
+
   const toggleAdvice = () => setAdvice((current) => {
     const next = !current;
     try { localStorage.setItem(PET_ADVICE_KEY, next ? '1' : '0'); } catch {}
@@ -56,7 +84,8 @@ export function PetCompanion({ state, income, inventory }: { state: GameState; i
   });
 
   const pet = useMemo(() => lokPets.find((entry) => entry.id === inventory.equipped.petId) ?? lokPets[0], [inventory.equipped.petId]);
-  const status = petStatus(state, income, pet.advisorRole);
+  const baseStatus = petStatus(state, income, pet.advisorRole);
+  const status = transient && transient.until > Date.now() ? transient : baseStatus;
   const accessories = inventory.equipped.petAccessoryIds.map((id) => customizationById(id)).filter(Boolean);
 
   return <aside className={`pet-companion mood-${status.mood}`} aria-label={`${pet.name} companion`}>
