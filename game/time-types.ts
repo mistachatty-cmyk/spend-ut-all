@@ -1,3 +1,5 @@
+import type { LifeSkillId } from './life-types';
+
 export type TimeDisplaySettings = {
   enabled: boolean;
   showMilliseconds: boolean;
@@ -20,7 +22,7 @@ export type TimeSystemSettings = {
   jetLag: boolean;
 };
 
-export type ActivityCategory = 'work' | 'business' | 'travel' | 'recovery' | 'leisure';
+export type ActivityCategory = 'work' | 'business' | 'travel' | 'recovery' | 'leisure' | 'learning';
 
 export type ActivityDefinition = {
   id: string;
@@ -36,6 +38,8 @@ export type ActivityDefinition = {
   industry?: string;
   fatigueDelta?: number;
   jetLagDelta?: number;
+  skillId?: LifeSkillId;
+  skillXp?: number;
 };
 
 export type ActiveActivity = {
