@@ -2,13 +2,19 @@ import { activeEarnings } from '@/data/earnings';
 import type { ActiveEarningDefinition, IncomeStreamDefinition } from './income-types';
 import type { GameState } from './types';
 import { canUnlockIncomeStream, incomeStreamUnitCost } from './systems/earnings';
+import { gainLifeSkillXp, lifeMeetsSkill } from './systems/life-progression';
 
 export function performActiveEarning(state: GameState, earning: ActiveEarningDefinition): GameState {
   if ((earning.unlockSpent ?? 0) > state.totalSpent) return state;
   if ((earning.requiredTownLevel ?? 0) > state.townLevel) return state;
   if ((earning.requiredRegionLevel ?? 0) > state.regionLevel) return state;
+  if (!lifeMeetsSkill(state, earning.requiredSkillId, earning.requiredSkillLevel ?? 0)) return state;
+  const life = earning.rewardSkillId && earning.rewardSkillXp
+    ? gainLifeSkillXp(state.life, earning.rewardSkillId, earning.rewardSkillXp)
+    : state.life;
   return {
     ...state,
+    life,
     cash: state.cash + earning.payout,
     lifetimeIncome: state.lifetimeIncome + earning.payout,
     updatedAt: Date.now(),
@@ -35,5 +41,6 @@ export function activeEarningUnlocked(state: GameState, id: string) {
   if ((earning.unlockSpent ?? 0) > state.totalSpent) return false;
   if ((earning.requiredTownLevel ?? 0) > state.townLevel) return false;
   if ((earning.requiredRegionLevel ?? 0) > state.regionLevel) return false;
+  if (!lifeMeetsSkill(state, earning.requiredSkillId, earning.requiredSkillLevel ?? 0)) return false;
   return true;
 }
