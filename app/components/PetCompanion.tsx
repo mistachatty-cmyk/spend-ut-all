@@ -60,7 +60,7 @@ export function PetCompanion({ state, income, inventory }: { state: GameState; i
   const accessories = inventory.equipped.petAccessoryIds.map((id) => customizationById(id)).filter(Boolean);
 
   return <aside className={`pet-companion mood-${status.mood}`} aria-label={`${pet.name} companion`}>
-    <div className="pet-avatar" aria-hidden="true"><PixelPetSprite petId={pet.id} mood={status.mood} size={30} />{accessories.length ? <div className="pet-accessories">{accessories.map((item) => <i key={item!.id}>{item!.emoji}</i>)}</div> : null}</div>
+    <div className="pet-avatar" aria-hidden="true"><PixelPetSprite petId={pet.id} mood={status.mood} size={44} />{accessories.length ? <div className="pet-accessories">{accessories.map((item) => <i key={item!.id}>{item!.emoji}</i>)}</div> : null}</div>
     <div className="pet-copy"><div><b>{pet.name}</b><small>{status.mood}</small></div>{advice ? <p>{status.message}</p> : <p className="pet-muted">Advice muted. I’m just hanging out.</p>}</div>
     <button type="button" onClick={toggleAdvice}>{advice ? 'Mute tips' : 'Enable tips'}</button>
   </aside>;
