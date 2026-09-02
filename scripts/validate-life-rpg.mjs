@@ -1,0 +1,41 @@
+import fs from 'node:fs';
+import path from 'node:path';
+const root=process.cwd();
+const read=(file)=>fs.readFileSync(path.join(root,file),'utf8');
+const fail=(message)=>{console.error(`LIFE RPG VALIDATION FAILED: ${message}`);process.exitCode=1;};
+
+const requiredFiles=['game/life-types.ts','data/life-progression.ts','game/systems/life-progression.ts','app/components/LifeRpgView.tsx','app/life-rpg.css','docs/LIFE_RPG_ROADMAP.md'];
+for(const file of requiredFiles) if(!fs.existsSync(path.join(root,file))) fail(`missing ${file}`);
+
+const types=read('game/life-types.ts');
+const lifeData=read('data/life-progression.ts');
+const earnings=read('data/earnings.ts');
+const businesses=read('data/businesses.ts');
+const activities=read('data/activities.ts');
+const engine=read('game/engine.ts');
+const save=read('game/systems/save.ts');
+const earningActions=read('game/earning-actions.ts');
+const businessActions=read('game/business-actions.ts');
+const view=read('app/components/LifeRpgView.tsx');
+const timeView=read('app/components/TimeView.tsx');
+
+const skills=['general-labor','hospitality','sales','creative','technology','finance','management','trades','media','real-estate'];
+for(const skill of skills) if(!types.includes(`'${skill}'`) || !lifeData.includes(`id:'${skill}'`)) fail(`skill ${skill} is not fully registered`);
+const housing=['stay-with-someone','shelter','motel','room-rental','shared-apartment','studio-lease','one-bedroom','small-house-rental','starter-condo','starter-house','townhome'];
+for(const id of housing) if(!lifeData.includes(`id:'${id}'`)) fail(`missing housing option ${id}`);
+const starterStreams=['snack-cooler','print-on-demand','tool-rental','local-ad-page','storage-flips'];
+for(const id of starterStreams) if(!earnings.includes(`id:'${id}'`)) fail(`missing starter passive stream ${id}`);
+const starterBusinesses=['solo-service','cleaning-service','lawn-care','mobile-detailing','food-cart','online-shop','creative-agency','tech-consultancy','bookkeeping-practice','property-services'];
+for(const id of starterBusinesses) if(!businesses.includes(`id:'${id}'`)) fail(`missing starter business ${id}`);
+const zeroCashWork=['microtask','recyclables','neighborhood-help','pet-care'];
+for(const id of zeroCashWork) if(!earnings.includes(`id:'${id}'`)) fail(`missing zero-cash earning ${id}`);
+for(const skill of skills) if(!activities.includes(`skillId:'${skill}'`)) fail(`no timed learning/work activity trains ${skill}`);
+if(!engine.includes('createLifeRpgState')) fail('new games do not initialize Life RPG state');
+if(!engine.includes('advanceLifeHousingCosts')) fail('housing costs are not advanced by the engine');
+if(!engine.includes('housingAssetValue')) fail('owned personal housing is missing from net worth');
+if(!save.includes('normalizeLifeRpg')) fail('old saves do not normalize Life RPG state');
+if(!earningActions.includes('lifeMeetsSkill')) fail('active earnings do not use optional skill gates');
+if(!businessActions.includes('businessUnlocked') || !businessActions.includes('lifeMeetsSkill')) fail('businesses do not use optional skill gates');
+if(!view.includes('Pause RPG layer') || !view.includes('Enable Life RPG')) fail('Life RPG is not toggleable in the UI');
+if(!timeView.includes("id:'learning'")) fail('learning is not grouped on the Time screen');
+if(!process.exitCode) console.log(`Life RPG coverage OK: ${skills.length} skills, ${housing.length} housing choices, ${starterStreams.length} starter passive streams, ${starterBusinesses.length} starter businesses and optional gating verified.`);
