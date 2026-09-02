@@ -45,7 +45,7 @@ export function StarterCompanionPrompt() {
 
   return <div className="starter-companion-backdrop" role="dialog" aria-modal="true" aria-labelledby="starter-companion-title">
     <section className="starter-companion-panel">
-      <span className="eyebrow">YOUR FIRST LOK COMPANION</span>
+      <span className="eyebrow">YOUR FIRST PRODUCTION LOOPER</span>
       <h2 id="starter-companion-title">Pick who starts the climb with you</h2>
       <p>Choose one starter companion. Their benefit is guidance and personality—not extra money or economic power. You can collect and switch companions later.</p>
       <div className="starter-companion-grid">
@@ -53,7 +53,7 @@ export function StarterCompanionPrompt() {
           const pet = lokPets.find((entry) => entry.id === choice.id);
           if (!pet) return null;
           return <button type="button" key={choice.id} onClick={() => choose(choice.id)}>
-            <span className="starter-companion-sprite"><PixelPetSprite petId={pet.id} mood="happy" size={64} /></span>
+            <span className="starter-companion-sprite"><PixelPetSprite petId={pet.id} mood="happy" size={82} /></span>
             <span className="starter-companion-name">{pet.name}</span>
             <strong>{choice.benefit}</strong>
             <small>{choice.detail}</small>
@@ -61,7 +61,7 @@ export function StarterCompanionPrompt() {
           </button>;
         })}
       </div>
-      <small className="starter-companion-note">This choice is permanent only as your free starter grant. You can equip another owned companion anytime from Style → Companions.</small>
+      <small className="starter-companion-note">This choice is permanent only as your free starter grant. You can equip another owned companion anytime from Style → Companions. Classic art remains available from Settings.</small>
     </section>
   </div>;
 }
