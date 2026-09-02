@@ -1,147 +1,229 @@
 # Looper Implementation Plan
 
-This is the execution companion to `docs/LOOPER_VISUAL_BIBLE.md`.
+This is the execution companion to `docs/LOOPER_VISUAL_BIBLE.md` and `docs/LOOPER_PRODUCTION_RUNTIME.md`.
 
 ## Current build state
 
-Completed in the first production pass:
-- canonical Pixel+ registry architecture
-- 24 Firstlight LOKDEX character sprite coverage
-- preserved Classic companion sprite set
-- Pixel+ / Classic preference stored with HUD preferences
-- Settings-only visual control surface for switching Looper art style
-- semantic animation mappings for every production sprite
-- actual pixel-frame animation generation for all semantic moods
-- shared Pixel+ movement library
-- signature FX layers for Firstlight characters
+The first full Production Looper runtime is implemented.
+
+Completed:
+- all 24 canonical Firstlight characters have stable Production recipes
+- Classic compact pixel art is preserved as a permanent fallback
+- Production / Classic preference persists locally
+- one-time Production rollout migration for existing saves
+- canonical seven-state animation contract
+- a production animation manifest for every Firstlight character
+- shared mood/body animation system
+- character-specific motion for all 24 characters
+- motif-specific visual detail overlays
 - global Effects ceiling integration
+- one-time Animated rollout so old Static installs can see the release
 - reduced-motion support
-- starter companion prompt uses the shared sprite renderer
-- companion HUD uses the shared sprite renderer
-- LOKDEX uses canonical sprites and real silhouettes
-- Card Shop latest pulls use Looper art instead of character emoji
-- Card Shop Binder uses Looper art instead of character emoji
-- Card Shop duplicate recycler uses Looper art
-- Card District includes a Pixel+ showcase strip
+- starter trio uses Production renderer
+- live companion HUD uses Production renderer
+- live companions react to important game/micro-motion events
+- LOKDEX uses Production characters and silhouettes
+- Card Shop pulls, Binder and duplicate recycler use the shared Looper renderer
+- local deterministic Looper Forge backend
+- `/loopers` Production Lab with all 24 characters and all semantic states
+- seeded Forge preview in the Production Lab
+- TypeScript / production build verification workflow
 
 ## Runtime architecture
 
-`data/pixel-pet-sprites.ts`
-Wave 1 and shared sprite/motion types.
+### Canonical visual source
 
-`data/pixel-pet-sprites-wave2.ts`
-Second production batch.
+`data/looper-hd-recipes.ts`
+The editable Firstlight visual recipe roster: stable aliases, archetype, palette, glow and motif.
 
-`data/pixel-pet-sprites-wave3.ts`
-Final Gen 1 completion batch.
-
-`data/looper-sprite-registry.ts`
-Single lookup registry used by runtime UI.
-
-`data/classic-pet-sprites.ts`
-Preserved legacy compact companion art.
-
-`game/systems/looper-frame-animation.ts`
-Generates real pixel-frame sequences from canonical grids for idle, happy, excited, worried, sleepy, traveling, and celebrating states.
+`app/components/LooperProductionSprite.tsx`
+Canonical high-detail live renderer. This is code-native SVG, not a generic emoji layer or the old 10/16-pixel grid. It renders anatomy, faces, motif detail, material highlights, silhouettes and mood FX.
 
 `app/components/PixelPetSprite.tsx`
-Shared runtime renderer. This is the only component normal UI code should need to render a Looper. It combines frame animation, body motion, art-style selection, signature FX, and the global Effects ceiling.
+Compatibility gateway. Normal UI should continue calling this component:
+- Production -> `LooperProductionSprite`
+- Classic -> legacy compact pixel sprites
 
-`app/looper-animations.css`
-Shared motion archetypes and first signature FX set.
+### Production animation
 
-`app/looper-signature-fx.css`
-Additional character-specific FX layers.
+`game/looper-production-types.ts`
+Stable seven-state animation contract and signature-motion vocabulary.
 
-`app/looper-card-art.css`
-Card/Binder presentation.
+`data/looper-production-manifests.ts`
+Manifest coverage for every Firstlight character.
 
-## Animation quality stages
+`app/looper-hd.css`
+Shared semantic mood movement and structural animation.
 
-Stage A — complete
-Every Looper has semantic moods mapped to body animation plus optional signature FX.
+`app/looper-character-motion.css`
+Character-specific animation layer for all 24 Firstlight characters.
 
-Stage B — complete
-Every Looper now receives actual pixel-grid frame changes in addition to transforms. Static/Nothing effects remain still.
+`game/systems/looper-behavior.ts`
+Reusable event/reaction state vocabulary.
 
-Stage C — next polish pass
-Add bespoke hand-authored pose frames for the starter trio on top of the shared generator:
-- LOK Slime: blink, squash, internal mote pop, celebrate burst
-- Coin Cat: blink, ear flick, tail curl, coin toss/catch
-- Espresso Bot: eye panel expressions, servo arm, steam puff, coffee reaction
+`app/components/PetCompanion.tsx`
+Live advisor behavior and transient reactions to debt, rewards, cards, purchases and LOK activity.
 
-Stage D
-Add bespoke signature poses to Rare/Epic/Legendary/Mythic characters, prioritizing Orbit Owl, Signalsilk Moth, Glassfang Cobra, Moon Gecko, Wolf Pup, and Singularity Sprite.
+### Forge
 
-Stage E
-Add event-specific semantic reactions: moneyUp, moneyDown, purchaseReaction, worldEvent, notice, tip, signature.
+`integrations/lok/collectibles/pet-generator.ts`
+Seeded metadata blueprint generator.
 
-## Art quality stages
+`integrations/lok/collectibles/looper-forge.ts`
+Turns a blueprint into a playable Production recipe and animation manifest without requiring a paid runtime API.
 
-Pixel+ v1 is implemented as structured pixel data so it ships immediately, remains crisp at every device size, and is editable by future agents without binary tooling.
+`app/components/LooperProductionLab.tsx`
+Developer visual QA and Forge preview.
 
-Future Pixel+ v2 may replace selected canonical grids with externally authored PNG/WebP sprite sheets. If that happens:
-- preserve stable IDs
-- preserve palette identity and silhouette
-- retain structured-grid fallback
-- do not remove Classic mode
-- use transparent assets
-- export nearest-neighbor safe sizes
-- keep all semantic animation state names
+`app/loopers/page.tsx`
+Route: `/loopers`.
 
-## Card Shop migration
+## Production quality contract
 
-Already migrated:
-- latest opening cards
+The approved creature-sheet direction remains the target quality bar. “Production” must mean:
+- expressive readable silhouette
+- face/personality that reads immediately
+- deliberate material and value separation
+- canonical palette
+- recognizable motif/accessories
+- at least one character-specific motion family
+- all seven semantic states
+- clean phone-size rendering
+- attractive card/detail-size rendering
+- no unrelated emoji as the primary character image
+
+Common rarity is allowed to be simpler, but not low-quality. Higher rarity adds complexity, layers and FX rather than merely increasing saturation.
+
+## Implemented animation states
+
+Every Production Looper supports:
+1. Idle
+2. Happy
+3. Notice / Excited
+4. Worried
+5. Sleep
+6. Travel
+7. Celebrate
+
+The current runtime composes state-specific face/FX with species- and character-specific body motion. Future hand-authored raster atlases may replace or supplement the renderer without changing these state names.
+
+## Starter trio standard
+
+LOK Slime
+- liquid/squash body language
+- internal/floating cube detail
+- bright milestone/reward reactions
+
+Coin Cat
+- coin/value motif
+- tail motion and coin shine
+- alert/happy reactions that fit the Money Watcher role
+
+Espresso Bot
+- service-robot anatomy
+- screen/servo details
+- coffee and steam behavior
+- energetic Work Coach presentation
+
+All later canonical character upgrades must meet or exceed the readability/personality of these three.
+
+## Firstlight character-specific motion coverage
+
+Wave A:
+- Scrapshine Raccoon — scavenging/slink
+- Tickstep Mouse — tick-step
+- Leafline Lizard — tail/crawl
+- Rippledash Otter — ripple glide
+- Charm Crow — wing/charm motion
+- Sparkwing Sparrow — spark jitter
+- Pixel Puffer — inflate/pulse
+
+Wave B:
+- Wirewhisk Ferret — wire-tail slink
+- Signalsilk Moth — signal-wing pulse
+- Drift Duck — gentle drift
+- Brick Badger — stomp
+- Chime Cricket — chime/wing tick
+- Shadow Raven — shadow pulse
+- Wolf Pup — expressive tail
+
+Wave C:
+- Glassfang Cobra — glass glint/coil
+- Towerhorn Stag — heavy stomp
+- Timeslip Jelly — time distortion
+- Orbit Owl — orbital ring
+- Lunar Moth — lunar wing
+- Moon Gecko — lunar tail/crawl
+- Singularity Sprite — shard/orbit void motion
+
+## Card / LOKDEX integration
+
+Primary character surfaces already use the shared Production gateway:
+- latest Card Shop pulls
 - Binder
-- recycler
-- top Looper showcase
+- duplicate recycler
+- LOKDEX
+- undiscovered silhouettes
+- starter selection
+- live companion HUD
 
-Still optional for later polish:
-- replace pack/deck emoji with original illustrated product icons
-- add large character detail drawer
+Still optional art polish after the core runtime:
+- illustrated pack/deck product art instead of emoji
+- large character detail drawer
 - edition-specific alternate art
-- foil/holo shader overlays on the actual Looper portrait
+- foil/holo shaders on the character portrait
 - rarity-specific portrait environments
 
-## Companion migration
+These are card-product/presentation upgrades, not blockers for the live Looper runtime.
 
-Current starter trio is production-integrated.
-Next companion polish:
-- unique speech cadence/personality copy pools
-- signature notice animation when advice changes
-- small event icon beside important warnings
-- companion detail page in Style
-- animation preview control in Style
+## Classic compatibility
 
-## Performance rules
+Classic Pixel Art is intentionally retained. It must remain gameplay-equivalent and selectable after Production is unlocked/rolled out. Static/Nothing Effects modes must also remain available.
 
-- Static/Nothing effects never run character frame or FX loops.
-- Animated is the normal production target.
-- High/Uber/Absurd may layer additional global particles, but core character readability comes first.
-- Avoid more than one expensive filter/backdrop effect per portrait.
-- Keep mobile portrait sizes compact.
-- Respect reduced motion.
-- Classic art remains the lowest-load fallback.
+## Generated characters
 
-## Future unlock plan
+The Forge may create preview/generated collectibles, but:
+- canonical names/IDs are curated
+- generated previews cannot overwrite canon
+- generated characters are collectible-first
+- companion promotion remains an explicit design decision
+- deterministic seed + generation must reproduce the same blueprint
 
-Simple UI remains permanent.
-Advanced Command UI is temporarily available to everyone while in development.
-Later, meaningful progression can unlock Advanced UI as a discovery/reveal, but it must remain toggleable off forever.
+## Raster export / future authored sprite atlases
 
-Looper Pixel+ art is presentation, not an economic advantage. Classic and Pixel+ must remain gameplay-equivalent.
+The shipped Production renderer is code-native SVG so the whole Firstlight roster is editable and local in the repository. The previously generated concept/sprite-sheet images are references and source material, not automatically trustworthy frame atlases.
 
-## Validation checklist for future AI agents
+A future raster export/import pass may add PNG/WebP atlases under a stable asset directory. If added, preserve:
+- IDs
+- state names
+- frame registration
+- silhouette
+- palette identity
+- Classic fallback
+- reduced-motion behavior
 
-Before changing Looper visuals:
-1. Read `LOOPER_VISUAL_BIBLE.md`.
-2. Preserve stable IDs.
-3. Check phone, tablet, and desktop sizing.
-4. Check Nothing/Static animation levels.
-5. Check reduced-motion behavior.
-6. Check LOKDEX silhouette rendering.
-7. Check starter selection.
-8. Check companion HUD clipping.
-9. Check Card Shop pull and Binder layouts.
-10. Never replace canonical characters with unrelated generated designs without an explicit migration decision.
+Do not block the live game on an image-generation API.
+
+## Validation checklist
+
+For every future Looper change:
+1. Run the Looper coverage validator.
+2. Run TypeScript.
+3. Run the production build.
+4. Open `/loopers`.
+5. Test all seven states.
+6. Check Production and Classic.
+7. Check Effects Nothing/Static/Animated.
+8. Check reduced motion.
+9. Check starter selection on a narrow phone.
+10. Check live companion clipping.
+11. Check LOKDEX silhouettes.
+12. Check Card Shop pulls and Binder.
+13. Confirm all 24 canonical IDs still resolve.
+14. Confirm generated preview IDs cannot collide with canon.
+
+## Status
+
+Core Production Looper phases A-D are implemented: canonical art runtime, all-24 animation coverage, live integration, and local Forge/QA surface.
+
+The remaining work is iterative art-direction refinement based on live screenshots and future raster/edition assets, not missing core infrastructure.
