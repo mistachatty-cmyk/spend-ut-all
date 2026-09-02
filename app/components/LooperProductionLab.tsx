@@ -24,7 +24,7 @@ export function LooperProductionLab() {
 
   return <main className="looper-lab-shell">
     <header className="looper-lab-hero">
-      <div><span className="eyebrow">LOOPER PRODUCTION LAB</span><h1>Canonical Firstlight animation check</h1><p>This is a development surface for verifying the same Production renderer used by live companions, starter selection, LOKDEX and cards. Each canon Looper also has a reusable transparent SVG master for future LOK games, marketing and graphics.</p></div>
+      <div><span className="eyebrow">LOOPER PRODUCTION LAB</span><h1>Canonical Firstlight animation check</h1><p>This is a development surface for verifying the same Production renderer used by live companions, starter selection, LOKDEX and cards. Each canon Looper also has reusable transparent static and animated SVG assets for future LOK games, marketing and graphics.</p></div>
       <a href="/">Back to Spend It All</a>
     </header>
 
@@ -36,7 +36,7 @@ export function LooperProductionLab() {
       return <article key={recipe.name}>
         <div className="looper-lab-art"><LooperProductionSprite petId={recipe.ids[0]} recipeOverride={recipe} mood={mood} size={116} animated /></div>
         <small>#{String(index+1).padStart(3,'0')}</small><b>{recipe.name}</b><span>{recipe.kind} · {recipe.motif}</span>
-        {vector ? <a className="looper-vector-link" href={vector.master} target="_blank" rel="noreferrer">Master SVG · scalable</a> : null}
+        {vector ? <div className="looper-vector-links"><a className="looper-vector-link" href={vector.master} target="_blank" rel="noreferrer">Master SVG</a><a className="looper-vector-link" href={vector.animated} target="_blank" rel="noreferrer">Animated SVG</a></div> : null}
       </article>;
     })}</section>
 
