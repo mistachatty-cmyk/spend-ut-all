@@ -18,7 +18,7 @@ The public URLs follow the same structure under `/assets/loopers/g1/...`.
 `public/assets/loopers/g1/index.json` is the machine-readable catalog. `data/looper-vector-assets.ts` is the application-side lookup table and preserves companion aliases.
 
 ## Resolution and scaling
-Every master and animated wrapper is SVG and declares a 1024 × 1024 presentation size while retaining a compact vector `viewBox`. The art is therefore not tied to 1024 pixels; it can be rendered much smaller for a phone HUD or much larger for posters and marketing without a raster upscaling step.
+Every master and animated wrapper is SVG and declares a 1024 × 1024 presentation size while retaining a vector `viewBox`. The art is therefore not tied to 1024 pixels; it can be rendered much smaller for a phone HUD or much larger for posters, video, print and marketing without a raster upscaling step.
 
 Do not replace these masters with screenshots or flattened low-resolution PNG files. PNG/WebP exports are derivatives. SVG stays the editable/scalable source.
 
@@ -34,10 +34,22 @@ The filename, LOKDEX ID and canonical character name are stable. Art can be impr
 - motif/personality cues
 - companion alias mapping
 
-## Live animation vs portable animation
-`app/components/LooperProductionSprite.tsx` remains the richer live state-aware renderer because it can react to game moods, gameplay events and the global Effects setting.
+## Skin preservation rule
+The older compact pixel companions are **not deprecated or disposable**. They are preserved as a selectable Classic / Legacy skin family in `data/classic-pet-sprites.ts` and the shared `PixelPetSprite` gateway.
 
-`animated.svg` is a portable, self-contained vector animation derived from `master.svg`. It provides a character-specific signature idle motion and respects `prefers-reduced-motion`. Because it references the master in the same folder, improvements to the master automatically propagate to the portable animated presentation.
+Production SVG is the high-quality default direction, but future work must not delete the original pixel look. The long-term model is:
+- one canonical Looper identity
+- multiple selectable visual skins for that identity
+- high-detail scalable Production SVG skin
+- Classic / Legacy pixel skin
+- future alternate pixel, seasonal, themed or edition skins
+
+Where a Classic skin does not yet exist for a Firstlight character, it can be authored later. Existing Classic skins must remain intact while that catalog expands. Skin choice is presentation only and must not change economic power, collection identity or stable LOKDEX IDs.
+
+## Live animation vs portable animation
+`app/components/LooperVectorRuntimeSprite.tsx` is now the canonical live-game path for approved Firstlight art. It loads each character's `master.svg` and layers state-aware motion and signature effects on top. `LooperProductionSprite.tsx` remains available as a deterministic fallback for generated Forge creatures or missing vector assets.
+
+`animated.svg` is a portable, self-contained vector animation derived from `master.svg`. It provides a reusable signature idle motion and respects `prefers-reduced-motion`.
 
 Current semantic live-game animation states are:
 - idle
@@ -65,5 +77,6 @@ Additional derivatives can include:
 - social/marketing compositions
 - motion-graphics layer exports
 - print-safe vector variants
+- additional selectable Looper skins
 
-Those are derivatives. `master.svg` remains the canonical portable vector master.
+Those are derivatives or alternate skins. `master.svg` remains the canonical portable Production vector master.
