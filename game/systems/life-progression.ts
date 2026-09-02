@@ -1,8 +1,20 @@
 import { housingOptions, lifeBackgrounds, skillLevelThresholds } from '@/data/life-progression';
 import type { GameState } from '../types';
-import type { HousingDefinition, LifeBackgroundId, LifeRpgState, LifeSkillId, LifeStats } from '../life-types';
+import type { HousingDefinition, LifeBackgroundId, LifeRpgState, LifeSkillId, LifeStatId, LifeStats } from '../life-types';
 
 const baseStats: LifeStats = { grit:5, focus:5, people:5, knowledge:5, adaptability:5 };
+const primaryStatBySkill: Record<LifeSkillId,LifeStatId> = {
+  'general-labor':'grit',
+  hospitality:'people',
+  sales:'people',
+  creative:'focus',
+  technology:'knowledge',
+  finance:'knowledge',
+  management:'adaptability',
+  trades:'grit',
+  media:'focus',
+  'real-estate':'knowledge',
+};
 
 export function createLifeRpgState(enabled = false, currentGameMinute = 0, dayLengthMinutes = 1440): LifeRpgState {
   return {
@@ -68,10 +80,22 @@ export function lifeSkillProgress(life: LifeRpgState | undefined, skillId: LifeS
   return {xp,level,current,next,progress};
 }
 
+export function lifeSkillXpMultiplier(lifeInput: LifeRpgState | undefined, skillId: LifeSkillId) {
+  const life=normalizeLifeRpg(lifeInput);
+  if (!life.enabled) return 1;
+  const primary=life.stats[primaryStatBySkill[skillId]] ?? 5;
+  const adaptability=life.stats.adaptability ?? 5;
+  const housing=currentHousing(life);
+  const statBoost=(primary-5)*0.025+(adaptability-5)*0.008;
+  const housingBoost=Math.max(-0.05,Math.min(0.1,housing.focusBonus*0.01));
+  return Math.max(0.75,Math.min(1.4,1+statBoost+housingBoost));
+}
+
 export function gainLifeSkillXp(lifeInput: LifeRpgState | undefined, skillId: LifeSkillId, amount: number) {
   const life = normalizeLifeRpg(lifeInput);
   if (!life.enabled || amount <= 0) return life;
-  return { ...life, skillXp:{...life.skillXp,[skillId]:life.skillXp[skillId]+amount} };
+  const adjusted=amount*lifeSkillXpMultiplier(life,skillId);
+  return { ...life, skillXp:{...life.skillXp,[skillId]:life.skillXp[skillId]+adjusted} };
 }
 
 export function chooseLifeBackground(lifeInput: LifeRpgState | undefined, id: LifeBackgroundId) {
