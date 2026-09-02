@@ -11,6 +11,7 @@ import { portfolioEconomics } from './systems/businesses';
 import { advanceCityEconomy, cityEconomySnapshot, createCityEconomyState } from './systems/city-economy';
 import { incomeStreamsPerSecond, incomeStreamValue } from './systems/earnings';
 import { advanceLifeHousingCosts, createLifeRpgState, gainLifeSkillXp, housingAssetValue } from './systems/life-progression';
+import { advanceCareerPay, createCareerState } from './systems/careers';
 import { availableBuyingPower, canRiskSpend, debtInterestPerSecond, updateRiskState } from './systems/risk';
 import { achievementUnlockedByRule, syncAchievementUnlocks } from './systems/achievement-rules';
 import { advanceTimeSimulation, createTimeSimulationState, timeEfficiencyMultiplier } from './systems/time-simulation';
@@ -18,124 +19,41 @@ import { createGameRules } from './systems/rules';
 import { applyCustomTimeSettings, customGoalLabel, normalizeCustomScenario } from './systems/custom-scenarios';
 
 export function newGame(scenarioId: ScenarioId, mode: GameState['mode'], riskMode = false): GameState {
-  const scenario = scenarios.find((entry) => entry.id === scenarioId) ?? scenarios[0];
-  const now = Date.now();
-  const lok = lokRuntime.snapshot();
-  const time = createTimeSimulationState();
-  return { started: true, scenarioId: scenario.id, customScenario: null, mode, cash: scenario.startingCash, totalSpent: 0, totalSold: 0, lifetimeIncome: 0, owned: {}, incomeStreams: {}, businesses: {}, cityEconomy: createCityEconomyState(now), time, life: createLifeRpgState(false,time.gameMinute,time.settings.dayLengthMinutes), rules: createGameRules('standard'), houseLevel: 0, townLevel: 0, regionLevel: 0, upgrades: {}, citySpecialization: null, activeEventId: null, eventEndsAt: 0, nextEventAt: now + EVENT_INTERVAL_MS, lastOfflineIncome: 0, riskMode, runStatus: 'active', bankruptcyDeadline: 0, bankruptcyWarnings: 0, peakCash: scenario.startingCash, peakNetWorth: scenario.startingCash, lowestCash: scenario.startingCash, activePlayMs: 0, runAchievements: {}, lokTokens: lok.balance, lokProgressMs: lok.progressMs, theme: 'light', createdAt: now, updatedAt: now };
+  const scenario = scenarios.find((entry) => entry.id === scenarioId) ?? scenarios[0]; const now=Date.now(); const lok=lokRuntime.snapshot(); const time=createTimeSimulationState();
+  return { started:true,scenarioId:scenario.id,customScenario:null,mode,cash:scenario.startingCash,totalSpent:0,totalSold:0,lifetimeIncome:0,owned:{},incomeStreams:{},businesses:{},cityEconomy:createCityEconomyState(now),time,life:createLifeRpgState(false,time.gameMinute,time.settings.dayLengthMinutes),career:createCareerState(),rules:createGameRules('standard'),houseLevel:0,townLevel:0,regionLevel:0,upgrades:{},citySpecialization:null,activeEventId:null,eventEndsAt:0,nextEventAt:now+EVENT_INTERVAL_MS,lastOfflineIncome:0,riskMode,runStatus:'active',bankruptcyDeadline:0,bankruptcyWarnings:0,peakCash:scenario.startingCash,peakNetWorth:scenario.startingCash,lowestCash:scenario.startingCash,activePlayMs:0,runAchievements:{},lokTokens:lok.balance,lokProgressMs:lok.progressMs,theme:'light',createdAt:now,updatedAt:now };
 }
-
-export function newCustomGame(input: CustomScenarioDefinition): GameState {
-  const scenario = normalizeCustomScenario(input);
-  const base = newGame('nothing', scenario.mode, scenario.riskMode);
-  return {
-    ...base,
-    scenarioId: 'custom',
-    customScenario: scenario,
-    mode: scenario.mode,
-    riskMode: scenario.riskMode,
-    cash: scenario.startingCash,
-    peakCash: scenario.startingCash,
-    peakNetWorth: scenario.startingCash,
-    lowestCash: scenario.startingCash,
-    rules: scenario.rules,
-    time: { ...base.time, settings: applyCustomTimeSettings(base.time.settings, scenario) },
-  };
-}
-
-export function normalizeState(state: GameState): GameState { return normalizeGameState(state); }
-export function itemUnitPrice(item: GameItem, owned: number, state?: GameState) { return item.basePrice * Math.pow(item.growthRate, owned) * (state?.rules?.economy.purchasePriceMultiplier ?? 1); }
-export function itemBulkPrice(item: GameItem, owned: number, quantity: number, state?: GameState) { if (quantity <= 0) return 0; const priceMultiplier = state?.rules?.economy.purchasePriceMultiplier ?? 1; if (item.growthRate === 1) return item.basePrice * quantity * priceMultiplier; return item.basePrice * Math.pow(item.growthRate, owned) * ((Math.pow(item.growthRate, quantity) - 1) / (item.growthRate - 1)) * priceMultiplier; }
-function upgradeIncomeMultiplier(state: GameState) { return empireUpgrades.reduce((multiplier, upgrade) => multiplier * (1 + (upgrade.incomeMultiplierPerLevel ?? 0) * (state.upgrades?.[upgrade.id] ?? 0)), 1); }
-function upgradeUpkeepMultiplier(state: GameState) { return empireUpgrades.reduce((multiplier, upgrade) => multiplier * Math.max(0.25, 1 - (upgrade.upkeepReductionPerLevel ?? 0) * (state.upgrades?.[upgrade.id] ?? 0)), 1); }
-function specializationMultipliers(state: GameState) { const spec = citySpecializations.find((entry) => entry.id === state.citySpecialization); return { income: spec?.incomeMultiplier ?? 1, upkeep: spec?.upkeepMultiplier ?? 1 }; }
-export function activeMarketEvent(state: GameState) { return getActiveMarketEvent(state); }
-function businessEnvironment(state: GameState) { const city = cityEconomySnapshot(state.cityEconomy, state.businesses ?? {}, state.townLevel); return { demandMultiplier: city.businessDemandMultiplier * state.rules.economy.businessDemandMultiplier, laborCostMultiplier: city.laborCostMultiplier * state.rules.economy.laborCostMultiplier }; }
-export function grossIncomePerSecond(state: GameState) { const assetBase = items.reduce((total, item) => total + (item.incomePerSecond ?? 0) * (state.owned[item.id] ?? 0), 0); const spec = specializationMultipliers(state), event = getEventMultipliers(state), businesses = portfolioEconomics(state.businesses ?? {}, businessEnvironment(state)); return (assetBase * upgradeIncomeMultiplier(state) * spec.income * event.income + businesses.revenuePerSecond + incomeStreamsPerSecond(state)) * state.rules.economy.incomeMultiplier; }
-export function upkeepPerSecond(state: GameState) { const assetBase = state.mode === 'advanced' ? items.reduce((total, item) => total + (item.upkeepPerSecond ?? 0) * (state.owned[item.id] ?? 0), 0) : 0; const spec = specializationMultipliers(state), event = getEventMultipliers(state), businesses = portfolioEconomics(state.businesses ?? {}, businessEnvironment(state)); return (assetBase * upgradeUpkeepMultiplier(state) * spec.upkeep * event.upkeep + businesses.payrollPerSecond + businesses.operatingCostPerSecond + debtInterestPerSecond(state) * state.rules.difficulty.debtPressureMultiplier) * state.rules.economy.costMultiplier; }
-export function passiveCashPerSecond(state: GameState) { return state.runStatus === 'bankrupt' ? 0 : (grossIncomePerSecond(state) - upkeepPerSecond(state)) * timeEfficiencyMultiplier(state.time); }
-export function holdingsValue(state: GameState) { return items.reduce((total, item) => total + item.basePrice * (state.owned[item.id] ?? 0), 0); }
-export function upgradesValue(state: GameState) { return empireUpgrades.reduce((total, upgrade) => { const level = state.upgrades?.[upgrade.id] ?? 0; let value = 0; for (let i = 0; i < level; i += 1) value += upgrade.baseCost * Math.pow(upgrade.growthRate, i); return total + value; }, 0); }
-export function netWorth(state: GameState) { const homeValue = houseTiers.find((tier) => tier.level === state.houseLevel)?.cost ?? 0; const townValue = townTiers.find((tier) => tier.level === (state.townLevel ?? 0))?.cost ?? 0; const regionValue = regionTiers.find((tier) => tier.level === (state.regionLevel ?? 0))?.cost ?? 0; return state.cash + holdingsValue(state) + upgradesValue(state) + incomeStreamValue(state) + housingAssetValue(state.life) + homeValue + townValue + regionValue; }
-export function maxAffordableQuantity(state: GameState, item: GameItem) { if ((item.unlockSpent ?? 0) > state.totalSpent) return 0; const owned = state.owned[item.id] ?? 0; const budget = state.riskMode ? availableBuyingPower(state, netWorth(state)) : Math.max(0, state.cash); if (budget < itemUnitPrice(item, owned, state)) return 0; if (item.growthRate === 1) return Math.floor(budget / (item.basePrice * state.rules.economy.purchasePriceMultiplier)); const effectiveBase = item.basePrice * state.rules.economy.purchasePriceMultiplier; const factor = 1 + (budget * (item.growthRate - 1)) / (effectiveBase * Math.pow(item.growthRate, owned)); return Math.max(0, Math.floor(Math.log(factor) / Math.log(item.growthRate))); }
-export function canBuyItem(state: GameState, item: GameItem, quantity = 1) { if ((item.unlockSpent ?? 0) > state.totalSpent || state.runStatus !== 'active') return false; return canRiskSpend(state, itemBulkPrice(item, state.owned[item.id] ?? 0, quantity, state), netWorth(state)); }
-export function buyItem(state: GameState, item: GameItem, quantity = 1): GameState { const owned = state.owned[item.id] ?? 0; const price = itemBulkPrice(item, owned, quantity, state); if (quantity <= 0 || (item.unlockSpent ?? 0) > state.totalSpent || !canRiskSpend(state, price, netWorth(state))) return state; return { ...state, cash: state.cash - price, totalSpent: state.totalSpent + price, owned: { ...state.owned, [item.id]: owned + quantity }, lowestCash: Math.min(state.lowestCash, state.cash - price), updatedAt: Date.now() }; }
-export function canSellItem(state: GameState, item: GameItem) { return state.runStatus === 'active' && (state.owned[item.id] ?? 0) > 0 && !(state.scenarioId === 'custom' && state.customScenario && !state.customScenario.restrictions.sellingEnabled); }
-export function sellItem(state: GameState, item: GameItem, quantity = 1): GameState { const owned = state.owned[item.id] ?? 0; const sold = Math.min(Math.max(0, quantity), owned); if (!sold || !canSellItem(state, item)) return state; const originalPrice = itemBulkPrice(item, owned - sold, sold, state); const refund = originalPrice * 0.7; return { ...state, cash: state.cash + refund, totalSold: state.totalSold + refund, owned: { ...state.owned, [item.id]: owned - sold }, updatedAt: Date.now() }; }
-export function upgradeHouse(state: GameState): GameState { const next = houseTiers.find((tier) => tier.level === state.houseLevel + 1); const cost = next ? next.cost * state.rules.economy.purchasePriceMultiplier : 0; if (!next || !canRiskSpend(state, cost, netWorth(state)) || netWorth(state) < next.requiredNetWorth) return state; const cash = state.cash - cost; return { ...state, cash, totalSpent: state.totalSpent + cost, houseLevel: next.level, lowestCash: Math.min(state.lowestCash, cash), updatedAt: Date.now() }; }
-export function upgradeTown(state: GameState): GameState { if (state.houseLevel < 5) return state; const next = townTiers.find((tier) => tier.level === state.townLevel + 1); const cost = next ? next.cost * state.rules.economy.purchasePriceMultiplier : 0; if (!next || !canRiskSpend(state, cost, netWorth(state)) || netWorth(state) < next.requiredNetWorth) return state; const cash = state.cash - cost; return { ...state, cash, totalSpent: state.totalSpent + cost, townLevel: next.level, lowestCash: Math.min(state.lowestCash, cash), updatedAt: Date.now() }; }
-export function upgradeRegion(state: GameState): GameState { if (state.townLevel < 5) return state; const next = regionTiers.find((tier) => tier.level === state.regionLevel + 1); const cost = next ? next.cost * state.rules.economy.purchasePriceMultiplier : 0; if (!next || !canRiskSpend(state, cost, netWorth(state)) || netWorth(state) < next.requiredNetWorth) return state; const cash = state.cash - cost; return { ...state, cash, totalSpent: state.totalSpent + cost, regionLevel: next.level, lowestCash: Math.min(state.lowestCash, cash), updatedAt: Date.now() }; }
-export function upgradeCost(state: GameState, upgrade: EmpireUpgrade) { return upgrade.baseCost * Math.pow(upgrade.growthRate, state.upgrades?.[upgrade.id] ?? 0) * state.rules.economy.purchasePriceMultiplier; }
-export function canBuyUpgrade(state: GameState, upgrade: EmpireUpgrade) { const level = state.upgrades?.[upgrade.id] ?? 0; if (level >= upgrade.maxLevel || (upgrade.requiredTownLevel ?? 0) > state.townLevel || (upgrade.requiredRegionLevel ?? 0) > state.regionLevel || state.runStatus !== 'active') return false; return canRiskSpend(state, upgradeCost(state, upgrade), netWorth(state)); }
-export function buyUpgrade(state: GameState, upgrade: EmpireUpgrade): GameState { if (!canBuyUpgrade(state, upgrade)) return state; const level = state.upgrades?.[upgrade.id] ?? 0, cost = upgradeCost(state, upgrade), cash = state.cash - cost; return { ...state, cash, totalSpent: state.totalSpent + cost, upgrades: { ...state.upgrades, [upgrade.id]: level + 1 }, lowestCash: Math.min(state.lowestCash, cash), updatedAt: Date.now() }; }
-export function chooseCitySpecialization(state: GameState, specialization: CitySpecializationId): GameState { if (state.townLevel < 4 || state.citySpecialization || state.runStatus !== 'active') return state; return { ...state, citySpecialization: specialization, updatedAt: Date.now() }; }
-export function totalOwned(state: GameState) { return Object.values(state.owned).reduce((sum, count) => sum + count, 0); }
-export function unlockedAchievements(state: GameState): Achievement[] { const metrics = { netWorth: netWorth(state), incomePerSecond: passiveCashPerSecond(state), totalOwned: totalOwned(state) }; return achievements.filter((achievement) => achievementUnlockedByRule(state, achievement, metrics)); }
-
-export function scenarioIsFreeMode(state: GameState) {
-  if (state.scenarioId === 'custom' && state.customScenario) return state.customScenario.winCondition.type === 'free';
-  return !!scenarios.find((entry) => entry.id === state.scenarioId)?.freeMode;
-}
-
-export function scenarioDisplayName(state: GameState) {
-  if (state.scenarioId === 'custom' && state.customScenario) return state.customScenario.name;
-  return scenarios.find((entry) => entry.id === state.scenarioId)?.name ?? 'Scenario';
-}
-
-export function scenarioGoalLabel(state: GameState) {
-  if (state.scenarioId === 'custom' && state.customScenario) return customGoalLabel(state.customScenario);
-  return scenarios.find((entry) => entry.id === state.scenarioId)?.goalLabel ?? 'Build your empire';
-}
-
-export function scenarioProgress(state: GameState) {
-  if (state.scenarioId === 'custom' && state.customScenario) {
-    const { winCondition, startingCash } = state.customScenario;
-    const target = Math.max(0.0001, winCondition.target);
-    if (winCondition.type === 'free') return 0;
-    if (winCondition.type === 'net-worth') return Math.min(1, netWorth(state) / target);
-    if (winCondition.type === 'total-spent') return Math.min(1, state.totalSpent / target);
-    if (winCondition.type === 'wealth-multiplier') return startingCash > 0 ? Math.min(1, netWorth(state) / (startingCash * target)) : 0;
-    if (winCondition.type === 'income-per-second') return Math.min(1, Math.max(0, passiveCashPerSecond(state)) / target);
-    if (winCondition.type === 'town-level') return Math.min(1, state.townLevel / target);
-    if (winCondition.type === 'region-level') return Math.min(1, state.regionLevel / target);
-    if (winCondition.type === 'survive-minutes') return Math.min(1, state.activePlayMs / (target * 60_000));
-    return 0;
-  }
-  const scenario = scenarios.find((entry) => entry.id === state.scenarioId) ?? scenarios[0];
-  if (scenario.freeMode) return 0;
-  const modifier = state.rules.progression.scenarioGoalMultiplier;
-  if (scenario.targetSpent) return Math.min(1, state.totalSpent / (scenario.targetSpent * modifier));
-  if (scenario.targetNetWorth) return Math.min(1, netWorth(state) / (scenario.targetNetWorth * modifier));
-  if (scenario.targetMultiplier && scenario.startingCash > 0) return Math.min(1, netWorth(state) / (scenario.startingCash * scenario.targetMultiplier * modifier));
-  return 0;
-}
-
-export function applyOfflineProgress(state: GameState, now = Date.now()): GameState { const safeState = normalizeGameState(state, now); if (!safeState.rules.world.offlineIncomeEnabled || safeState.riskMode || safeState.runStatus !== 'active') return { ...safeState, lastOfflineIncome: 0 }; const offline = calculateOfflineIncome(safeState, passiveCashPerSecond, now); const adjustedIncome = offline.income * safeState.rules.world.offlineIncomeMultiplier; if (adjustedIncome <= 0) return { ...safeState, lastOfflineIncome: 0 }; const cash = safeState.cash + adjustedIncome; return { ...safeState, cash, lifetimeIncome: safeState.lifetimeIncome + adjustedIncome, peakCash: Math.max(safeState.peakCash, cash), lastOfflineIncome: adjustedIncome, updatedAt: now }; }
-export function advance(state: GameState, deltaMs: number): GameState {
-  let safeState = normalizeGameState(state);
-  if (safeState.runStatus !== 'active') return safeState;
-  const now = Date.now();
-  if (safeState.rules.world.marketEventsEnabled) safeState = updateMarketEventState(safeState, now);
-  else if (safeState.activeEventId) safeState = { ...safeState, activeEventId: null, eventEndsAt: 0 };
-  safeState = { ...safeState, cityEconomy: advanceCityEconomy(safeState.cityEconomy, safeState.businesses ?? {}, safeState.townLevel, deltaMs) };
-  const previousGameMinute = safeState.time.gameMinute;
-  const timeTick = advanceTimeSimulation(safeState.time, deltaMs);
-  safeState = { ...safeState, time: timeTick.time };
-  safeState = advanceLifeHousingCosts(safeState, previousGameMinute, timeTick.time.gameMinute);
-  let activityIncome = 0;
-  if (timeTick.completedActivityId) {
-    const activity = activities.find((entry) => entry.id === timeTick.completedActivityId);
-    activityIncome = (activity?.income ?? 0) * safeState.rules.difficulty.activeIncomeMultiplier;
-    if (activity?.skillId && activity.skillXp) safeState = { ...safeState, life: gainLifeSkillXp(safeState.life, activity.skillId, activity.skillXp) };
-  }
-  const income = passiveCashPerSecond(safeState) * (deltaMs / 1000) + activityIncome;
-  const lok = lokRuntime.accrue(safeState.lokTokens, safeState.lokProgressMs, deltaMs);
-  const cash = safeState.cash + income;
-  let next = { ...safeState, cash, lifetimeIncome: safeState.lifetimeIncome + Math.max(0, income), activePlayMs: safeState.activePlayMs + deltaMs, lokTokens: lok.balance, lokProgressMs: lok.progressMs, lastOfflineIncome: 0, lowestCash: Math.min(safeState.lowestCash, cash), updatedAt: now };
-  let worth = netWorth(next);
-  next = { ...next, peakCash: Math.max(next.peakCash, next.cash), peakNetWorth: Math.max(next.peakNetWorth, worth) };
-  next = updateRiskState(next, worth, now);
-  worth = netWorth(next);
-  next = syncAchievementUnlocks(next, achievements, { netWorth: worth, incomePerSecond: passiveCashPerSecond(next), totalOwned: totalOwned(next) }, now);
-  return next;
-}
+export function newCustomGame(input:CustomScenarioDefinition):GameState{const scenario=normalizeCustomScenario(input),base=newGame('nothing',scenario.mode,scenario.riskMode);return{...base,scenarioId:'custom',customScenario:scenario,mode:scenario.mode,riskMode:scenario.riskMode,cash:scenario.startingCash,peakCash:scenario.startingCash,peakNetWorth:scenario.startingCash,lowestCash:scenario.startingCash,rules:scenario.rules,time:{...base.time,settings:applyCustomTimeSettings(base.time.settings,scenario)}};}
+export function normalizeState(state:GameState):GameState{return normalizeGameState(state);}
+export function itemUnitPrice(item:GameItem,owned:number,state?:GameState){return item.basePrice*Math.pow(item.growthRate,owned)*(state?.rules?.economy.purchasePriceMultiplier??1);}
+export function itemBulkPrice(item:GameItem,owned:number,quantity:number,state?:GameState){if(quantity<=0)return 0;const m=state?.rules?.economy.purchasePriceMultiplier??1;if(item.growthRate===1)return item.basePrice*quantity*m;return item.basePrice*Math.pow(item.growthRate,owned)*((Math.pow(item.growthRate,quantity)-1)/(item.growthRate-1))*m;}
+function upgradeIncomeMultiplier(state:GameState){return empireUpgrades.reduce((m,u)=>m*(1+(u.incomeMultiplierPerLevel??0)*(state.upgrades?.[u.id]??0)),1)}
+function upgradeUpkeepMultiplier(state:GameState){return empireUpgrades.reduce((m,u)=>m*Math.max(.25,1-(u.upkeepReductionPerLevel??0)*(state.upgrades?.[u.id]??0)),1)}
+function specializationMultipliers(state:GameState){const s=citySpecializations.find(e=>e.id===state.citySpecialization);return{income:s?.incomeMultiplier??1,upkeep:s?.upkeepMultiplier??1}}
+export function activeMarketEvent(state:GameState){return getActiveMarketEvent(state)}
+function businessEnvironment(state:GameState){const c=cityEconomySnapshot(state.cityEconomy,state.businesses??{},state.townLevel);return{demandMultiplier:c.businessDemandMultiplier*state.rules.economy.businessDemandMultiplier,laborCostMultiplier:c.laborCostMultiplier*state.rules.economy.laborCostMultiplier}}
+export function grossIncomePerSecond(state:GameState){const a=items.reduce((t,i)=>t+(i.incomePerSecond??0)*(state.owned[i.id]??0),0),s=specializationMultipliers(state),e=getEventMultipliers(state),b=portfolioEconomics(state.businesses??{},businessEnvironment(state));return(a*upgradeIncomeMultiplier(state)*s.income*e.income+b.revenuePerSecond+incomeStreamsPerSecond(state))*state.rules.economy.incomeMultiplier}
+export function upkeepPerSecond(state:GameState){const a=state.mode==='advanced'?items.reduce((t,i)=>t+(i.upkeepPerSecond??0)*(state.owned[i.id]??0),0):0,s=specializationMultipliers(state),e=getEventMultipliers(state),b=portfolioEconomics(state.businesses??{},businessEnvironment(state));return(a*upgradeUpkeepMultiplier(state)*s.upkeep*e.upkeep+b.payrollPerSecond+b.operatingCostPerSecond+debtInterestPerSecond(state)*state.rules.difficulty.debtPressureMultiplier)*state.rules.economy.costMultiplier}
+export function passiveCashPerSecond(state:GameState){return state.runStatus==='bankrupt'?0:(grossIncomePerSecond(state)-upkeepPerSecond(state))*timeEfficiencyMultiplier(state.time)}
+export function holdingsValue(state:GameState){return items.reduce((t,i)=>t+i.basePrice*(state.owned[i.id]??0),0)}
+export function upgradesValue(state:GameState){return empireUpgrades.reduce((t,u)=>{const l=state.upgrades?.[u.id]??0;let v=0;for(let i=0;i<l;i++)v+=u.baseCost*Math.pow(u.growthRate,i);return t+v},0)}
+export function netWorth(state:GameState){const h=houseTiers.find(t=>t.level===state.houseLevel)?.cost??0,tw=townTiers.find(t=>t.level===(state.townLevel??0))?.cost??0,r=regionTiers.find(t=>t.level===(state.regionLevel??0))?.cost??0;return state.cash+holdingsValue(state)+upgradesValue(state)+incomeStreamValue(state)+housingAssetValue(state.life)+h+tw+r}
+export function maxAffordableQuantity(state:GameState,item:GameItem){if((item.unlockSpent??0)>state.totalSpent)return 0;const o=state.owned[item.id]??0,b=state.riskMode?availableBuyingPower(state,netWorth(state)):Math.max(0,state.cash);if(b<itemUnitPrice(item,o,state))return 0;if(item.growthRate===1)return Math.floor(b/(item.basePrice*state.rules.economy.purchasePriceMultiplier));const base=item.basePrice*state.rules.economy.purchasePriceMultiplier,f=1+(b*(item.growthRate-1))/(base*Math.pow(item.growthRate,o));return Math.max(0,Math.floor(Math.log(f)/Math.log(item.growthRate)))}
+export function canBuyItem(state:GameState,item:GameItem,quantity=1){return !((item.unlockSpent??0)>state.totalSpent||state.runStatus!=='active')&&canRiskSpend(state,itemBulkPrice(item,state.owned[item.id]??0,quantity,state),netWorth(state))}
+export function buyItem(state:GameState,item:GameItem,quantity=1):GameState{const o=state.owned[item.id]??0,p=itemBulkPrice(item,o,quantity,state);if(quantity<=0||(item.unlockSpent??0)>state.totalSpent||!canRiskSpend(state,p,netWorth(state)))return state;return{...state,cash:state.cash-p,totalSpent:state.totalSpent+p,owned:{...state.owned,[item.id]:o+quantity},lowestCash:Math.min(state.lowestCash,state.cash-p),updatedAt:Date.now()}}
+export function canSellItem(state:GameState,item:GameItem){return state.runStatus==='active'&&(state.owned[item.id]??0)>0&&!(state.scenarioId==='custom'&&state.customScenario&&!state.customScenario.restrictions.sellingEnabled)}
+export function sellItem(state:GameState,item:GameItem,quantity=1):GameState{const o=state.owned[item.id]??0,s=Math.min(Math.max(0,quantity),o);if(!s||!canSellItem(state,item))return state;const refund=itemBulkPrice(item,o-s,s,state)*.7;return{...state,cash:state.cash+refund,totalSold:state.totalSold+refund,owned:{...state.owned,[item.id]:o-s},updatedAt:Date.now()}}
+export function upgradeHouse(state:GameState):GameState{const n=houseTiers.find(t=>t.level===state.houseLevel+1),c=n?n.cost*state.rules.economy.purchasePriceMultiplier:0;if(!n||!canRiskSpend(state,c,netWorth(state))||netWorth(state)<n.requiredNetWorth)return state;return{...state,cash:state.cash-c,totalSpent:state.totalSpent+c,houseLevel:n.level,lowestCash:Math.min(state.lowestCash,state.cash-c),updatedAt:Date.now()}}
+export function upgradeTown(state:GameState):GameState{if(state.houseLevel<5)return state;const n=townTiers.find(t=>t.level===state.townLevel+1),c=n?n.cost*state.rules.economy.purchasePriceMultiplier:0;if(!n||!canRiskSpend(state,c,netWorth(state))||netWorth(state)<n.requiredNetWorth)return state;return{...state,cash:state.cash-c,totalSpent:state.totalSpent+c,townLevel:n.level,lowestCash:Math.min(state.lowestCash,state.cash-c),updatedAt:Date.now()}}
+export function upgradeRegion(state:GameState):GameState{if(state.townLevel<5)return state;const n=regionTiers.find(t=>t.level===state.regionLevel+1),c=n?n.cost*state.rules.economy.purchasePriceMultiplier:0;if(!n||!canRiskSpend(state,c,netWorth(state))||netWorth(state)<n.requiredNetWorth)return state;return{...state,cash:state.cash-c,totalSpent:state.totalSpent+c,regionLevel:n.level,lowestCash:Math.min(state.lowestCash,state.cash-c),updatedAt:Date.now()}}
+export function upgradeCost(state:GameState,u:EmpireUpgrade){return u.baseCost*Math.pow(u.growthRate,state.upgrades?.[u.id]??0)*state.rules.economy.purchasePriceMultiplier}
+export function canBuyUpgrade(state:GameState,u:EmpireUpgrade){const l=state.upgrades?.[u.id]??0;if(l>=u.maxLevel||(u.requiredTownLevel??0)>state.townLevel||(u.requiredRegionLevel??0)>state.regionLevel||state.runStatus!=='active')return false;return canRiskSpend(state,upgradeCost(state,u),netWorth(state))}
+export function buyUpgrade(state:GameState,u:EmpireUpgrade):GameState{if(!canBuyUpgrade(state,u))return state;const l=state.upgrades?.[u.id]??0,c=upgradeCost(state,u);return{...state,cash:state.cash-c,totalSpent:state.totalSpent+c,upgrades:{...state.upgrades,[u.id]:l+1},lowestCash:Math.min(state.lowestCash,state.cash-c),updatedAt:Date.now()}}
+export function chooseCitySpecialization(state:GameState,s:CitySpecializationId):GameState{if(state.townLevel<4||state.citySpecialization||state.runStatus!=='active')return state;return{...state,citySpecialization:s,updatedAt:Date.now()}}
+export function totalOwned(state:GameState){return Object.values(state.owned).reduce((s,c)=>s+c,0)}
+export function unlockedAchievements(state:GameState):Achievement[]{const m={netWorth:netWorth(state),incomePerSecond:passiveCashPerSecond(state),totalOwned:totalOwned(state)};return achievements.filter(a=>achievementUnlockedByRule(state,a,m))}
+export function scenarioIsFreeMode(state:GameState){if(state.scenarioId==='custom'&&state.customScenario)return state.customScenario.winCondition.type==='free';return!!scenarios.find(e=>e.id===state.scenarioId)?.freeMode}
+export function scenarioDisplayName(state:GameState){if(state.scenarioId==='custom'&&state.customScenario)return state.customScenario.name;return scenarios.find(e=>e.id===state.scenarioId)?.name??'Scenario'}
+export function scenarioGoalLabel(state:GameState){if(state.scenarioId==='custom'&&state.customScenario)return customGoalLabel(state.customScenario);return scenarios.find(e=>e.id===state.scenarioId)?.goalLabel??'Build your empire'}
+export function scenarioProgress(state:GameState){if(state.scenarioId==='custom'&&state.customScenario){const{winCondition:w,startingCash:s}=state.customScenario,t=Math.max(.0001,w.target);if(w.type==='free')return 0;if(w.type==='net-worth')return Math.min(1,netWorth(state)/t);if(w.type==='total-spent')return Math.min(1,state.totalSpent/t);if(w.type==='wealth-multiplier')return s>0?Math.min(1,netWorth(state)/(s*t)):0;if(w.type==='income-per-second')return Math.min(1,Math.max(0,passiveCashPerSecond(state))/t);if(w.type==='town-level')return Math.min(1,state.townLevel/t);if(w.type==='region-level')return Math.min(1,state.regionLevel/t);if(w.type==='survive-minutes')return Math.min(1,state.activePlayMs/(t*60000));return 0}const s=scenarios.find(e=>e.id===state.scenarioId)??scenarios[0];if(s.freeMode)return 0;const m=state.rules.progression.scenarioGoalMultiplier;if(s.targetSpent)return Math.min(1,state.totalSpent/(s.targetSpent*m));if(s.targetNetWorth)return Math.min(1,netWorth(state)/(s.targetNetWorth*m));if(s.targetMultiplier&&s.startingCash>0)return Math.min(1,netWorth(state)/(s.startingCash*s.targetMultiplier*m));return 0}
+export function applyOfflineProgress(state:GameState,now=Date.now()):GameState{const s=normalizeGameState(state,now);if(!s.rules.world.offlineIncomeEnabled||s.riskMode||s.runStatus!=='active')return{...s,lastOfflineIncome:0};const o=calculateOfflineIncome(s,passiveCashPerSecond,now),i=o.income*s.rules.world.offlineIncomeMultiplier;if(i<=0)return{...s,lastOfflineIncome:0};return{...s,cash:s.cash+i,lifetimeIncome:s.lifetimeIncome+i,peakCash:Math.max(s.peakCash,s.cash+i),lastOfflineIncome:i,updatedAt:now}}
+export function advance(state:GameState,deltaMs:number):GameState{let s=normalizeGameState(state);if(s.runStatus!=='active')return s;const now=Date.now();s=s.rules.world.marketEventsEnabled?updateMarketEventState(s,now):(s.activeEventId?{...s,activeEventId:null,eventEndsAt:0}:s);s={...s,cityEconomy:advanceCityEconomy(s.cityEconomy,s.businesses??{},s.townLevel,deltaMs)};const prev=s.time.gameMinute,t=advanceTimeSimulation(s.time,deltaMs);s={...s,time:t.time};s=advanceLifeHousingCosts(s,prev,t.time.gameMinute);s=advanceCareerPay(s,prev,t.time.gameMinute);let activityIncome=0;if(t.completedActivityId){const a=activities.find(e=>e.id===t.completedActivityId);activityIncome=(a?.income??0)*s.rules.difficulty.activeIncomeMultiplier;if(a?.skillId&&a.skillXp)s={...s,life:gainLifeSkillXp(s.life,a.skillId,a.skillXp)}}const income=passiveCashPerSecond(s)*(deltaMs/1000)+activityIncome,lok=lokRuntime.accrue(s.lokTokens,s.lokProgressMs,deltaMs),cash=s.cash+income;let next={...s,cash,lifetimeIncome:s.lifetimeIncome+Math.max(0,income),activePlayMs:s.activePlayMs+deltaMs,lokTokens:lok.balance,lokProgressMs:lok.progressMs,lastOfflineIncome:0,lowestCash:Math.min(s.lowestCash,cash),updatedAt:now};let worth=netWorth(next);next={...next,peakCash:Math.max(next.peakCash,next.cash),peakNetWorth:Math.max(next.peakNetWorth,worth)};next=updateRiskState(next,worth,now);worth=netWorth(next);return syncAchievementUnlocks(next,achievements,{netWorth:worth,incomePerSecond:passiveCashPerSecond(next),totalOwned:totalOwned(next)},now)}
