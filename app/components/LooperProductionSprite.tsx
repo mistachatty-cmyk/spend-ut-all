@@ -20,6 +20,7 @@ export function LooperProductionSprite({ petId, mood='idle', size=64, animated=t
       {body(recipe,`url(#${gid}body)`)}
       {face(recipe,mood)}
       {motif(recipe)}
+      <g className="looper-hd-detail">{detail(recipe)}</g>
       {moodFx(recipe,mood)}
     </svg>
   </span>;
@@ -73,6 +74,34 @@ function motif(r:LooperHdRecipe){
   if(r.motif==='ripple') return <g fill="none" stroke={r.accent} strokeWidth="1.5" opacity=".8"><ellipse cx="52" cy="78" rx="24" ry="5"/><ellipse cx="52" cy="78" rx="31" ry="8"/></g>;
   if(r.motif==='shadow') return <path d="M75 20c8 5 8 14 0 19-3-8-3-12 0-19Z" fill={r.accent} opacity=".45"/>;
   if(r.motif==='tower') return <g fill={r.accent} opacity=".7"><rect x="16" y="18" width="5" height="12"/><rect x="76" y="15" width="5" height="15"/></g>;
+  return null;
+}
+
+function detail(r:LooperHdRecipe){
+  const s=stroke(r);
+  if(r.motif==='cube') return <g><rect className="looper-hd-shard" x="8" y="41" width="6" height="6" fill={r.accent} opacity=".9"/><rect className="looper-hd-shard" x="79" y="43" width="5" height="5" fill={r.light} opacity=".85"/><circle cx="43" cy="31" r="2" fill={r.light} opacity=".7"/><circle cx="57" cy="57" r="1.6" fill={r.accent} opacity=".9"/></g>;
+  if(r.motif==='coin') return <g><path d="M31 25c5-4 10-6 16-4" fill="none" stroke={r.accent} strokeWidth="3" strokeLinecap="round"/><circle cx="32" cy="59" r="4.2" fill={r.accent} {...s}/><path d="m32 56 2 3-2 3-2-3Z" fill={r.light}/><path d="M47 62h13" stroke={r.dark} strokeWidth="2"/><circle cx="62" cy="62" r="3" fill={r.accent}/></g>;
+  if(r.motif==='coffee') return <g><path d="M39 67h18l-2 5H41Z" fill={r.accent} opacity=".8"/><path d="m43 69 3-2 3 2 3-2 3 2" fill="none" stroke={r.light} strokeWidth="1.5"/><circle cx="25" cy="45" r="3" fill={r.accent} opacity=".7"/></g>;
+  if(r.motif==='clock') return <g><path d="M66 39h9v15h-9" fill={r.dark} opacity=".7"/><path d="M75 42h7v3h-7m0 5h7v3h-7" stroke={r.accent} strokeWidth="2"/><circle cx="23" cy="55" r="3" fill={r.accent}/></g>;
+  if(r.motif==='leaf') return <g><path d="M60 46c7-7 14-8 21-4-4 8-10 11-18 9Z" fill={r.accent} opacity=".75"/><path d="M60 52c7 1 11 4 15 9" fill="none" stroke={r.light} strokeWidth="1.5"/><circle cx="40" cy="60" r="2" fill={r.light} opacity=".7"/></g>;
+  if(r.motif==='ripple') return <g><path d="M23 63c10 5 21 5 31 0" fill="none" stroke={r.light} strokeWidth="2" opacity=".55"/><circle cx="71" cy="39" r="3" fill={r.accent} opacity=".65"/></g>;
+  if(r.motif==='charm') return <g><path d="M65 42v16" stroke={r.accent} strokeWidth="1.5"/><circle cx="65" cy="60" r="3" fill={r.accent}/><path d="M71 45v11" stroke={r.light} strokeWidth="1.5"/><path d="m71 58 3 4-3 4-3-4Z" fill={r.light}/></g>;
+  if(r.motif==='spark') return <g fill={r.accent}><rect x="20" y="22" width="3" height="3"/><rect x="79" y="56" width="3" height="3"/><path d="m19 55 3 4-3 4-3-4Z"/></g>;
+  if(r.motif==='pixel') return <g><rect x="26" y="31" width="5" height="5" fill={r.light}/><rect x="63" y="35" width="6" height="6" fill={r.accent}/><rect x="35" y="69" width="4" height="4" fill={r.dark} opacity=".65"/><rect x="57" y="72" width="3" height="3" fill={r.light}/></g>;
+  if(r.motif==='wire') return <g><path d="M17 42h10m-11 4h12" stroke={r.accent} strokeWidth="1.5"/><circle cx="15" cy="42" r="1.5" fill={r.accent}/><circle cx="14" cy="46" r="1.5" fill={r.accent}/></g>;
+  if(r.motif==='signal') return <g><circle cx="24" cy="55" r="3" fill={r.accent} opacity=".55"/><circle cx="70" cy="71" r="2" fill={r.light} opacity=".75"/><path d="M27 68c8 4 14 4 22 0" fill="none" stroke={r.light} strokeWidth="1.4" opacity=".5"/></g>;
+  if(r.motif==='drift') return <g><path d="M27 54c8 2 15 2 22 0" fill="none" stroke={r.light} strokeWidth="2"/><path d="M62 31c5 1 10 4 13 8" fill="none" stroke={r.accent} strokeWidth="2"/></g>;
+  if(r.motif==='brick') return <g><path d="M25 45h14m-11 5h14" stroke={r.dark} strokeWidth="1.5" opacity=".65"/><rect x="57" y="23" width="5" height="5" fill={r.accent} opacity=".7"/></g>;
+  if(r.motif==='chime') return <g><path d="M25 58c7 4 13 4 20 0" fill="none" stroke={r.light} strokeWidth="1.5"/><circle cx="27" cy="24" r="2" fill={r.accent}/><circle cx="69" cy="24" r="2" fill={r.accent}/></g>;
+  if(r.motif==='shadow') return <g><path d="M16 63c11 7 23 7 34 1" fill="none" stroke={r.accent} strokeWidth="3" opacity=".25"/><circle cx="72" cy="54" r="3" fill={r.accent} opacity=".55"/></g>;
+  if(r.motif==='wolf') return <g><path d="M29 59c6 4 13 4 20 0" fill="none" stroke={r.light} strokeWidth="2"/><path d="M22 52 17 57l5 5" fill="none" stroke={r.accent} strokeWidth="2"/></g>;
+  if(r.motif==='glass') return <g><path className="looper-hd-glint" d="M33 19 58 52" stroke={r.light} strokeWidth="1.6" opacity=".8"/><path d="M58 56 66 63" stroke={r.accent} strokeWidth="2" opacity=".6"/><circle cx="41" cy="29" r="2" fill="#fff" opacity=".65"/></g>;
+  if(r.motif==='tower') return <g><path d="M18 17v-6m60 4V9" stroke={r.accent} strokeWidth="2"/><path d="M13 31h11m48 0h11" stroke={r.light} strokeWidth="1.5" opacity=".6"/></g>;
+  if(r.motif==='time') return <g><circle cx="74" cy="31" r="8" fill="none" stroke={r.accent} strokeWidth="1.7"/><path d="M74 27v5l4 2" fill="none" stroke={r.accent} strokeWidth="1.5"/><path d="M18 61h8m-6 5h11" stroke={r.light} strokeWidth="1.5" opacity=".55"/></g>;
+  if(r.motif==='orbit') return <g><circle className="looper-hd-orbit" cx="76" cy="54" r="4" fill={r.accent}/><circle cx="20" cy="52" r="2" fill={r.light}/><path d="M31 70c10 5 22 5 34 0" fill="none" stroke={r.light} strokeWidth="1.3" opacity=".45"/></g>;
+  if(r.motif==='lunar') return <g><circle cx="28" cy="61" r="2" fill={r.accent}/><circle cx="67" cy="48" r="1.5" fill={r.light}/><path d="M22 70c8 3 16 3 24 0" fill="none" stroke={r.accent} strokeWidth="1.2" opacity=".55"/></g>;
+  if(r.motif==='moon') return <g><circle cx="38" cy="57" r="4" fill={r.light} opacity=".35"/><circle cx="52" cy="64" r="2.5" fill={r.dark} opacity=".25"/><circle cx="76" cy="51" r="2" fill={r.accent}/></g>;
+  if(r.motif==='void') return <g><rect className="looper-hd-shard" x="13" y="57" width="5" height="5" fill={r.accent}/><rect className="looper-hd-shard" x="77" y="26" width="4" height="4" fill={r.light}/><circle cx="48" cy="51" r="8" fill={r.dark} opacity=".35"/></g>;
   return null;
 }
 
