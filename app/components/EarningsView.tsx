@@ -1,3 +1,178 @@
 'use client';
-import { useState } from 'react';import { CareerView } from './CareerView';import { EducationView } from './EducationView';import { LifeRpgView } from './LifeRpgView';import { TimeView } from './TimeView';import { activeEarnings,incomeStreams } from '@/data/earnings';import { lifeSkills } from '@/data/life-progression';import { investments } from '@/data/investments';import { activeEarningUnlocked,buyIncomeStream,performActiveEarning } from '@/game/earning-actions';import { executeInvestment,investmentUnlocked } from '@/game/investment-actions';import { money } from '@/game/format';import { netWorth } from '@/game/engine';import { canUnlockIncomeStream,incomeStreamUnitCost,incomeStreamsPerSecond } from '@/game/systems/earnings';import { lifeSkillLevel } from '@/game/systems/life-progression';import { emitMicroMotion } from '@/game/systems/micro-animations';import type { GameState } from '@/game/types';
-function skillName(id?:string){return lifeSkills.find(s=>s.id===id)?.name??id??''}export function EarningsView({state,setState}:{state:GameState;setState:React.Dispatch<React.SetStateAction<GameState|null>>}){const[lastResult,setLastResult]=useState(''),passive=incomeStreamsPerSecond(state),worth=netWorth(state);return <section className="earnings-shell"><section className="panel earnings-hero"><div><span className="eyebrow">WAYS TO EARN</span><h2>Start with nothing. Build toward everything.</h2><p>Quick work grows into skills, credentials, stable careers, side income, companies and civilization-scale deals.</p></div><div><b>{money(passive)}/s</b><span>earnings-stream income</span></div></section><LifeRpgView state={state} setState={setState}/><EducationView state={state} setState={setState}/><CareerView state={state} setState={setState}/><section className="panel"><span className="eyebrow">ACTIVE EARNINGS</span><h2>Make money right now</h2><div className="earning-grid">{activeEarnings.map(e=>{const unlocked=activeEarningUnlocked(state,e.id),locked=state.life.enabled&&e.requiredSkillId&&lifeSkillLevel(state.life,e.requiredSkillId)<(e.requiredSkillLevel??0);return <button key={e.id} disabled={!unlocked||state.runStatus!=='active'} onClick={event=>{const sourceElement=event.currentTarget;setState(s=>{if(!s)return s;const n=performActiveEarning(s,e),d=n.cash-s.cash;if(d>0)emitMicroMotion({target:'cash',amount:d,displayText:`+${money(d)}`,symbol:e.emoji,tone:'positive',kind:'currency',sourceElement});return n})}}><span>{e.emoji}</span><div><b>{e.name}</b><small>{e.description}</small>{state.life.enabled&&e.rewardSkillId?<small className="earning-skill-note">+{e.rewardSkillXp??0} {skillName(e.rewardSkillId)} XP</small>:null}{locked?<small className="earning-lock-note">Requires {skillName(e.requiredSkillId)} Lv {e.requiredSkillLevel}</small>:null}</div><em>+{money(e.payout)}</em></button>})}</div></section><TimeView state={state} setState={setState}/><section className="panel"><span className="eyebrow">PASSIVE & SIDE INCOME</span><h2>Build the money machine earlier</h2><div className="stream-grid">{incomeStreams.map(x=>{const owned=state.incomeStreams?.[x.id]??0,cost=incomeStreamUnitCost(state,x),unlocked=canUnlockIncomeStream(state,x);return <article key={x.id}><span>{x.emoji}</span><div><b>{x.name}</b><small>{x.description}</small><em>Owned {owned} · +{money(x.incomePerSecond*owned)}/s</em></div><button disabled={!unlocked||state.cash<cost||state.runStatus!=='active'} onClick={()=>setState(s=>s?buyIncomeStream(s,x):s)}>Buy · {money(cost)}</button></article>})}</div></section><section className="panel investment-panel"><span className="eyebrow">OPTIONAL INVESTING</span><h2>Risk can make the counter flip direction</h2>{lastResult?<div className="investment-result">{lastResult}</div>:null}<div className="investment-grid">{investments.map(i=><article key={i.id}><span>{i.emoji}</span><div><b>{i.name}</b><small>{i.description}</small></div><div>{[.1,.25,.5].map(f=><button key={f} disabled={!investmentUnlocked(state,i)||state.runStatus!=='active'} onClick={()=>setState(s=>{if(!s)return s;const r=executeInvestment(s,i,f,worth);setLastResult(r.stake?`${i.name}: ${r.delta>=0?'+':''}${money(r.delta)}.`:`Need at least ${money(i.minimumStake)} available.`);return r.stake?r.state:s})}>{Math.round(f*100)}%</button>)}</div></article>)}</div></section></section>}
+
+import { useState } from 'react';
+import { CareerView } from './CareerView';
+import { EducationView } from './EducationView';
+import { FreelanceView } from './FreelanceView';
+import { LifeRpgView } from './LifeRpgView';
+import { TimeView } from './TimeView';
+import { activeEarnings, incomeStreams } from '@/data/earnings';
+import { lifeSkills } from '@/data/life-progression';
+import { investments } from '@/data/investments';
+import { activeEarningUnlocked, buyIncomeStream, performActiveEarning } from '@/game/earning-actions';
+import { executeInvestment, investmentUnlocked } from '@/game/investment-actions';
+import { money } from '@/game/format';
+import { netWorth } from '@/game/engine';
+import { canUnlockIncomeStream, incomeStreamUnitCost, incomeStreamsPerSecond } from '@/game/systems/earnings';
+import { lifeSkillLevel } from '@/game/systems/life-progression';
+import { emitMicroMotion } from '@/game/systems/micro-animations';
+import type { GameState } from '@/game/types';
+
+function skillName(id?: string) {
+  return lifeSkills.find(skill => skill.id === id)?.name ?? id ?? '';
+}
+
+export function EarningsView({
+  state,
+  setState,
+}: {
+  state: GameState;
+  setState: React.Dispatch<React.SetStateAction<GameState | null>>;
+}) {
+  const [lastResult, setLastResult] = useState('');
+  const passive = incomeStreamsPerSecond(state);
+  const worth = netWorth(state);
+
+  return (
+    <section className="earnings-shell">
+      <section className="panel earnings-hero">
+        <div>
+          <span className="eyebrow">WAYS TO EARN</span>
+          <h2>Start with nothing. Build toward everything.</h2>
+          <p>
+            Quick work grows into skills, credentials, a rotating career market, freelance clients, recurring income, companies and eventually civilization-scale deals.
+          </p>
+        </div>
+        <div><b>{money(passive)}/s</b><span>earnings-stream income</span></div>
+      </section>
+
+      <LifeRpgView state={state} setState={setState} />
+      <EducationView state={state} setState={setState} />
+      <CareerView state={state} setState={setState} />
+      <FreelanceView state={state} setState={setState} />
+
+      <section className="panel">
+        <span className="eyebrow">ACTIVE EARNINGS</span>
+        <h2>Make money right now</h2>
+        <p className="muted">
+          The first options require no cash, so a bad run never becomes an economic soft-lock. In Life RPG mode, doing work also builds relevant skill XP and more specialized opportunities unlock as you improve.
+        </p>
+        <div className="earning-grid">
+          {activeEarnings.map(earning => {
+            const unlocked = activeEarningUnlocked(state, earning.id);
+            const skillLocked = state.life.enabled
+              && earning.requiredSkillId
+              && lifeSkillLevel(state.life, earning.requiredSkillId) < (earning.requiredSkillLevel ?? 0);
+            return (
+              <button
+                key={earning.id}
+                disabled={!unlocked || state.runStatus !== 'active'}
+                onClick={event => {
+                  const sourceElement = event.currentTarget;
+                  setState(current => {
+                    if (!current) return current;
+                    const next = performActiveEarning(current, earning);
+                    const delta = next.cash - current.cash;
+                    if (delta > 0) {
+                      emitMicroMotion({ target:'cash', amount:delta, displayText:`+${money(delta)}`, symbol:earning.emoji, tone:'positive', kind:'currency', sourceElement });
+                    }
+                    return next;
+                  });
+                }}
+              >
+                <span>{earning.emoji}</span>
+                <div>
+                  <b>{earning.name}</b>
+                  <small>{earning.description}</small>
+                  {state.life.enabled && earning.rewardSkillId ? (
+                    <small className="earning-skill-note">+{earning.rewardSkillXp ?? 0} {skillName(earning.rewardSkillId)} XP</small>
+                  ) : null}
+                  {skillLocked ? (
+                    <small className="earning-lock-note">Requires {skillName(earning.requiredSkillId)} Lv {earning.requiredSkillLevel}</small>
+                  ) : null}
+                </div>
+                <em>+{money(earning.payout)}</em>
+              </button>
+            );
+          })}
+        </div>
+      </section>
+
+      <TimeView state={state} setState={setState} />
+
+      <section className="panel">
+        <span className="eyebrow">PASSIVE & SIDE INCOME</span>
+        <h2>Build the money machine earlier</h2>
+        <p className="muted">
+          The ladder begins with small, plausible operations before vending, property and institutional-scale assets.
+        </p>
+        <div className="stream-grid">
+          {incomeStreams.map(stream => {
+            const owned = state.incomeStreams?.[stream.id] ?? 0;
+            const cost = incomeStreamUnitCost(state, stream);
+            const unlocked = canUnlockIncomeStream(state, stream);
+            const skillLocked = state.life.enabled
+              && stream.requiredSkillId
+              && lifeSkillLevel(state.life, stream.requiredSkillId) < (stream.requiredSkillLevel ?? 0);
+            return (
+              <article key={stream.id}>
+                <span>{stream.emoji}</span>
+                <div>
+                  <b>{stream.name}</b>
+                  <small>{stream.description}</small>
+                  <em>Owned {owned} · +{money(stream.incomePerSecond * owned)}/s</em>
+                  {skillLocked ? (
+                    <small className="earning-lock-note">Requires {skillName(stream.requiredSkillId)} Lv {stream.requiredSkillLevel}</small>
+                  ) : null}
+                </div>
+                <button
+                  disabled={!unlocked || state.cash < cost || state.runStatus !== 'active'}
+                  onClick={() => setState(current => current ? buyIncomeStream(current, stream) : current)}
+                >
+                  Buy · {money(cost)}
+                </button>
+              </article>
+            );
+          })}
+        </div>
+      </section>
+
+      <section className="panel investment-panel">
+        <span className="eyebrow">OPTIONAL INVESTING</span>
+        <h2>Risk can make the counter flip direction</h2>
+        {lastResult ? <div className="investment-result">{lastResult}</div> : null}
+        <div className="investment-grid">
+          {investments.map(investment => {
+            const unlocked = investmentUnlocked(state, investment);
+            return (
+              <article key={investment.id}>
+                <span>{investment.emoji}</span>
+                <div><b>{investment.name}</b><small>{investment.description}</small></div>
+                <div>
+                  {[0.1, 0.25, 0.5].map(fraction => (
+                    <button
+                      key={fraction}
+                      disabled={!unlocked || state.runStatus !== 'active'}
+                      onClick={() => setState(current => {
+                        if (!current) return current;
+                        const result = executeInvestment(current, investment, fraction, worth);
+                        if (!result.stake) {
+                          setLastResult(`Need at least ${money(investment.minimumStake)} available.`);
+                          return current;
+                        }
+                        setLastResult(`${investment.name}: ${result.delta >= 0 ? '+' : ''}${money(result.delta)}.`);
+                        return result.state;
+                      })}
+                    >
+                      {Math.round(fraction * 100)}%
+                    </button>
+                  ))}
+                </div>
+              </article>
+            );
+          })}
+        </div>
+      </section>
+    </section>
+  );
+}
