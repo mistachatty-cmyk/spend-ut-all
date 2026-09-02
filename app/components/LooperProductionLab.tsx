@@ -6,6 +6,7 @@ import { looperVectorAssetById } from '@/data/looper-vector-assets';
 import { forgeLooper } from '@/integrations/lok/collectibles/looper-forge';
 import type { PetMood } from '@/game/customization-types';
 import { LooperProductionSprite } from './LooperProductionSprite';
+import { LooperVectorRuntimeSprite } from './LooperVectorRuntimeSprite';
 
 const moods: Array<{id:PetMood;label:string}> = [
   {id:'idle',label:'Idle'},
@@ -24,7 +25,7 @@ export function LooperProductionLab() {
 
   return <main className="looper-lab-shell">
     <header className="looper-lab-hero">
-      <div><span className="eyebrow">LOOPER PRODUCTION LAB</span><h1>Canonical Firstlight animation check</h1><p>This is a development surface for verifying the same Production renderer used by live companions, starter selection, LOKDEX and cards. Each canon Looper also has reusable transparent static and animated SVG assets for future LOK games, marketing and graphics.</p></div>
+      <div><span className="eyebrow">LOOPER PRODUCTION LAB</span><h1>Canonical Firstlight animation check</h1><p>This surface now renders the exact scalable Production SVG masters used by the live game. Use the state controls to verify live reactions, or open the master/animated vector files directly for marketing and future LOK work. Classic skins remain preserved separately.</p></div>
       <a href="/">Back to Spend It All</a>
     </header>
 
@@ -34,14 +35,14 @@ export function LooperProductionLab() {
       const id = recipe.ids.find((value)=>value.startsWith('lokdex:')) ?? recipe.ids[0];
       const vector = looperVectorAssetById(id);
       return <article key={recipe.name}>
-        <div className="looper-lab-art"><LooperProductionSprite petId={recipe.ids[0]} recipeOverride={recipe} mood={mood} size={116} animated /></div>
+        <div className="looper-lab-art"><LooperVectorRuntimeSprite petId={id} mood={mood} size={132} animated /></div>
         <small>#{String(index+1).padStart(3,'0')}</small><b>{recipe.name}</b><span>{recipe.kind} · {recipe.motif}</span>
         {vector ? <div className="looper-vector-links"><a className="looper-vector-link" href={vector.master} target="_blank" rel="noreferrer">Master SVG</a><a className="looper-vector-link" href={vector.animated} target="_blank" rel="noreferrer">Animated SVG</a></div> : null}
       </article>;
     })}</section>
 
     <section className="looper-forge-panel">
-      <div><span className="eyebrow">LOCAL LOOPER FORGE</span><h2>Deterministic generated collectible preview</h2><p>The Forge uses no paid API at runtime. A seed creates a stable blueprint, production recipe and animation manifest. Canon characters keep their own approved vector masters; generated collectibles can adopt the same export contract later.</p><label>Seed<input value={seed} onChange={(event)=>setSeed(event.target.value)} placeholder="enter a seed" /></label></div>
+      <div><span className="eyebrow">LOCAL LOOPER FORGE</span><h2>Deterministic generated collectible preview</h2><p>The Forge uses no paid API at runtime. A seed creates a stable blueprint, production recipe and animation manifest. Canon characters use approved high-detail vector masters; generated collectibles use the deterministic fallback renderer until their own vector master is promoted.</p><label>Seed<input value={seed} onChange={(event)=>setSeed(event.target.value)} placeholder="enter a seed" /></label></div>
       <div className="looper-forge-preview"><LooperProductionSprite petId={forged.id} recipeOverride={forged.recipe} mood={mood} size={154} animated/><b>{forged.recipe.name}</b><small>{forged.blueprint.rarity} · {forged.blueprint.temperament}</small><code>{forged.id}</code></div>
       <dl><div><dt>Species</dt><dd>{forged.blueprint.species}</dd></div><div><dt>Body</dt><dd>{forged.blueprint.body}</dd></div><div><dt>Eyes</dt><dd>{forged.blueprint.eyes}</dd></div><div><dt>Pattern</dt><dd>{forged.blueprint.pattern}</dd></div><div><dt>Palette</dt><dd>{forged.blueprint.palette}</dd></div><div><dt>Aura</dt><dd>{forged.blueprint.aura ?? 'none'}</dd></div><div><dt>Mutation</dt><dd>{forged.blueprint.mutation ?? 'none'}</dd></div></dl>
     </section>
