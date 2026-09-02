@@ -8,6 +8,7 @@ export type BusinessId =
   | 'food-cart'
   | 'online-shop'
   | 'creative-agency'
+  | 'media-studio'
   | 'tech-consultancy'
   | 'bookkeeping-practice'
   | 'property-services'
