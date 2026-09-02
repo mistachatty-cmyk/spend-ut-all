@@ -17,6 +17,7 @@ import './customizations.css';
 import './pixel-pets.css';
 import './looper-animations.css';
 import './looper-hd.css';
+import './looper-character-motion.css';
 import './looper-signature-fx.css';
 import './looper-showcase.css';
 import './looper-card-art.css';
