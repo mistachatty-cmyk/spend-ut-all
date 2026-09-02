@@ -1,1 +1,57 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 96 96" role="img" aria-labelledby="title desc" data-looper-id="lokdex:g1:004" data-looper-name="Coin Cat"><title id="title">Coin Cat</title><desc id="desc">Coin Cat, Firstlight LOKDEX #004. Canonical scalable vector master for Spend It All / LOK.</desc><defs><linearGradient id="body" x1=".2" y1="0" x2=".8" y2="1"><stop offset="0" stop-color="#fff0c1"/><stop offset=".46" stop-color="#d9a74c"/><stop offset="1" stop-color="#4b3422"/></linearGradient><radialGradient id="aura"><stop offset="0" stop-color="#ffcc4d" stop-opacity=".56"/><stop offset="1" stop-color="#ffcc4d" stop-opacity="0"/></radialGradient></defs><ellipse cx="48" cy="78" rx="38" ry="13" fill="url(#aura)"/><ellipse cx="48" cy="82" rx="28" ry="5" fill="#071018" opacity=".2"/><ellipse cx="49" cy="61" rx="25" ry="20" fill="url(#body)" stroke="#4b3422" stroke-width="2.4"/><circle cx="39" cy="39" r="19" fill="url(#body)" stroke="#4b3422" stroke-width="2.4"/><path d="M26 29 28 13 39 28m12 0 13-15 3 20" fill="#4b3422" stroke="#4b3422" stroke-width="2.4"/><path d="M66 62c20 3 25-15 11-20" fill="none" stroke="#4b3422" stroke-width="9"/><path d="M66 62c20 3 25-15 11-20" fill="none" stroke="#d9a74c" stroke-width="5"/><ellipse cx="38" cy="40" rx="5" ry="6" fill="#4b3422"/><ellipse cx="58" cy="40" rx="5" ry="6" fill="#4b3422"/><circle cx="36.5" cy="38" r="1.6" fill="#fff"/><circle cx="56.5" cy="38" r="1.6" fill="#fff"/><path d="M42 49q6 7 12 0" fill="none" stroke="#4b3422" stroke-width="2.4"/><circle cx="72" cy="26" r="8" fill="#ffd45d" stroke="#4b3422" stroke-width="2.2"/><path d="m72 21 3 5-3 5-3-5Z" fill="#fff0c1"/><circle cx="49" cy="63" r="6" fill="#ffd45d" stroke="#4b3422" stroke-width="2.2"/></svg>
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024" role="img" aria-labelledby="title desc" data-looper-id="lokdex:g1:004" data-looper-name="Coin Cat" data-art-version="2" shape-rendering="geometricPrecision">
+<title id="title">Coin Cat</title><desc id="desc">High-detail scalable vector master for Coin Cat, Firstlight LOKDEX #004.</desc>
+<defs>
+  <linearGradient id="fur" x1="260" y1="170" x2="745" y2="840" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#fff3c3"/><stop offset=".2" stop-color="#f4cc78"/><stop offset=".52" stop-color="#d9a34a"/><stop offset=".8" stop-color="#a96f2f"/><stop offset="1" stop-color="#5b3820"/></linearGradient>
+  <linearGradient id="coin" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#fff2a7"/><stop offset=".36" stop-color="#ffd45d"/><stop offset=".75" stop-color="#d69428"/><stop offset="1" stop-color="#8c5a18"/></linearGradient>
+  <radialGradient id="aura"><stop offset="0" stop-color="#ffd55f" stop-opacity=".36"/><stop offset="1" stop-color="#ffd55f" stop-opacity="0"/></radialGradient>
+  <filter id="shadow" x="-35%" y="-35%" width="170%" height="190%"><feDropShadow dx="0" dy="30" stdDeviation="24" flood-color="#2d1c0e" flood-opacity=".32"/></filter>
+</defs>
+<ellipse cx="512" cy="850" rx="365" ry="116" fill="url(#aura)"/><ellipse cx="512" cy="870" rx="276" ry="44" fill="#3a2413" opacity=".18"/>
+<g id="character" filter="url(#shadow)">
+  <g id="tail">
+    <path d="M694 687c119 50 205-22 176-121-20-68-83-91-123-47 58-15 91 45 58 78-24 25-62 18-89-7" fill="none" stroke="#50321f" stroke-width="78" stroke-linecap="round"/>
+    <path d="M694 687c119 50 205-22 176-121-20-68-83-91-123-47 58-15 91 45 58 78-24 25-62 18-89-7" fill="none" stroke="#d29a43" stroke-width="48" stroke-linecap="round"/>
+    <path d="M822 518c25 4 45 20 54 44" fill="none" stroke="#f8d27c" stroke-width="16" stroke-linecap="round" opacity=".75"/>
+  </g>
+  <g id="body">
+    <ellipse cx="526" cy="650" rx="242" ry="184" fill="url(#fur)" stroke="#4b3020" stroke-width="26"/>
+    <path d="M341 699c-42 15-76 52-87 92-9 34 12 69 48 73 50 6 94-39 111-90" fill="#c88c3d" stroke="#4b3020" stroke-width="24" stroke-linecap="round"/>
+    <path d="M665 703c42 14 77 50 90 90 10 34-11 69-46 74-50 7-95-37-113-88" fill="#bd8136" stroke="#4b3020" stroke-width="24" stroke-linecap="round"/>
+    <ellipse cx="517" cy="661" rx="112" ry="105" fill="#f2c66e" opacity=".5"/>
+    <path d="M437 766c37 16 85 18 126 3" fill="none" stroke="#fbe0a1" stroke-width="18" stroke-linecap="round" opacity=".52"/>
+  </g>
+  <g id="head">
+    <path d="M267 346 296 140l126 128c49-20 110-20 158 0l140-128 13 217c45 52 61 122 40 189-28 90-118 149-240 149-127 0-220-61-245-157-18-69-1-139 47-192Z" fill="url(#fur)" stroke="#4b3020" stroke-width="28" stroke-linejoin="round"/>
+    <path d="M302 176 330 302l78-47Z" fill="#6a4325"/><path d="M687 178 618 261l84 42Z" fill="#6a4325"/>
+    <path d="M336 203 353 263l36-21Z" fill="#f2bd6b"/><path d="M676 204 643 245l38 18Z" fill="#f2bd6b"/>
+    <path d="M321 337c58-55 126-84 205-84 76 0 139 24 192 70" fill="none" stroke="#fff0bd" stroke-width="23" stroke-linecap="round" opacity=".55"/>
+  </g>
+  <g id="markings" fill="none" stroke="#76502c" stroke-width="24" stroke-linecap="round" opacity=".88">
+    <path d="M437 274 415 339"/><path d="M512 258v78"/><path d="M588 276 607 340"/><path d="M362 458 302 447"/><path d="M678 455 735 440"/>
+  </g>
+  <g id="face">
+    <path d="M356 441c23-54 87-73 132-37 39 31 34 93-9 120-47 30-110 6-123-43-4-15-4-27 0-40Z" fill="#4a2e1e"/>
+    <path d="M548 431c24-55 88-72 133-35 39 33 32 95-12 121-48 29-111 3-122-47-3-14-3-27 1-39Z" fill="#4a2e1e"/>
+    <ellipse cx="421" cy="449" rx="25" ry="33" fill="#ffd86a"/><ellipse cx="612" cy="442" rx="25" ry="33" fill="#ffd86a"/>
+    <ellipse cx="424" cy="452" rx="10" ry="17" fill="#1e160f"/><ellipse cx="615" cy="446" rx="10" ry="17" fill="#1e160f"/>
+    <circle cx="414" cy="438" r="6" fill="#fff7cf"/><circle cx="605" cy="432" r="6" fill="#fff7cf"/>
+    <path d="m510 522-23 16 24 18 25-19Z" fill="#6d402b"/>
+    <path d="M510 556c-4 30-30 43-58 39m58-39c5 29 31 41 59 36" fill="none" stroke="#5b3924" stroke-width="13" stroke-linecap="round"/>
+    <path d="M339 538 217 514m125 64-126 10m467-52 123-29m-121 70 126 8" fill="none" stroke="#6b4326" stroke-width="9" stroke-linecap="round" opacity=".8"/>
+  </g>
+  <g id="coin-mark">
+    <circle cx="515" cy="349" r="54" fill="url(#coin)" stroke="#5e3a1d" stroke-width="15"/>
+    <path d="M515 316v65m-23-50c7-18 52-18 52 5 0 25-53 11-53 37 0 23 43 24 54 7" fill="none" stroke="#fff2a7" stroke-width="10" stroke-linecap="round"/>
+  </g>
+  <g id="collar">
+    <path d="M365 638c95 46 203 46 301-2" fill="none" stroke="#41312b" stroke-width="30" stroke-linecap="round"/>
+    <circle cx="518" cy="682" r="58" fill="url(#coin)" stroke="#51351f" stroke-width="14"/>
+    <path d="M518 650v67m-23-50c8-17 50-17 50 5 0 24-50 11-50 35 0 21 40 23 50 7" fill="none" stroke="#fff1a3" stroke-width="9" stroke-linecap="round"/>
+  </g>
+  <g id="coin-particles">
+    <circle cx="790" cy="322" r="51" fill="url(#coin)" stroke="#5a391d" stroke-width="13"/><path d="M790 290v64m-19-47c10-14 42-11 42 8 0 23-43 11-43 32 0 17 28 20 43 9" fill="none" stroke="#fff0a3" stroke-width="8" stroke-linecap="round"/>
+    <circle cx="225" cy="318" r="24" fill="#ffd863" stroke="#6f471f" stroke-width="9"/><circle cx="822" cy="718" r="29" fill="#ffcf4f" stroke="#6f471f" stroke-width="9"/>
+    <path d="m836 192 15 30 31 14-31 15-15 31-15-31-31-15 31-14Z" fill="#fff4b5" opacity=".9"/>
+  </g>
+</g>
+</svg>
