@@ -4,12 +4,12 @@ import { useId } from 'react';
 import { looperHdRecipeById, type LooperHdRecipe } from '@/data/looper-hd-recipes';
 import type { PetMood } from '@/game/customization-types';
 
-export function LooperProductionSprite({ petId, mood='idle', size=64, animated=true, silhouette=false }: { petId:string; mood?:PetMood; size?:number; animated?:boolean; silhouette?:boolean }) {
-  const recipe=looperHdRecipeById(petId);
+export function LooperProductionSprite({ petId, mood='idle', size=64, animated=true, silhouette=false, recipeOverride }: { petId:string; mood?:PetMood; size?:number; animated?:boolean; silhouette?:boolean; recipeOverride?:LooperHdRecipe }) {
+  const recipe=recipeOverride ?? looperHdRecipeById(petId);
   const uid=useId().replace(/:/g,'');
   if(!recipe) return null;
   const gid=`lp${uid}`;
-  return <span className={`looper-hd looper-hd-${recipe.kind} looper-hd-${mood} ${animated?'looper-hd-animated':'looper-hd-static'} ${silhouette?'looper-hd-silhouette':''}`} data-looper-hd={recipe.name} style={{width:size,height:size}} aria-hidden="true">
+  return <span className={`looper-hd looper-hd-${recipe.kind} looper-hd-${mood} ${animated?'looper-hd-animated':'looper-hd-static'} ${silhouette?'looper-hd-silhouette':''}`} data-looper-hd={recipe.name} data-looper-motif={recipe.motif} style={{width:size,height:size}} aria-hidden="true">
     <svg viewBox="0 0 96 96" focusable="false">
       <defs>
         <linearGradient id={`${gid}body`} x1=".2" y1="0" x2=".8" y2="1"><stop offset="0" stopColor={recipe.light}/><stop offset=".46" stopColor={recipe.base}/><stop offset="1" stopColor={recipe.dark}/></linearGradient>
