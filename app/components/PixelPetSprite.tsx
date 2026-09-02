@@ -7,7 +7,7 @@ import { useHudPreferences } from '@/app/hooks/useHudPreferences';
 import { useMicroMotionPreferences } from '@/app/hooks/useMicroMotion';
 import { buildLooperFrameSequence } from '@/game/systems/looper-frame-animation';
 import type { PetMood } from '@/game/customization-types';
-import { LooperProductionSprite } from './LooperProductionSprite';
+import { LooperVectorRuntimeSprite } from './LooperVectorRuntimeSprite';
 
 export function PixelPetSprite({ petId, mood = 'idle', silhouette = false, size = 52 }: { petId: string; mood?: PetMood; silhouette?: boolean; size?: number }) {
   const sprite = looperSpriteById(petId);
@@ -29,7 +29,7 @@ export function PixelPetSprite({ petId, mood = 'idle', silhouette = false, size 
   }, [classicMode, animated, sequence]);
 
   if (!classicMode) {
-    return <LooperProductionSprite petId={petId} mood={mood} size={size} animated={animated} silhouette={silhouette}/>;
+    return <LooperVectorRuntimeSprite petId={petId} mood={mood} size={size} animated={animated} silhouette={silhouette}/>;
   }
 
   const grid = animated ? sequence.frames[frameIndex] ?? baseGrid : baseGrid;
