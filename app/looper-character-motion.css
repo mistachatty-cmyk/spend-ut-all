@@ -1,0 +1,58 @@
+/* Character-specific Production Looper motion. These layer on top of the shared HD mood system. */
+[data-looper-hd="LOK Slime"].looper-hd-animated .looper-hd-body{animation:lpSlimeBody 2.2s steps(4,end) infinite}
+[data-looper-hd="Scrapshine Raccoon"].looper-hd-animated svg{animation:lpScavenge 2.6s ease-in-out infinite}
+[data-looper-hd="Tickstep Mouse"].looper-hd-animated svg{animation:lpTickstep 1.1s steps(4,end) infinite}
+[data-looper-hd="Coin Cat"].looper-hd-animated .looper-hd-tail{animation:lpCoinTail 1.7s ease-in-out infinite}
+[data-looper-hd="Coin Cat"].looper-hd-animated circle{transform-box:fill-box;transform-origin:center;animation:lpCoinShine 2.4s steps(4,end) infinite}
+[data-looper-hd="Leafline Lizard"].looper-hd-animated .looper-hd-tail{animation:lpLeafTail 2.6s ease-in-out infinite}
+[data-looper-hd="Rippledash Otter"].looper-hd-animated svg{animation:lpRippledash 2s ease-in-out infinite}
+[data-looper-hd="Charm Crow"].looper-hd-animated .looper-hd-wing{animation:lpCrowWing 1.4s ease-in-out infinite}
+[data-looper-hd="Espresso Bot"].looper-hd-animated .looper-hd-body{animation:lpServo 1.9s steps(4,end) infinite}
+[data-looper-hd="Espresso Bot"].looper-hd-animated .looper-hd-steam{animation:lpSteam 1.75s ease-out infinite}
+[data-looper-hd="Sparkwing Sparrow"].looper-hd-animated svg{animation:lpSparkwing 1.05s steps(4,end) infinite}
+[data-looper-hd="Pixel Puffer"].looper-hd-animated .looper-hd-body{animation:lpPuffer 2.1s ease-in-out infinite}
+[data-looper-hd="Wirewhisk Ferret"].looper-hd-animated .looper-hd-tail{animation:lpWireTail 1.35s ease-in-out infinite}
+[data-looper-hd="Signalsilk Moth"].looper-hd-animated .looper-hd-wing{animation:lpSignalWing 1.15s ease-in-out infinite}
+[data-looper-hd="Drift Duck"].looper-hd-animated svg{animation:lpDrift 3s ease-in-out infinite}
+[data-looper-hd="Brick Badger"].looper-hd-animated svg{animation:lpStomp 1.8s steps(4,end) infinite}
+[data-looper-hd="Chime Cricket"].looper-hd-animated .looper-hd-wing{animation:lpChime 1.25s steps(4,end) infinite}
+[data-looper-hd="Shadow Raven"].looper-hd-animated svg{animation:lpShadow 2.7s ease-in-out infinite}
+[data-looper-hd="Wolf Pup"].looper-hd-animated .looper-hd-tail{animation:lpWolfTail 1.1s ease-in-out infinite}
+[data-looper-hd="Glassfang Cobra"].looper-hd-animated .looper-hd-glint{animation:lpGlassSweep 2.1s ease-in-out infinite}
+[data-looper-hd="Towerhorn Stag"].looper-hd-animated svg{animation:lpTowerStomp 2.7s ease-in-out infinite}
+[data-looper-hd="Timeslip Jelly"].looper-hd-animated svg{animation:lpTimeslip 2.8s ease-in-out infinite}
+[data-looper-hd="Orbit Owl"].looper-hd-animated .looper-hd-orbit{animation:lpOrbitRing 2.8s linear infinite}
+[data-looper-hd="Lunar Moth"].looper-hd-animated .looper-hd-wing{animation:lpLunarWing 2s ease-in-out infinite}
+[data-looper-hd="Moon Gecko"].looper-hd-animated .looper-hd-tail{animation:lpMoonTail 2.4s ease-in-out infinite}
+[data-looper-hd="Singularity Sprite"].looper-hd-animated .looper-hd-shard{animation:lpVoidShard 1.9s linear infinite}
+[data-looper-hd="Singularity Sprite"].looper-hd-animated .looper-hd-orbit{animation:lpVoidOrbit 2.2s linear infinite reverse}
+
+@keyframes lpSlimeBody{0%,100%{transform:translateY(0) scale(1)}25%{transform:translateY(1px) scaleX(1.035) scaleY(.97)}50%{transform:translateY(-2px) scaleX(.975) scaleY(1.035)}75%{transform:translateY(0) scaleX(1.015) scaleY(.99)}}
+@keyframes lpScavenge{0%,100%{transform:translate(0,0) rotate(0)}45%{transform:translate(-1px,-1px) rotate(-.6deg)}55%{transform:translate(1px,-1px) rotate(.6deg)}}
+@keyframes lpTickstep{0%,100%{transform:translateX(0)}25%{transform:translateX(-1px)}50%{transform:translateX(1px)}75%{transform:translateX(0)}}
+@keyframes lpCoinTail{0%,100%{transform:rotate(-4deg)}50%{transform:rotate(10deg)}}
+@keyframes lpCoinShine{0%,70%,100%{filter:brightness(1)}80%{filter:brightness(1.8)}}
+@keyframes lpLeafTail{0%,100%{transform:rotate(-3deg)}50%{transform:rotate(6deg)}}
+@keyframes lpRippledash{0%,100%{transform:translateY(0)}50%{transform:translateY(-2px) translateX(1px)}}
+@keyframes lpCrowWing{0%,100%{transform:rotate(0)}45%{transform:rotate(-7deg)}55%{transform:rotate(4deg)}}
+@keyframes lpServo{0%,100%{transform:translateY(0)}25%{transform:translateY(-1px)}50%{transform:translateY(0)}75%{transform:translateY(-1px)}}
+@keyframes lpSteam{0%{opacity:.1;transform:translateY(3px) scale(.7)}45%{opacity:.85}100%{opacity:0;transform:translateY(-9px) scale(1.18)}}
+@keyframes lpSparkwing{0%,100%{transform:translate(0,0)}25%{transform:translate(1px,-2px)}50%{transform:translate(-1px,-1px)}75%{transform:translate(1px,-3px)}}
+@keyframes lpPuffer{0%,100%{transform:scale(1)}45%{transform:scale(1.035)}60%{transform:scale(1.06)}80%{transform:scale(1.015)}}
+@keyframes lpWireTail{0%,100%{transform:rotate(-5deg)}50%{transform:rotate(8deg)}}
+@keyframes lpSignalWing{0%,100%{transform:rotate(0) scaleY(1)}50%{transform:rotate(-6deg) scaleY(.86)}}
+@keyframes lpDrift{0%,100%{transform:translateY(1px) rotate(-.3deg)}50%{transform:translateY(-2px) rotate(.3deg)}}
+@keyframes lpStomp{0%,100%{transform:translateY(0)}45%{transform:translateY(-2px)}55%{transform:translateY(2px)}}
+@keyframes lpChime{0%,100%{transform:rotate(0)}50%{transform:rotate(-5deg) scaleY(.9)}}
+@keyframes lpShadow{0%,100%{filter:brightness(.92);transform:translateY(0)}50%{filter:brightness(1.1);transform:translateY(-2px)}}
+@keyframes lpWolfTail{0%,100%{transform:rotate(-10deg)}50%{transform:rotate(12deg)}}
+@keyframes lpGlassSweep{0%,55%,100%{opacity:.18}72%{opacity:1;filter:brightness(1.7)}}
+@keyframes lpTowerStomp{0%,100%{transform:translateY(0)}50%{transform:translateY(-1px)}58%{transform:translateY(2px)}}
+@keyframes lpTimeslip{0%,100%{transform:translateY(1px) scaleY(.99);filter:hue-rotate(0)}50%{transform:translateY(-3px) scaleY(1.02);filter:hue-rotate(12deg)}}
+@keyframes lpOrbitRing{to{transform:rotate(360deg)}}
+@keyframes lpLunarWing{0%,100%{transform:rotate(-2deg) scaleY(1)}50%{transform:rotate(4deg) scaleY(.92)}}
+@keyframes lpMoonTail{0%,100%{transform:rotate(-3deg)}50%{transform:rotate(7deg)}}
+@keyframes lpVoidShard{to{transform:rotate(360deg) translateY(-1px)}}
+@keyframes lpVoidOrbit{to{transform:rotate(360deg)}}
+
+@media(prefers-reduced-motion:reduce){[data-looper-hd].looper-hd-animated,[data-looper-hd].looper-hd-animated *{animation:none!important}}
