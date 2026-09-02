@@ -25,6 +25,10 @@ jobs:
         run: npm run check:looper-animated
       - name: Validate Life RPG
         run: npm run validate:life-rpg
+      - name: Validate careers
+        run: npm run validate:careers
+      - name: Validate education
+        run: npm run validate:education
       - name: Typecheck
         run: npm run typecheck
       - name: Production build
