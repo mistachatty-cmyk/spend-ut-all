@@ -1,5 +1,43 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 96 96" role="img" aria-labelledby="title desc" data-looper-id="lokdex:g1:001" data-looper-name="LOK Slime">
-<title id="title">LOK Slime</title><desc id="desc">LOK Slime, Firstlight LOKDEX #001. Canonical scalable vector master for Spend It All / LOK.</desc>
-<defs><linearGradient id="body" x1=".2" y1="0" x2=".8" y2="1"><stop offset="0" stop-color="#c8ffd0"/><stop offset=".46" stop-color="#54df76"/><stop offset="1" stop-color="#12663b"/></linearGradient><radialGradient id="aura"><stop offset="0" stop-color="#5eff78" stop-opacity=".56"/><stop offset="1" stop-color="#5eff78" stop-opacity="0"/></radialGradient><filter id="shadow" x="-30%" y="-30%" width="160%" height="160%"><feDropShadow dx="0" dy="2" stdDeviation="1.7" flood-color="#071018" flood-opacity=".28"/></filter></defs>
-<ellipse cx="48" cy="78" rx="38" ry="13" fill="url(#aura)"/><ellipse cx="48" cy="82" rx="28" ry="5" fill="#071018" opacity=".2"/>
-<g filter="url(#shadow)"><g class="body"><path d="M19 66c0-18 7-31 20-38 3-9 9-16 17-21-1 8 4 11 9 16 9 9 14 21 12 36-1 15-10 23-24 24H38c-13 0-20-6-19-17Z" fill="url(#body)" stroke="#12663b" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round"/><circle cx="27" cy="70" r="8" fill="#54df76" stroke="#12663b" stroke-width="2.4"/><circle cx="69" cy="70" r="8" fill="#54df76" stroke="#12663b" stroke-width="2.4"/><path d="M31 35c9-10 19-13 29-9" fill="none" stroke="#c8ffd0" stroke-width="4" opacity=".7"/><rect x="15" y="24" width="7" height="7" rx="1" fill="#8dff45"/><rect x="69" y="19" width="9" height="9" rx="1" fill="#8dff45" opacity=".8"/></g><g class="face"><ellipse cx="38" cy="51" rx="5" ry="6" fill="#12663b"/><ellipse cx="58" cy="51" rx="5" ry="6" fill="#12663b"/><circle cx="36.5" cy="49" r="1.6" fill="#fff"/><circle cx="56.5" cy="49" r="1.6" fill="#fff"/><path d="M42 60q6 7 12 0" fill="none" stroke="#12663b" stroke-width="2.4" stroke-linecap="round"/></g><g fill="#8dff45"><rect x="10" y="28" width="7" height="7" rx="1"/><rect x="78" y="24" width="8" height="8" rx="1"/><rect x="74" y="67" width="5" height="5" rx="1"/></g></g></svg>
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024" role="img" aria-labelledby="title desc" data-looper-id="lokdex:g1:001" data-looper-name="LOK Slime" data-art-version="2" shape-rendering="geometricPrecision">
+<title id="title">LOK Slime</title><desc id="desc">High-detail scalable vector master for LOK Slime, Firstlight LOKDEX #001.</desc>
+<defs>
+  <linearGradient id="gel" x1="250" y1="130" x2="760" y2="830" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#d6ffdd"/><stop offset=".18" stop-color="#9cf7ad"/><stop offset=".52" stop-color="#52d97b"/><stop offset=".82" stop-color="#25a65c"/><stop offset="1" stop-color="#0b5f39"/></linearGradient>
+  <linearGradient id="gelDark" x1="350" y1="370" x2="700" y2="760" gradientUnits="userSpaceOnUse"><stop stop-color="#2fba68"/><stop offset="1" stop-color="#0a623a"/></linearGradient>
+  <radialGradient id="innerGlow" cx="43%" cy="34%" r="70%"><stop offset="0" stop-color="#e9ffec" stop-opacity=".88"/><stop offset=".35" stop-color="#90f3a8" stop-opacity=".42"/><stop offset="1" stop-color="#39d56d" stop-opacity="0"/></radialGradient>
+  <radialGradient id="aura"><stop offset="0" stop-color="#63ff91" stop-opacity=".34"/><stop offset="1" stop-color="#63ff91" stop-opacity="0"/></radialGradient>
+  <filter id="softShadow" x="-30%" y="-30%" width="160%" height="180%"><feDropShadow dx="0" dy="34" stdDeviation="26" flood-color="#062f21" flood-opacity=".34"/></filter>
+  <filter id="softGlow" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="9"/></filter>
+</defs>
+<ellipse cx="512" cy="848" rx="360" ry="118" fill="url(#aura)"/>
+<ellipse cx="512" cy="865" rx="270" ry="46" fill="#082d20" opacity=".18"/>
+<g id="character" filter="url(#softShadow)">
+  <g id="body">
+    <path d="M188 744c-10-102 14-198 73-282 48-69 108-117 181-147 5-86 37-157 100-214-3 67 21 103 71 143 82 66 143 155 166 257 21 92 10 180-32 251-46 77-122 116-229 119H370c-112-1-175-42-182-127Z" fill="url(#gel)" stroke="#083d29" stroke-width="26" stroke-linejoin="round"/>
+    <path d="M256 675c26 91 84 138 176 141h154c83-3 143-42 180-117-9 111-80 172-217 175H369c-92-2-143-37-153-106-4-31 9-62 40-93Z" fill="url(#gelDark)" opacity=".72"/>
+    <ellipse cx="512" cy="486" rx="252" ry="278" fill="url(#innerGlow)"/>
+    <path d="M314 355c70-83 164-124 281-122" fill="none" stroke="#ecfff0" stroke-width="42" stroke-linecap="round" opacity=".48"/>
+    <path d="M345 398c42-44 94-71 156-82" fill="none" stroke="#fff" stroke-width="16" stroke-linecap="round" opacity=".72"/>
+    <path d="M265 681c-38 10-75 34-95 66-18 30-6 67 24 85 45 28 107 1 139-42" fill="#44ca72" stroke="#083d29" stroke-width="24" stroke-linecap="round"/>
+    <path d="M758 678c42 11 81 35 101 70 17 31 3 68-28 85-47 26-108-5-138-50" fill="#42c870" stroke="#083d29" stroke-width="24" stroke-linecap="round"/>
+  </g>
+  <g id="internal-data" opacity=".82">
+    <rect x="282" y="277" width="58" height="58" rx="12" fill="#8aff75" stroke="#2d9d55" stroke-width="8"/><rect x="719" y="285" width="70" height="70" rx="14" fill="#9bff83" stroke="#2d9d55" stroke-width="8"/><rect x="742" y="593" width="46" height="46" rx="10" fill="#adff93" stroke="#2d9d55" stroke-width="7"/>
+    <rect x="335" y="698" width="34" height="34" rx="8" fill="#c8ffd0" opacity=".64"/><rect x="615" y="317" width="30" height="30" rx="7" fill="#d5ffdb" opacity=".7"/><rect x="270" y="518" width="26" height="26" rx="6" fill="#cbffd2" opacity=".55"/>
+    <path d="M303 306h24M748 320h34M762 616h15" stroke="#fff" stroke-width="7" stroke-linecap="round" opacity=".72"/>
+  </g>
+  <g id="face">
+    <path d="M342 506c19-42 64-63 103-46 37 17 51 61 33 101-19 41-64 60-103 42-38-17-51-57-33-97Z" fill="#0a4e31"/>
+    <path d="M546 499c17-43 61-66 102-51 40 14 57 57 41 99-16 42-61 65-101 50-39-14-57-56-42-98Z" fill="#0a4e31"/>
+    <ellipse cx="402" cy="512" rx="18" ry="24" fill="#fff" opacity=".95"/><ellipse cx="609" cy="501" rx="17" ry="23" fill="#fff" opacity=".95"/>
+    <ellipse cx="408" cy="521" rx="8" ry="12" fill="#153829"/><ellipse cx="615" cy="509" rx="8" ry="12" fill="#153829"/>
+    <path d="M430 628c34 34 104 35 142-1" fill="none" stroke="#0b4b31" stroke-width="24" stroke-linecap="round"/>
+    <path d="M468 651c24 14 55 13 82-2" fill="none" stroke="#a7f7b5" stroke-width="13" stroke-linecap="round" opacity=".72"/>
+    <ellipse cx="312" cy="586" rx="39" ry="25" fill="#a7f5b4" opacity=".25"/><ellipse cx="706" cy="577" rx="36" ry="23" fill="#a7f5b4" opacity=".22"/>
+  </g>
+  <g id="motes">
+    <g fill="#9bff78" stroke="#1a8e4a" stroke-width="7"><rect x="135" y="354" width="52" height="52" rx="8"/><rect x="803" y="385" width="61" height="61" rx="10"/><rect x="818" y="690" width="38" height="38" rx="8"/></g>
+    <g fill="#d1ffd5"><rect x="151" y="369" width="17" height="17" rx="3"/><rect x="821" y="402" width="20" height="20" rx="4"/><rect x="829" y="700" width="12" height="12" rx="3"/></g>
+    <circle cx="225" cy="268" r="13" fill="#c3ffca" opacity=".78"/><circle cx="783" cy="254" r="10" fill="#d9ffdd" opacity=".74"/>
+  </g>
+</g>
+</svg>
