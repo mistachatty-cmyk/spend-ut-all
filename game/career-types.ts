@@ -4,25 +4,13 @@ export type CareerTrackId = 'service'|'logistics'|'trades'|'creative'|'sales'|'t
 export type EmploymentStatus = 'unemployed'|'employed';
 
 export type CareerJobDefinition = {
-  id:string;
-  trackId:CareerTrackId;
-  name:string;
-  emoji:string;
-  description:string;
-  payPerDay:number;
-  requiredSkillId?:LifeSkillId;
-  requiredSkillLevel?:number;
-  requiredReputation?:number;
-  nextJobId?:string;
+  id:string; trackId:CareerTrackId; name:string; emoji:string; description:string; payPerDay:number;
+  requiredSkillId?:LifeSkillId; requiredSkillLevel?:number; requiredReputation?:number; nextJobId?:string;
 };
 
 export type CareerState = {
-  status:EmploymentStatus;
-  jobId:string|null;
-  careerReputation:number;
-  experienceDays:number;
-  applications:number;
-  promotions:number;
-  lastPayday:number;
-  lifetimeWages:number;
+  status:EmploymentStatus; jobId:string|null; careerReputation:number; experienceDays:number; applications:number; promotions:number;
+  lastPayday:number; lifetimeWages:number;
+  performance:number; raiseMultiplier:number; raises:number; daysInCurrentJob:number; jobsHeld:number;
+  voluntaryQuits:number; layoffs:number; fired:number; unemploymentDays:number;
 };
