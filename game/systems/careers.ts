@@ -2,9 +2,10 @@ import { careerJobs, starterCareerJobIds } from '@/data/careers';
 import type { CareerJobDefinition, CareerState } from '../career-types';
 import type { GameState } from '../types';
 import { hasCredential } from './education';
-import { lifeSkillLevel } from './life-progression';
+import { gainLifeSkillXp, lifeSkillLevel } from './life-progression';
 
 const validJobIds = new Set(careerJobs.map(job => job.id));
+const CLASSIC_SHIFT_COOLDOWN_MS = 15_000;
 
 function uniqueValidJobIds(ids: string[] = []) {
   return [...new Set([...starterCareerJobIds, ...ids.filter(id => validJobIds.has(id))])];
@@ -46,6 +47,8 @@ export function createCareerState(): CareerState {
     knownJobIds: [...starterCareerJobIds],
     jobResearches: 0,
     boardRotation: 0,
+    manualShifts: 0,
+    manualShiftAvailableAt: 0,
   };
 }
 
@@ -71,6 +74,8 @@ export function normalizeCareer(input?: Partial<CareerState> | null): CareerStat
     knownJobIds: uniqueValidJobIds(input?.knownJobIds),
     jobResearches: Math.max(0, input?.jobResearches ?? 0),
     boardRotation: Math.max(0, input?.boardRotation ?? 0),
+    manualShifts: Math.max(0, input?.manualShifts ?? 0),
+    manualShiftAvailableAt: Math.max(0, input?.manualShiftAvailableAt ?? 0),
   };
 }
 
@@ -118,7 +123,7 @@ export function careerJobDiscovered(state: GameState, jobId: string) {
   const nearSkillGate = skill >= Math.max(1, requiredSkill - 1);
   const nearReputationGate = career.careerReputation >= Math.max(0, (job.requiredReputation ?? 0) - 5);
   const credentialRoute = Boolean(job.qualification?.credentialId && hasCredential(state, job.qualification.credentialId));
-  return nearSkillGate && nearReputationGate || credentialRoute;
+  return (nearSkillGate && nearReputationGate) || credentialRoute;
 }
 
 export function discoveredCareerJobs(state: GameState) {
@@ -131,10 +136,7 @@ export function careerBoardJobs(state: GameState, size = 12): CareerJobDefinitio
   const discovered = discoveredCareerJobs(state);
 
   const ranked = discovered
-    .map(job => ({
-      job,
-      score: hashString(`${seed}:${job.id}`) / Math.max(1, job.marketWeight ?? 1),
-    }))
+    .map(job => ({ job, score: hashString(`${seed}:${job.id}`) / Math.max(1, job.marketWeight ?? 1) }))
     .sort((a, b) => a.score - b.score)
     .map(entry => entry.job);
 
@@ -146,11 +148,7 @@ export function careerBoardJobs(state: GameState, size = 12): CareerJobDefinitio
 
 export function rotateCareerBoard(state: GameState): GameState {
   const career = normalizeCareer(state.career);
-  return {
-    ...state,
-    career: { ...career, boardRotation: career.boardRotation + 1 },
-    updatedAt: Date.now(),
-  };
+  return { ...state, career: { ...career, boardRotation: career.boardRotation + 1 }, updatedAt: Date.now() };
 }
 
 export function researchCareers(state: GameState, discoveries = 3): GameState {
@@ -205,6 +203,7 @@ export function applyForCareer(state: GameState, jobId: string): GameState {
       daysInCurrentJob: 0,
       jobsHeld: career.jobsHeld + (career.jobId === jobId ? 0 : 1),
       knownJobIds: uniqueValidJobIds([...career.knownJobIds, jobId]),
+      manualShiftAvailableAt: 0,
     },
     updatedAt: Date.now(),
   };
@@ -222,6 +221,7 @@ export function leaveCareer(state: GameState): GameState {
       raiseMultiplier: 1,
       daysInCurrentJob: 0,
       voluntaryQuits: career.voluntaryQuits + 1,
+      manualShiftAvailableAt: 0,
     },
     updatedAt: Date.now(),
   };
@@ -242,6 +242,7 @@ export function promoteCareer(state: GameState): GameState {
       daysInCurrentJob: 0,
       performance: Math.max(55, career.performance - 10),
       knownJobIds: uniqueValidJobIds([...career.knownJobIds, current.nextJobId]),
+      manualShiftAvailableAt: 0,
     },
     updatedAt: Date.now(),
   };
@@ -267,6 +268,53 @@ export function careerDailyPay(state: GameState) {
   const career = normalizeCareer(state.career);
   const job = careerJobs.find(candidate => candidate.id === career.jobId);
   return job ? job.payPerDay * career.raiseMultiplier : 0;
+}
+
+export function canManualCareerShift(state: GameState, now = Date.now()) {
+  const career = normalizeCareer(state.career);
+  return Boolean(
+    !state.time.settings.enabled
+    && career.status === 'employed'
+    && career.jobId
+    && now >= career.manualShiftAvailableAt,
+  );
+}
+
+export function manualCareerShiftCooldownMs(state: GameState, now = Date.now()) {
+  return Math.max(0, normalizeCareer(state.career).manualShiftAvailableAt - now);
+}
+
+export function performManualCareerShift(state: GameState, now = Date.now()): GameState {
+  if (!canManualCareerShift(state, now)) return state;
+  const career = normalizeCareer(state.career);
+  const job = careerJobs.find(candidate => candidate.id === career.jobId);
+  if (!job) return state;
+
+  const wages = job.payPerDay * career.raiseMultiplier;
+  const skillId = job.requiredSkillId ?? 'general-labor';
+  const skillLevel = lifeSkillLevel(state.life, skillId);
+  const performanceGain = skillLevel >= (job.requiredSkillLevel ?? 0) + 2 ? 2 : 1;
+  const life = state.life.enabled ? gainLifeSkillXp(state.life, skillId, 12) : state.life;
+  const nextCash = state.cash + wages;
+
+  return {
+    ...state,
+    cash: nextCash,
+    lifetimeIncome: state.lifetimeIncome + wages,
+    peakCash: Math.max(state.peakCash, nextCash),
+    life,
+    career: {
+      ...career,
+      lifetimeWages: career.lifetimeWages + wages,
+      experienceDays: career.experienceDays + 1,
+      daysInCurrentJob: career.daysInCurrentJob + 1,
+      careerReputation: career.careerReputation + 1,
+      performance: Math.min(100, career.performance + performanceGain),
+      manualShifts: career.manualShifts + 1,
+      manualShiftAvailableAt: now + CLASSIC_SHIFT_COOLDOWN_MS,
+    },
+    updatedAt: now,
+  };
 }
 
 export function advanceCareerPay(state: GameState, _previousGameMinute: number, nextGameMinute: number): GameState {
