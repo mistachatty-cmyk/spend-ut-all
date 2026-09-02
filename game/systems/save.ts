@@ -5,6 +5,7 @@ import { normalizeIncomeStreams } from './earnings';
 import { normalizeTimeSimulation } from './time-simulation';
 import { normalizeGameRules } from './rules';
 import { normalizeCustomScenario } from './custom-scenarios';
+import { normalizeLifeRpg } from './life-progression';
 import { advanceDebtState, normalizeDebtState } from './debt';
 import { GameState } from '../types';
 
@@ -15,6 +16,7 @@ export function normalizeGameState(state: GameState, now = Date.now()): GameStat
   const inferredActivePlayMs = Math.max(0, Math.min((state.updatedAt ?? now) - (state.createdAt ?? now), 24 * 60 * 60 * 1000));
   const lok = lokRuntime.migrateRun(state.lokTokens ?? 0, state.lokProgressMs ?? 0);
   const time = normalizeTimeSimulation(state.time);
+  const life = normalizeLifeRpg(state.life, time.gameMinute, time.settings.dayLengthMinutes);
   const debtBase = normalizeDebtState(state.debt);
   const previousDebtMinute = debtBase.lastAdvancedGameMinute || time.gameMinute;
   const debtTick = advanceDebtState(debtBase, previousDebtMinute, time.gameMinute);
@@ -36,6 +38,7 @@ export function normalizeGameState(state: GameState, now = Date.now()): GameStat
     cityEconomy: normalizeCityEconomy(state.cityEconomy, now),
     incomeStreams: normalizeIncomeStreams(state.incomeStreams),
     time,
+    life,
     rules: normalizeGameRules(state.rules),
     debt: debtTick.debt,
     townLevel: state.townLevel ?? 0,
