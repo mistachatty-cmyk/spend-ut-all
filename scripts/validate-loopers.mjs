@@ -21,12 +21,14 @@ const vectorCss = read('app/looper-vector-runtime.css');
 const gateway = read('app/components/PixelPetSprite.tsx');
 const vectorRuntime = read('app/components/LooperVectorRuntimeSprite.tsx');
 const lab = read('app/components/LooperProductionLab.tsx');
+const classic = read('data/classic-pet-sprites.ts');
 const vectorIndex = JSON.parse(read('public/assets/loopers/g1/index.json'));
 
 for (const [index,name] of expected.entries()) {
   if (!recipes.includes(`name:'${name}'`) && !recipes.includes(`name: '${name}'`) && !recipes.includes(`name: \"${name}\"`)) fail(`missing canonical recipe for ${name}`);
   if (!manifests.includes(`'${name}'`)) fail(`missing production animation signature for ${name}`);
-  if (!motionCss.includes(`[data-looper-hd=\"${name}\"]`)) fail(`missing character-specific motion selector for ${name}`);
+  if (!motionCss.includes(`[data-looper-hd=\"${name}\"]`)) fail(`missing fallback character-specific motion selector for ${name}`);
+  if (!vectorCss.includes(`[data-looper-vector=\"${name}\"]`)) fail(`missing live vector signature motion for ${name}`);
 
   const number = String(index + 1).padStart(3,'0');
   const folder = `public/assets/loopers/g1/${number}-${slug(name)}`;
@@ -39,6 +41,7 @@ for (const [index,name] of expected.entries()) {
     if (!svg.includes('<svg')) fail(`${name} master is not SVG`);
     if (!svg.includes('width=\"1024\"') || !svg.includes('height=\"1024\"')) fail(`${name} master is missing 1024 presentation sizing`);
     if (!svg.includes(`data-looper-id=\"lokdex:g1:${number}\"`)) fail(`${name} master has the wrong stable LOKDEX ID`);
+    if (!svg.includes('data-art-version=\"2\"')) fail(`${name} has fallen back below the high-detail Production master standard`);
   }
   if (!fs.existsSync(path.join(root,animatedPath))) {
     fail(`missing reusable animated SVG for ${name}: ${animatedPath}`);
@@ -76,6 +79,10 @@ if (!vectorRuntime.includes('asset.master')) fail('canonical vector runtime is n
 if (!vectorRuntime.includes('LooperProductionSprite')) fail('Forge/generated fallback was removed from vector runtime');
 if (!lab.includes('looperVectorAssetById')) fail('Production Lab is not exposing canonical vector masters');
 
+for (const legacyId of ['pet-lok-slime','pet-coin-cat','pet-espresso-bot','pet-wolf-pup','pet-moon-gecko']) {
+  if (!classic.includes(`'${legacyId}'`)) fail(`Classic / Legacy skin was removed: ${legacyId}`);
+}
+
 const requiredSurfaces = [
   ['app/components/StarterCompanionPrompt.tsx','PixelPetSprite'],
   ['app/components/PetCompanion.tsx','PixelPetSprite'],
@@ -92,4 +99,4 @@ if (!fs.existsSync(path.join(root,'integrations/lok/collectibles/looper-forge.ts
 if (!fs.existsSync(path.join(root,'data/looper-vector-assets.ts'))) fail('missing application-side vector asset catalog');
 if (!fs.existsSync(path.join(root,'docs/LOOPER_VECTOR_ASSETS.md'))) fail('missing reusable vector asset documentation');
 
-if (!process.exitCode) console.log(`Looper production coverage OK: ${expected.length} canonical characters, ${moods.length} live states, ${vectorIndex.characters.length} scalable SVG masters + reusable animated vectors, canonical live SVG runtime, Classic fallback and Forge verified.`);
+if (!process.exitCode) console.log(`Looper production coverage OK: ${expected.length} high-detail canonical SVG masters, ${moods.length} live states, signature vector motion, reusable animated vectors, preserved Classic skins and Forge verified.`);
