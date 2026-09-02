@@ -27,19 +27,32 @@ for (const [index,name] of expected.entries()) {
   if (!motionCss.includes(`[data-looper-hd=\"${name}\"]`)) fail(`missing character-specific motion selector for ${name}`);
 
   const number = String(index + 1).padStart(3,'0');
-  const assetPath = `public/assets/loopers/g1/${number}-${slug(name)}/master.svg`;
-  if (!fs.existsSync(path.join(root,assetPath))) {
-    fail(`missing scalable SVG master for ${name}: ${assetPath}`);
+  const folder = `public/assets/loopers/g1/${number}-${slug(name)}`;
+  const masterPath = `${folder}/master.svg`;
+  const animatedPath = `${folder}/animated.svg`;
+  if (!fs.existsSync(path.join(root,masterPath))) {
+    fail(`missing scalable SVG master for ${name}: ${masterPath}`);
   } else {
-    const svg = read(assetPath);
+    const svg = read(masterPath);
     if (!svg.includes('<svg')) fail(`${name} master is not SVG`);
     if (!svg.includes('width=\"1024\"') || !svg.includes('height=\"1024\"')) fail(`${name} master is missing 1024 presentation sizing`);
     if (!svg.includes(`data-looper-id=\"lokdex:g1:${number}\"`)) fail(`${name} master has the wrong stable LOKDEX ID`);
+  }
+  if (!fs.existsSync(path.join(root,animatedPath))) {
+    fail(`missing reusable animated SVG for ${name}: ${animatedPath}`);
+  } else {
+    const animated = read(animatedPath);
+    if (!animated.includes('<style>') || !animated.includes('@keyframes')) fail(`${name} animated SVG is missing self-contained motion`);
+    if (!animated.includes('prefers-reduced-motion')) fail(`${name} animated SVG must respect reduced motion`);
+    if (!animated.includes('href=\"master.svg\"')) fail(`${name} animated SVG must derive from its canonical master`);
   }
 }
 
 if (vectorIndex.characters?.length !== 24) fail(`vector asset catalog should contain 24 characters, found ${vectorIndex.characters?.length ?? 0}`);
 if (vectorIndex.format !== 'svg' || vectorIndex.scalable !== true) fail('vector asset catalog must declare scalable SVG masters');
+for (const item of vectorIndex.characters ?? []) {
+  if (!item.master || !item.animated) fail(`vector catalog entry ${item.id ?? 'unknown'} must expose master and animated SVG paths`);
+}
 
 const lokdexAliases = new Set([...recipes.matchAll(/lokdex:g1:(\d{3})/g)].map((match) => match[1]));
 if (lokdexAliases.size !== 24) fail(`expected 24 unique LOKDEX aliases, found ${lokdexAliases.size}`);
@@ -55,6 +68,7 @@ for (const mood of moods) {
 
 if (!gateway.includes('LooperProductionSprite')) fail('PixelPetSprite is not routing to the Production renderer');
 if (!gateway.includes("looperArtStyle === 'classic'")) fail('Classic fallback is not preserved in the shared gateway');
+if (!lab.includes('looperVectorAssetById')) fail('Production Lab is not exposing canonical vector masters');
 
 const requiredSurfaces = [
   ['app/components/StarterCompanionPrompt.tsx','PixelPetSprite'],
@@ -70,5 +84,6 @@ for (const [file, symbol] of requiredSurfaces) {
 if (!fs.existsSync(path.join(root,'app/loopers/page.tsx'))) fail('missing /loopers Production Lab route');
 if (!fs.existsSync(path.join(root,'integrations/lok/collectibles/looper-forge.ts'))) fail('missing local Looper Forge');
 if (!fs.existsSync(path.join(root,'data/looper-vector-assets.ts'))) fail('missing application-side vector asset catalog');
+if (!fs.existsSync(path.join(root,'docs/LOOPER_VECTOR_ASSETS.md'))) fail('missing reusable vector asset documentation');
 
-if (!process.exitCode) console.log(`Looper production coverage OK: ${expected.length} canonical characters, ${moods.length} states, ${vectorIndex.characters.length} scalable SVG masters, Classic fallback, live surfaces and Forge verified.`);
+if (!process.exitCode) console.log(`Looper production coverage OK: ${expected.length} canonical characters, ${moods.length} live states, ${vectorIndex.characters.length} scalable SVG masters + reusable animated vectors, Classic fallback, live surfaces and Forge verified.`);
