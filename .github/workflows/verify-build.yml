@@ -23,6 +23,8 @@ jobs:
         run: npm run validate:loopers
       - name: Check portable Looper animations
         run: npm run check:looper-animated
+      - name: Validate Life RPG
+        run: npm run validate:life-rpg
       - name: Typecheck
         run: npm run typecheck
       - name: Production build
