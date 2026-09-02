@@ -32,7 +32,7 @@ export function minuteOfDay(time: TimeSimulationState) { return ((Math.floor(tim
 export function gameClockLabel(time: TimeSimulationState) { const m = minuteOfDay(time); const h = Math.floor(m / 60); return `${String(h).padStart(2,'0')}:${String(m % 60).padStart(2,'0')}`; }
 
 export function activityAvailable(time: TimeSimulationState, activity: ActivityDefinition) {
-  if (!time.settings.availabilityWindows || !activity.availability) return true;
+  if (!time.settings.enabled || !time.settings.availabilityWindows || !activity.availability) return true;
   const hour = Math.floor(minuteOfDay(time) / 60);
   const dayIndex = Math.floor(time.gameMinute / time.settings.dayLengthMinutes) % 7;
   const weekday = (dayIndex + 1) % 7;
@@ -44,13 +44,19 @@ export function activityAvailable(time: TimeSimulationState, activity: ActivityD
 export function startTimedActivity(time: TimeSimulationState, activityId: string) {
   const activity = activities.find((entry) => entry.id === activityId);
   if (!activity || time.activeActivity || !activityAvailable(time, activity)) return time;
-  const duration = time.settings.activityTimeCosts ? activity.durationMinutes : 0;
+  const duration = time.settings.enabled && time.settings.activityTimeCosts ? activity.durationMinutes : 0;
   return { ...time, activeActivity: { id: activity.id, startedAtGameMinute: time.gameMinute, endsAtGameMinute: time.gameMinute + duration } };
 }
 
 export function advanceTimeSimulation(timeInput: TimeSimulationState, deltaMs: number) {
   let time = normalizeTimeSimulation(timeInput);
-  if (!time.settings.enabled) return { time, completedActivityId: null as string | null, eventId: null as string | null };
+  if (!time.settings.enabled) {
+    if (!time.activeActivity) return { time, completedActivityId: null as string | null, eventId: null as string | null };
+    const completedActivityId = time.activeActivity.id;
+    const activity = activities.find((entry) => entry.id === completedActivityId);
+    time = { ...time, fatigue: Math.max(0, Math.min(100, time.fatigue + (activity?.fatigueDelta ?? 0))), activeActivity:null };
+    return { time, completedActivityId, eventId:null as string | null };
+  }
   const gameMinutesDelta = (deltaMs / 60_000) * Math.max(0, time.settings.timeScale);
   const before = time.gameMinute;
   const gameMinute = before + gameMinutesDelta;
