@@ -1,5 +1,12 @@
+import type { LifeSkillId } from './life-types';
+
 export type IncomeStreamId =
+  | 'snack-cooler'
+  | 'print-on-demand'
+  | 'tool-rental'
+  | 'local-ad-page'
   | 'vending-route'
+  | 'storage-flips'
   | 'laundromat'
   | 'parking-lot'
   | 'billboard-network'
@@ -21,6 +28,8 @@ export type IncomeStreamDefinition = {
   unlockSpent?: number;
   requiredTownLevel?: number;
   requiredRegionLevel?: number;
+  requiredSkillId?: LifeSkillId;
+  requiredSkillLevel?: number;
 };
 
 export type ActiveEarningDefinition = {
@@ -32,4 +41,8 @@ export type ActiveEarningDefinition = {
   unlockSpent?: number;
   requiredTownLevel?: number;
   requiredRegionLevel?: number;
+  requiredSkillId?: LifeSkillId;
+  requiredSkillLevel?: number;
+  rewardSkillId?: LifeSkillId;
+  rewardSkillXp?: number;
 };
