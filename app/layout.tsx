@@ -11,6 +11,7 @@ import './businesses.css';
 import './money.css';
 import './achievements.css';
 import './time.css';
+import './life-rpg.css';
 import './settings.css';
 import './custom-scenarios.css';
 import './customizations.css';
