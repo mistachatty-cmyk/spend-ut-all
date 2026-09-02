@@ -60,4 +60,6 @@ export type CareerState = {
   knownJobIds: string[];
   jobResearches: number;
   boardRotation: number;
+  manualShifts: number;
+  manualShiftAvailableAt: number;
 };
