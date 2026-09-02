@@ -1,4 +1,23 @@
-export type BusinessId = 'restaurant-group' | 'retail-brand' | 'software-company' | 'hotel-group' | 'manufacturing-company' | 'media-company' | 'banking-group';
+import type { LifeSkillId } from './life-types';
+
+export type BusinessId =
+  | 'solo-service'
+  | 'cleaning-service'
+  | 'lawn-care'
+  | 'mobile-detailing'
+  | 'food-cart'
+  | 'online-shop'
+  | 'creative-agency'
+  | 'tech-consultancy'
+  | 'bookkeeping-practice'
+  | 'property-services'
+  | 'restaurant-group'
+  | 'retail-brand'
+  | 'software-company'
+  | 'hotel-group'
+  | 'manufacturing-company'
+  | 'media-company'
+  | 'banking-group';
 
 export type BusinessDefinition = {
   id: BusinessId;
@@ -13,6 +32,8 @@ export type BusinessDefinition = {
   locationGrowthRate: number;
   hqUpgradeBaseCost: number;
   requiredTownLevel?: number;
+  requiredSkillId?: LifeSkillId;
+  requiredSkillLevel?: number;
 };
 
 export type ManagedBusiness = {
