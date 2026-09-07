@@ -112,3 +112,14 @@ export function syncCompanionsToLokDex(input: LokDexCollection, inventory: Custo
 export function cardCopiesForCharacter(collection: LokDexCollection, characterId: string) {
   return normalizeLokDexCollection(collection).cards.filter((card) => card.characterId === characterId);
 }
+
+export function toggleFavoriteCharacter(input: LokDexCollection, characterId: string): LokDexCollection {
+  const collection = normalizeLokDexCollection(input);
+  const has = collection.favoriteCharacterIds.includes(characterId);
+  return {
+    ...collection,
+    favoriteCharacterIds: has
+      ? collection.favoriteCharacterIds.filter((id) => id !== characterId)
+      : [...collection.favoriteCharacterIds, characterId],
+  };
+}

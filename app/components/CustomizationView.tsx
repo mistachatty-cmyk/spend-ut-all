@@ -1,14 +1,19 @@
 'use client';
 
-import { useMemo, useState } from 'react';
-import { allCustomizations } from '@/data/customizations';
-import type { CustomizationInventory, CustomizationKind } from '@/game/customization-types';
+import { useEffect, useMemo, useState } from 'react';
+import { allCustomizations, customizationById, lokPets } from '@/data/customizations';
+import { lokDexEntries } from '@/data/lokdex';
+import type { CustomizationDefinition, CustomizationInventory, CustomizationKind } from '@/game/customization-types';
+import type { LokDexCollection } from '@/game/lokdex-types';
 import { equipCustomization, grantCustomization, isEquipped, saveCustomizationInventory } from '@/game/systems/customizations';
+import { lockInfo } from '@/game/systems/customization-lock';
+import { cardCopiesForCharacter, createLokDexCollection, loadLokDexCollection, saveLokDexCollection, syncCompanionsToLokDex, toggleFavoriteCharacter } from '@/game/systems/lokdex';
 import type { GameState } from '@/game/types';
 import { lokRuntime } from '@/integrations/lok/runtime';
 import { CardShopView } from './CardShopView';
 import { LokDexPanel } from './LokDexPanel';
-import { PixelPetSprite } from './PixelPetSprite';
+import { PetCard } from './PetCard';
+import { PetDetailPanel } from './PetDetailPanel';
 
 type CustomizationTab = CustomizationKind | 'card-shop';
 
@@ -24,14 +29,6 @@ const tabs: Array<{ id: CustomizationTab; label: string }> = [
   { id: 'profile-frame', label: 'Frames' },
   { id: 'card-shop', label: 'Cards 🃏' },
 ];
-
-const requirementNames: Record<string, string> = {
-  'wolf-risk-billionaire': 'Wolf With No Net achievement',
-  'spendutall-super': 'SPENDUTALL super achievement',
-  'debt-billion-comeback': 'Resurrected Empire achievement',
-  'nothing-millionaire': 'Self-Made Millionaire achievement',
-  'region-planetary': 'Planetary Economy progression',
-};
 
 const tabHelp: Partial<Record<CustomizationTab, string>> = {
   theme: 'Themes change the full game atmosphere from quiet ledger styles to animated extreme environments. Higher tiers ask for lifetime LOK earned, but that requirement never consumes extra tokens.',
@@ -54,8 +51,27 @@ export function CustomizationView({ state, setState, inventory, onInventoryChang
 }) {
   const [tab, setTab] = useState<CustomizationTab>('theme');
   const [message, setMessage] = useState('');
+  const [collection, setCollection] = useState<LokDexCollection>(createLokDexCollection());
+  const [collectionLoaded, setCollectionLoaded] = useState(false);
+  const [detailPetId, setDetailPetId] = useState<string | null>(null);
   const wallet = lokRuntime.snapshot();
-  const visible = useMemo(() => tab === 'card-shop' ? [] : allCustomizations.filter((item) => item.kind === tab).sort((a,b) => (a.lokPrice ?? 0) - (b.lokPrice ?? 0)), [tab]);
+  const visible = useMemo(() => tab === 'card-shop' || tab === 'pet' ? [] : allCustomizations.filter((item) => item.kind === tab).sort((a,b) => (a.lokPrice ?? 0) - (b.lokPrice ?? 0)), [tab]);
+  const visiblePets = useMemo(() => tab === 'pet' ? [...lokPets].sort((a,b) => (a.lokPrice ?? 0) - (b.lokPrice ?? 0)) : [], [tab]);
+
+  useEffect(() => {
+    const next = syncCompanionsToLokDex(loadLokDexCollection(), inventory);
+    setCollection(saveLokDexCollection(next));
+    setCollectionLoaded(true);
+  }, []);
+
+  useEffect(() => {
+    if (!collectionLoaded) return;
+    setCollection((current) => saveLokDexCollection(syncCompanionsToLokDex(current, inventory)));
+  }, [inventory.ownedIds, collectionLoaded]);
+
+  const toggleFavorite = (characterId: string) => {
+    setCollection((current) => saveLokDexCollection(toggleFavoriteCharacter(current, characterId)));
+  };
 
   const equip = (id: string) => {
     const next = saveCustomizationInventory(equipCustomization(inventory, id));
@@ -92,22 +108,49 @@ export function CustomizationView({ state, setState, inventory, onInventoryChang
     <nav className="customization-tabs">{tabs.map((entry) => <button key={entry.id} className={tab === entry.id ? 'active' : ''} onClick={() => setTab(entry.id)}>{entry.label}</button>)}</nav>
     <div className="customization-context"><b>{tabs.find((entry) => entry.id === tab)?.label}</b><span>{tabHelp[tab]}</span></div>
 
-    {tab === 'card-shop' ? <CardShopView inventory={inventory} /> : <>
+    {tab === 'card-shop' ? <CardShopView inventory={inventory} /> : tab === 'pet' ? <>
       {message ? <div className="customization-message" aria-live="polite">{message}</div> : null}
-      {tab === 'pet' ? <LokDexPanel inventory={inventory} /> : null}
+      <LokDexPanel inventory={inventory} />
+      <section className="pet-card-grid">{visiblePets.map((pet) => {
+        const owned = inventory.ownedIds.includes(pet.id);
+        const equipped = isEquipped(inventory, pet);
+        const dexEntry = lokDexEntries.find((entry) => entry.id === pet.dexCharacterId) ?? null;
+        const copies = dexEntry ? cardCopiesForCharacter(collection, dexEntry.id).length : 0;
+        const favorite = dexEntry ? collection.favoriteCharacterIds.includes(dexEntry.id) : false;
+        const equippedAccessories: CustomizationDefinition[] = equipped
+          ? inventory.equipped.petAccessoryIds.map((id) => customizationById(id)).filter((item): item is CustomizationDefinition => !!item)
+          : [];
+        const { lokBuyable, requirement, lifetimeRequired, lifetimeReady, canAfford } = lockInfo(pet, wallet);
+        return <PetCard
+          key={pet.id}
+          pet={pet}
+          dexEntry={dexEntry}
+          owned={owned}
+          equipped={equipped}
+          favorite={favorite}
+          copies={copies}
+          equippedAccessories={equippedAccessories}
+          lokBuyable={lokBuyable}
+          requirement={requirement}
+          lifetimeRequired={lifetimeRequired}
+          lifetimeReady={lifetimeReady}
+          canAfford={canAfford}
+          wallet={wallet}
+          onEquip={() => equip(pet.id)}
+          onPurchase={() => purchase(pet.id, pet.lokPrice ?? 0)}
+          onOpenDetail={() => setDetailPetId(pet.id)}
+        />;
+      })}</section>
+    </> : <>
+      {message ? <div className="customization-message" aria-live="polite">{message}</div> : null}
       <section className={`customization-grid customization-grid-${tab}`}>{visible.map((item) => {
         const owned = inventory.ownedIds.includes(item.id);
         const equipped = isEquipped(inventory, item);
-        const lokBuyable = item.acquisition.includes('lok') && typeof item.lokPrice === 'number';
-        const requirement = item.requirementId ? requirementNames[item.requirementId] ?? item.requirementId : null;
-        const lifetimeRequired = item.lokLifetimeRequired ?? 0;
-        const lifetimeReady = wallet.lifetimeEarned >= lifetimeRequired;
-        const canAfford = wallet.balance >= (item.lokPrice ?? 0);
+        const { lokBuyable, requirement, lifetimeRequired, lifetimeReady, canAfford } = lockInfo(item, wallet);
         return <article className={`customization-card rarity-${item.rarity} ${equipped ? 'equipped' : ''} ${!lifetimeReady ? 'tier-locked' : ''}`} key={item.id}>
-          <div className="customization-icon">{item.kind === 'pet' ? <PixelPetSprite petId={item.id} mood={owned ? 'happy' : 'idle'} silhouette={!owned} size={48} /> : item.emoji ?? '✨'}</div>
+          <div className="customization-icon">{item.emoji ?? '✨'}</div>
           <div className="customization-copy"><div className="customization-title"><h3>{item.name}</h3><span>{item.rarity}</span></div><p>{item.description}</p>
-            <div className="customization-tags"><span>{item.kind === 'pet' ? 'companion' : item.kind === 'pet-accessory' ? 'companion gear' : item.kind.replace('-', ' ')}</span>{lifetimeRequired > 0 ? <span>{lifetimeRequired} lifetime LOK</span> : null}</div>
-            {item.kind === 'pet' && 'personality' in item ? <small className="pet-personality">{String(item.personality)}</small> : null}
+            <div className="customization-tags"><span>{item.kind === 'pet-accessory' ? 'companion gear' : item.kind.replace('-', ' ')}</span>{lifetimeRequired > 0 ? <span>{lifetimeRequired} lifetime LOK</span> : null}</div>
           </div>
           <div className="customization-action">
             {equipped ? <button disabled>Equipped ✓</button> : owned ? <button onClick={() => equip(item.id)}>{item.kind === 'pet-accessory' ? 'Toggle Gear' : 'Equip'}</button> : lokBuyable ? <button disabled={!canAfford || !lifetimeReady} onClick={() => purchase(item.id, item.lokPrice ?? 0)}>Buy · ◈ {(item.lokPrice ?? 0).toLocaleString()}</button> : <button disabled>Locked</button>}
@@ -118,5 +161,23 @@ export function CustomizationView({ state, setState, inventory, onInventoryChang
         </article>;
       })}</section>
     </>}
+
+    {detailPetId ? (() => {
+      const pet = lokPets.find((entry) => entry.id === detailPetId);
+      if (!pet) return null;
+      const dexEntry = lokDexEntries.find((entry) => entry.id === pet.dexCharacterId) ?? null;
+      return <PetDetailPanel
+        pet={pet}
+        dexEntry={dexEntry}
+        inventory={inventory}
+        onInventoryChange={onInventoryChange}
+        collection={collection}
+        onToggleFavorite={toggleFavorite}
+        wallet={wallet}
+        onEquip={equip}
+        onPurchase={purchase}
+        onClose={() => setDetailPetId(null)}
+      />;
+    })() : null}
   </section>;
 }

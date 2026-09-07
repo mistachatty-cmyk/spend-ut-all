@@ -3,15 +3,12 @@
 import { useEffect, useMemo, useState } from 'react';
 import { findLooperSprite } from '@/data/looper-sprite-registry';
 import { lokDexEntries } from '@/data/lokdex';
+import { affinityIcon } from '@/data/lokdex-icons';
 import { lokPets } from '@/data/customizations';
 import type { CustomizationInventory } from '@/game/customization-types';
 import type { LokDexCollection } from '@/game/lokdex-types';
 import { cardCopiesForCharacter, createLokDexCollection, loadLokDexCollection, saveLokDexCollection, syncCompanionsToLokDex } from '@/game/systems/lokdex';
 import { PixelPetSprite } from './PixelPetSprite';
-
-const affinityIcon: Record<string, string> = {
-  coin: '◈', work: '⚒', tech: '⌁', nature: '◆', market: '↗', risk: '⚠', travel: '✦', cosmic: '✧', mystery: '?',
-};
 
 export function LokDexPanel({ inventory }: { inventory: CustomizationInventory }) {
   const [collection, setCollection] = useState<LokDexCollection>(createLokDexCollection());

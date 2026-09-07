@@ -24,6 +24,7 @@ import './looper-vector-runtime.css';
 import './looper-showcase.css';
 import './looper-card-art.css';
 import './lokdex.css';
+import './pet-card.css';
 import './card-shop.css';
 import './card-releases.css';
 import './micro-animations.css';
