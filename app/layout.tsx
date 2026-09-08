@@ -33,6 +33,7 @@ import './game-shell.css';
 import './card-access.css';
 import './card-district-access.css';
 import './advanced-interface.css';
+import './art-district.css';
 
 export const metadata: Metadata = {
   title: 'Spend It All',

@@ -11,6 +11,7 @@ import { normalizeLifeRpg } from './life-progression';
 import { normalizeGameRules } from './rules';
 import { normalizeCustomScenario } from './custom-scenarios';
 import { normalizeTimeSimulation } from './time-simulation';
+import { normalizeArtPortfolio } from './art-market';
 
 const DEFAULT_EVENT_INTERVAL_MS = 120_000;
 
@@ -55,6 +56,7 @@ export function normalizeGameState(state: GameState, now = Date.now()): GameStat
     career,
     education,
     freelance,
+    art: normalizeArtPortfolio(state.art),
     rules: normalizeGameRules(state.rules),
     debt: debtTick.debt,
     townLevel: state.townLevel ?? 0,
