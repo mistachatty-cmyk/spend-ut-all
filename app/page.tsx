@@ -13,6 +13,7 @@ import { LeaderboardView } from '@/app/components/LeaderboardView';
 import { MoneyCounter } from '@/app/components/MoneyCounter';
 import { PetCompanion } from '@/app/components/PetCompanion';
 import { SettingsView } from '@/app/components/SettingsView';
+import { ArtDistrictView } from '@/app/components/ArtDistrictView';
 import { achievements } from '@/data/achievements';
 import { citySpecializations, empireUpgrades, houseTiers, items, regionTiers, scenarios, townTiers } from '@/data/content';
 import { activeMarketEvent, applyOfflineProgress, buyItem, buyUpgrade, canBuyItem, canBuyUpgrade, chooseCitySpecialization, grossIncomePerSecond, holdingsValue, itemBulkPrice, maxAffordableQuantity, newCustomGame, newGame, passiveCashPerSecond, scenarioGoalLabel, scenarioIsFreeMode, totalOwned, upkeepPerSecond, upgradeCost, upgradeHouse, upgradeRegion, upgradeTown, upgradesValue } from '@/game/engine';
@@ -29,7 +30,7 @@ import { FinancialMode, GameState, ScenarioId } from '@/game/types';
 
 const SAVE_KEY = 'spend-it-all-v1';
 const META_KEY = 'spend-it-all-meta-v1';
-type View = 'market' | 'earnings' | 'businesses' | 'empire' | 'debt' | 'achievements' | 'collection' | 'leaderboard' | 'customize' | 'settings';
+type View = 'market' | 'earnings' | 'businesses' | 'empire' | 'art' | 'debt' | 'achievements' | 'collection' | 'leaderboard' | 'customize' | 'settings';
 
 export default function Home() {
   const [state, setState] = useState<GameState | null>(null);
@@ -103,10 +104,11 @@ export default function Home() {
     {offlineAward > 0 ? <button className="offline-banner" onClick={() => setOfflineAward(0)}>Welcome back — your empire earned <b>{money(offlineAward)}</b> while away. <span>Dismiss</span></button> : null}
     {event ? <section className="event-strip"><span className="event-emoji">{event.emoji}</span><div><span className="eyebrow">LIVE MARKET EVENT</span><b>{event.name}</b><small>{event.description}</small></div><div className="event-numbers"><span>Revenue ×{event.incomeMultiplier.toFixed(2)}</span><span>Costs ×{event.upkeepMultiplier.toFixed(2)}</span><small>{Math.max(0, Math.ceil((state.eventEndsAt - Date.now()) / 1000))}s left</small></div></section> : null}
     <section className={`goal-strip ${won ? 'won' : ''}`}><div><span className="eyebrow">SCENARIO GOAL</span><b>{freeMode ? 'Free Mode ∞ — no finish line' : won ? 'Goal complete ✓ — saved to leaderboard' : goalLabel}</b></div><div className="goal-progress"><span style={{ width: `${freeMode ? 100 : progress * 100}%` }} /></div><small>{freeMode ? '∞' : `${Math.round(progress * 100)}%`}</small></section>
-    <nav className="view-tabs"><button className={view === 'market' ? 'active' : ''} onClick={() => setView('market')}>Marketplace</button><button className={view === 'earnings' ? 'active' : ''} onClick={() => setView('earnings')}>Earn</button><button className={view === 'businesses' ? 'active' : ''} onClick={() => setView('businesses')}>Businesses</button><button className={view === 'empire' ? 'active' : ''} onClick={() => setView('empire')}>Empire</button><button className={view === 'debt' ? 'active' : ''} onClick={() => setView('debt')}>Debt & Court ⚖</button><button className={view === 'achievements' ? 'active' : ''} onClick={() => setView('achievements')}>Achievements · {achievementCount}</button><button className={view === 'collection' ? 'active' : ''} onClick={() => setView('collection')}>Collection · {meta.collectibles.length}</button><button className={view === 'leaderboard' ? 'active' : ''} onClick={() => setView('leaderboard')}>Leaderboard</button><button className={view === 'customize' ? 'active' : ''} onClick={() => setView('customize')}>Customize ◈</button><button className={view === 'settings' ? 'active' : ''} onClick={() => setView('settings')}>Settings ⚙</button></nav>
+    <nav className="view-tabs"><button className={view === 'market' ? 'active' : ''} onClick={() => setView('market')}>Marketplace</button><button className={view === 'earnings' ? 'active' : ''} onClick={() => setView('earnings')}>Earn</button><button className={view === 'businesses' ? 'active' : ''} onClick={() => setView('businesses')}>Businesses</button><button className={view === 'empire' ? 'active' : ''} onClick={() => setView('empire')}>Empire</button><button className={view === 'art' ? 'active' : ''} onClick={() => setView('art')}>Art District 🖼</button><button className={view === 'debt' ? 'active' : ''} onClick={() => setView('debt')}>Debt & Court ⚖</button><button className={view === 'achievements' ? 'active' : ''} onClick={() => setView('achievements')}>Achievements · {achievementCount}</button><button className={view === 'collection' ? 'active' : ''} onClick={() => setView('collection')}>Collection · {meta.collectibles.length}</button><button className={view === 'leaderboard' ? 'active' : ''} onClick={() => setView('leaderboard')}>Leaderboard</button><button className={view === 'customize' ? 'active' : ''} onClick={() => setView('customize')}>Customize ◈</button><button className={view === 'settings' ? 'active' : ''} onClick={() => setView('settings')}>Settings ⚙</button></nav>
 
     {view === 'achievements' ? <AchievementsView state={state} /> : null}
     {view === 'collection' ? <CollectionView meta={meta} onEquipTitle={(title) => setMeta((current) => equipTitle(current, title))} onToggleBadge={(id) => setMeta((current) => toggleShowcaseBadge(current, id))} /> : null}
+    {view === 'art' ? <ArtDistrictView state={state} setState={setState} /> : null}
     {view === 'leaderboard' ? <LeaderboardView /> : null}
     {view === 'customize' ? <CustomizationView state={state} setState={setState} inventory={customization} onInventoryChange={setCustomization} /> : null}
     {view === 'debt' ? <DebtView state={state} setState={setState} /> : null}

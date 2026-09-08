@@ -8,6 +8,7 @@ import type { LifeRpgState } from './life-types';
 import type { CareerState } from './career-types';
 import type { EducationState } from './education-types';
 import type { FreelanceState } from './freelance-types';
+import type { ArtPortfolio } from './art-types';
 
 export type FinancialMode = 'simple' | 'advanced';
 export type ScenarioId = 'nothing' | 'freeplay' | 'ten-x' | 'hundred-x' | 'thousand-x' | 'billionaire' | 'trillionaire' | 'custom';
@@ -43,7 +44,7 @@ export type Achievement = { id: string; name: string; description: string; emoji
 
 export type GameState = {
   started: boolean; scenarioId: ScenarioId; customScenario: CustomScenarioDefinition | null; mode: FinancialMode; cash: number; totalSpent: number; totalSold: number; lifetimeIncome: number;
-  owned: Record<string, number>; incomeStreams: Record<string, number>; businesses: BusinessPortfolio; cityEconomy: CityEconomyState; time: TimeSimulationState; life: LifeRpgState; career?: CareerState; education?: EducationState; freelance?: FreelanceState; rules: GameRules; debt?: DebtState;
+  owned: Record<string, number>; incomeStreams: Record<string, number>; businesses: BusinessPortfolio; cityEconomy: CityEconomyState; time: TimeSimulationState; life: LifeRpgState; career?: CareerState; education?: EducationState; freelance?: FreelanceState; art?: ArtPortfolio; rules: GameRules; debt?: DebtState;
   houseLevel: number; townLevel: number; regionLevel: number; upgrades: Record<string, number>; citySpecialization: CitySpecializationId | null;
   activeEventId: string | null; eventEndsAt: number; nextEventAt: number; lastOfflineIncome: number;
   riskMode: boolean; runStatus: RunStatus; bankruptcyDeadline: number; bankruptcyWarnings: number;
