@@ -1,41 +1,61 @@
-import { lokRuntime } from '@/integrations/lok/runtime';
-import type { GameState } from '../types';
-import { normalizeBusinessPortfolio } from './businesses';
-import { normalizeCityEconomy } from './city-economy';
-import { advanceDebtState, normalizeDebtState } from './debt';
-import { normalizeEducation } from './education';
-import { normalizeIncomeStreams } from './earnings';
-import { normalizeFreelance } from './freelance';
-import { normalizeCareer } from './careers';
-import { normalizeLifeRpg } from './life-progression';
-import { normalizeGameRules } from './rules';
-import { normalizeCustomScenario } from './custom-scenarios';
-import { normalizeTimeSimulation } from './time-simulation';
+import { lokRuntime } from "@/integrations/lok/runtime";
+import type { GameState } from "../types";
+import { normalizeBusinessPortfolio } from "./businesses";
+import { normalizeCityEconomy } from "./city-economy";
+import { advanceDebtState, normalizeDebtState } from "./debt";
+import { normalizeEducation } from "./education";
+import { normalizeIncomeStreams } from "./earnings";
+import { normalizeFreelance } from "./freelance";
+import { normalizeCareer } from "./careers";
+import { normalizeLifeRpg } from "./life-progression";
+import { normalizeGameRules } from "./rules";
+import { normalizeCustomScenario } from "./custom-scenarios";
+import { normalizeTimeSimulation } from "./time-simulation";
 
 const DEFAULT_EVENT_INTERVAL_MS = 120_000;
 
-export function normalizeGameState(state: GameState, now = Date.now()): GameState {
+export function normalizeGameState(
+  state: GameState,
+  now = Date.now(),
+): GameState {
   const cash = Number.isFinite(state.cash) ? state.cash : 0;
   const inferredActivePlayMs = Math.max(
     0,
-    Math.min((state.updatedAt ?? now) - (state.createdAt ?? now), 24 * 60 * 60 * 1000),
+    Math.min(
+      (state.updatedAt ?? now) - (state.createdAt ?? now),
+      24 * 60 * 60 * 1000,
+    ),
   );
-  const lok = lokRuntime.migrateRun(state.lokTokens ?? 0, state.lokProgressMs ?? 0);
+  const lok = lokRuntime.migrateRun(
+    state.lokTokens ?? 0,
+    state.lokProgressMs ?? 0,
+  );
   const time = normalizeTimeSimulation(state.time);
-  const life = normalizeLifeRpg(state.life, time.gameMinute, time.settings.dayLengthMinutes);
+  const life = normalizeLifeRpg(
+    state.life,
+    time.gameMinute,
+    time.settings.dayLengthMinutes,
+  );
   const career = normalizeCareer(state.career);
   const education = normalizeEducation(state.education);
   const freelance = normalizeFreelance(state.freelance);
   const debtBase = normalizeDebtState(state.debt);
   const previousDebtMinute = debtBase.lastAdvancedGameMinute || time.gameMinute;
-  const debtTick = advanceDebtState(debtBase, previousDebtMinute, time.gameMinute);
+  const debtTick = advanceDebtState(
+    debtBase,
+    previousDebtMinute,
+    time.gameMinute,
+  );
 
   let owned = state.owned ?? {};
   if (debtTick.seized.length) {
     owned = { ...owned };
     for (const collateral of debtTick.seized) {
-      if (collateral.kind !== 'item') continue;
-      owned[collateral.itemId] = Math.max(0, (owned[collateral.itemId] ?? 0) - collateral.quantity);
+      if (collateral.kind !== "item") continue;
+      owned[collateral.itemId] = Math.max(
+        0,
+        (owned[collateral.itemId] ?? 0) - collateral.quantity,
+      );
     }
   }
 
@@ -43,9 +63,10 @@ export function normalizeGameState(state: GameState, now = Date.now()): GameStat
     ...state,
     cash,
     owned,
-    customScenario: state.scenarioId === 'custom' && state.customScenario
-      ? normalizeCustomScenario(state.customScenario)
-      : null,
+    customScenario:
+      state.scenarioId === "custom" && state.customScenario
+        ? normalizeCustomScenario(state.customScenario)
+        : null,
     totalSold: state.totalSold ?? 0,
     businesses: normalizeBusinessPortfolio(state.businesses),
     cityEconomy: normalizeCityEconomy(state.cityEconomy, now),
@@ -66,7 +87,7 @@ export function normalizeGameState(state: GameState, now = Date.now()): GameStat
     nextEventAt: state.nextEventAt ?? now + DEFAULT_EVENT_INTERVAL_MS,
     lastOfflineIncome: state.lastOfflineIncome ?? 0,
     riskMode: state.riskMode ?? false,
-    runStatus: state.runStatus ?? 'active',
+    runStatus: state.runStatus ?? "active",
     bankruptcyDeadline: state.bankruptcyDeadline ?? 0,
     bankruptcyWarnings: state.bankruptcyWarnings ?? 0,
     peakCash: Math.max(state.peakCash ?? cash, cash),
@@ -74,6 +95,28 @@ export function normalizeGameState(state: GameState, now = Date.now()): GameStat
     lowestCash: Math.min(state.lowestCash ?? cash, cash),
     activePlayMs: Math.max(0, state.activePlayMs ?? inferredActivePlayMs),
     runAchievements: state.runAchievements ?? {},
+    cardGameplay: {
+      activitiesCompleted: Math.max(
+        0,
+        Math.floor(state.cardGameplay?.activitiesCompleted ?? 0),
+      ),
+      timeEventsEncountered: Math.max(
+        0,
+        Math.floor(state.cardGameplay?.timeEventsEncountered ?? 0),
+      ),
+      marketEventsEncountered: Math.max(
+        0,
+        Math.floor(state.cardGameplay?.marketEventsEncountered ?? 0),
+      ),
+      businessBoostUntilGameMinute: Math.max(
+        0,
+        state.cardGameplay?.businessBoostUntilGameMinute ?? 0,
+      ),
+      businessBoostMultiplier: Math.max(
+        1,
+        state.cardGameplay?.businessBoostMultiplier ?? 1,
+      ),
+    },
     lokTokens: lok.balance,
     lokProgressMs: lok.progressMs,
   };

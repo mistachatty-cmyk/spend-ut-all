@@ -1,10 +1,14 @@
-import type { LokDexAffinity, LokDexArchetype, LokDexCardVariant } from './lokdex-types';
+import type {
+  LokDexAffinity,
+  LokDexArchetype,
+  LokDexCardVariant,
+} from "./lokdex-types";
 
-export type CardShopProductKind = 'pack' | 'deck-kit';
-export type CardShopReleaseType = 'core' | 'capsule' | 'event' | 'collector';
+export type CardShopProductKind = "pack" | "deck-kit";
+export type CardShopReleaseType = "core" | "capsule" | "event" | "collector";
 
 export type CardPackGuarantee = {
-  minRarity?: 'uncommon' | 'rare' | 'epic' | 'legendary';
+  minRarity?: "uncommon" | "rare" | "epic" | "legendary";
   affinity?: LokDexAffinity[];
   archetype?: LokDexArchetype[];
   variantBoost?: number;
@@ -50,6 +54,60 @@ export type CardShopPull = {
   isNewCharacter: boolean;
 };
 
+export type CardCreditRewardSource =
+  | "activity"
+  | "day-end"
+  | "income-milestone"
+  | "world-event"
+  | "companion-gift"
+  | "companion-quest";
+
+export type CardCreditReward = {
+  id: string;
+  amount: number;
+  source: CardCreditRewardSource;
+  label: string;
+  companionId?: string;
+  awardedAt: number;
+};
+
+export type CardGameplayLedger = {
+  runId: string;
+  lastGameDay: number;
+  activitiesProcessed: number;
+  timeEventsProcessed: number;
+  marketEventsProcessed: number;
+  incomeTierProcessed: number;
+  lastCompanionGiftDay: number;
+};
+
+export type CompanionQuestKind =
+  | "earn"
+  | "activities"
+  | "spend"
+  | "businesses"
+  | "days";
+export type CompanionQuestBonus = "cash" | "business-boost" | "card-pack";
+
+export type CompanionQuest = {
+  id: string;
+  runId: string;
+  companionId: string;
+  title: string;
+  description: string;
+  kind: CompanionQuestKind;
+  startValue: number;
+  target: number;
+  credits: number;
+  cashBonus: number;
+  createdAt: number;
+};
+
+export type CompanionQuestSnapshot = CompanionQuest & {
+  progress: number;
+  complete: boolean;
+};
+
 export type CardShopState = {
   version: number;
   credits: number;
@@ -60,10 +118,17 @@ export type CardShopState = {
   cardsRecycled: number;
   creditsFromRecycling: number;
   creditsFromCollectionRewards: number;
+  creditsFromGameplay: number;
+  creditsFromCompanions: number;
+  cardPackVouchers: number;
   claimedCollectionMilestones: number[];
   ownedDeckBlueprintIds: string[];
   lastFreePackAt: number;
   freePacksClaimed: number;
   starterGrantClaimed: boolean;
   recentPulls: CardShopPull[];
+  recentCreditRewards: CardCreditReward[];
+  gameplayLedgers: CardGameplayLedger[];
+  activeCompanionQuest: CompanionQuest | null;
+  completedCompanionQuestIds: string[];
 };
