@@ -22,9 +22,15 @@ import {
 import {
   createLokDexCollection,
   loadLokDexCollection,
+  resolveLokDexCharacter,
   saveLokDexCollection,
   syncCompanionsToLokDex,
 } from "@/game/systems/lokdex";
+import {
+  exportOwnedCardAsPortable,
+  importLokCardExport,
+  serializeLokCardExport,
+} from "@/game/systems/lok-card-exchange";
 import { emitMicroMotion } from "@/game/systems/micro-animations";
 import { cardCreditEarningSummary } from "@/game/systems/card-rewards";
 import type { CardShopPull, CardShopState } from "@/game/card-shop-types";
@@ -61,14 +67,18 @@ export function CardShopView({
     createLokDexCollection(),
   );
   const [loaded, setLoaded] = useState(false);
-  const [tab, setTab] = useState<"packs" | "decks" | "binder" | "recycle">(
-    "packs",
-  );
+  const [tab, setTab] = useState<
+    "packs" | "decks" | "binder" | "recycle" | "exchange"
+  >("packs");
   const [message, setMessage] = useState(
     "Welcome to the Card Shop. Your first 350 Card Credits are on the house.",
   );
   const [lastPulls, setLastPulls] = useState<CardShopPull[]>([]);
   const [now, setNow] = useState(0);
+  const [exchangeInstanceId, setExchangeInstanceId] = useState("");
+  const [exchangeOutput, setExchangeOutput] = useState("");
+  const [importInput, setImportInput] = useState("");
+  const [exchangeMessage, setExchangeMessage] = useState("");
   const displayedCredits = useCountedNumber(shop.credits, 620);
 
   useEffect(() => {
@@ -240,6 +250,56 @@ export function CardShopView({
     setMessage(`Duplicate recycled for +${result.creditsGained} Card Credits.`);
   };
 
+  const generateExport = () => {
+    const card = collection.cards.find(
+      (entry) => entry.instanceId === exchangeInstanceId,
+    );
+    const character = card
+      ? resolveLokDexCharacter(collection, card.characterId)
+      : null;
+    if (!card || !character) {
+      setExchangeMessage("Pick an owned card to export first.");
+      return;
+    }
+    try {
+      const payload = exportOwnedCardAsPortable(character, card);
+      setExchangeOutput(serializeLokCardExport(payload));
+      setExchangeMessage(
+        `${character.name} is ready to hand to another LOK game.`,
+      );
+    } catch (error) {
+      setExchangeOutput("");
+      setExchangeMessage(
+        error instanceof Error ? error.message : "Could not export that card.",
+      );
+    }
+  };
+
+  const copyExport = async () => {
+    if (!exchangeOutput) return;
+    try {
+      await navigator.clipboard.writeText(exchangeOutput);
+      setExchangeMessage("Copied — paste it into the receiving game.");
+    } catch {
+      setExchangeMessage("Copy failed; select the text and copy it manually.");
+    }
+  };
+
+  const importCard = () => {
+    const result = importLokCardExport(collection, importInput);
+    if (!result.success) {
+      setExchangeMessage(result.error);
+      return;
+    }
+    setCollection(result.collection);
+    setImportInput("");
+    setExchangeMessage(
+      result.alreadyOwned
+        ? `${result.character.name} was already in your LOKdex.`
+        : `${result.character.name} arrived from ${result.character.sourceGame ?? "another game"}.`,
+    );
+  };
+
   const deckProgress = (blueprintId: string) => {
     const blueprint = cardDeckBlueprints.find(
       (entry) => entry.id === blueprintId,
@@ -361,6 +421,15 @@ export function CardShopView({
           onClick={() => setTab("recycle")}
         >
           Duplicates · {duplicateGroups.length}
+        </button>
+        <button
+          className={tab === "exchange" ? "active" : ""}
+          onClick={() => setTab("exchange")}
+        >
+          Universe Exchange
+          {collection.foreignCharacters.length
+            ? ` · ${collection.foreignCharacters.length}`
+            : ""}
         </button>
       </nav>
 
@@ -555,7 +624,7 @@ export function CardShopView({
 
       {tab === "binder" ? (
         <section className="binder-grid">
-          {lokDexEntries.map((character) => {
+          {[...lokDexEntries, ...collection.foreignCharacters].map((character) => {
             const cards = collection.cards.filter(
               (card) => card.characterId === character.id,
             );
@@ -586,13 +655,14 @@ export function CardShopView({
                     "event",
                   ].indexOf(a),
               )[0];
+            const visiting = !!character.sourceGame;
             return (
               <article
-                className={`binder-card rarity-${character.rarity} ${owned ? "owned" : "locked"}`}
+                className={`binder-card rarity-${character.rarity} ${owned ? "owned" : "locked"} ${visiting ? "visiting-card" : ""}`}
                 key={character.id}
               >
                 <div className="binder-number">
-                  #{String(character.number).padStart(3, "0")}
+                  {visiting ? "🌐 VISITING" : `#${String(character.number).padStart(3, "0")}`}
                 </div>
                 <div className="binder-looper-art">
                   <PixelPetSprite
@@ -604,9 +674,11 @@ export function CardShopView({
                 </div>
                 <b>{owned ? character.name : "???"}</b>
                 <small>
-                  {owned
-                    ? `${character.rarity} · ${affinityEmoji[character.affinity]} ${character.affinity}`
-                    : character.discoveryHint}
+                  {visiting
+                    ? `from ${character.sourceGame}`
+                    : owned
+                      ? `${character.rarity} · ${affinityEmoji[character.affinity]} ${character.affinity}`
+                      : character.discoveryHint}
                 </small>
                 <em>
                   {owned
@@ -655,6 +727,136 @@ export function CardShopView({
               protected.
             </div>
           )}
+        </section>
+      ) : null}
+
+      {tab === "exchange" ? (
+        <section className="universe-exchange">
+          <section className="panel">
+            <div className="section-heading">
+              <div>
+                <span className="eyebrow">LOK UNIVERSE · EXPORT</span>
+                <h3>Send a card to another LOK game</h3>
+              </div>
+            </div>
+            <p>
+              Any card you own can become a portable{" "}
+              <code>lok.card-exchange</code> file another G-Six game can read
+              — cosmetic and collection identity only, never gameplay power.
+              See the LOK Card Exchange Protocol for how a receiving game
+              plugs this in.
+            </p>
+            <div className="exchange-controls">
+              <select
+                value={exchangeInstanceId}
+                onChange={(event) => {
+                  setExchangeInstanceId(event.target.value);
+                  setExchangeOutput("");
+                }}
+              >
+                <option value="">Choose an owned card…</option>
+                {collection.cards.map((card) => {
+                  const character = resolveLokDexCharacter(
+                    collection,
+                    card.characterId,
+                  );
+                  if (!character) return null;
+                  return (
+                    <option key={card.instanceId} value={card.instanceId}>
+                      {character.name} · {card.variant}
+                    </option>
+                  );
+                })}
+              </select>
+              <button
+                disabled={!exchangeInstanceId}
+                onClick={generateExport}
+              >
+                Generate export
+              </button>
+            </div>
+            {exchangeOutput ? (
+              <>
+                <textarea
+                  className="exchange-textarea"
+                  readOnly
+                  value={exchangeOutput}
+                  onFocus={(event) => event.currentTarget.select()}
+                />
+                <button onClick={copyExport}>Copy to clipboard</button>
+              </>
+            ) : null}
+          </section>
+
+          <section className="panel">
+            <div className="section-heading">
+              <div>
+                <span className="eyebrow">LOK UNIVERSE · IMPORT</span>
+                <h3>Bring a card in from another LOK game</h3>
+              </div>
+            </div>
+            <p>
+              Paste a <code>lok.card-exchange</code> export from another
+              G-Six game. It joins your binder as a visiting card with its
+              own identity — it never overwrites a native Firstlight
+              character.
+            </p>
+            <textarea
+              className="exchange-textarea"
+              placeholder="Paste a LOK card export here…"
+              value={importInput}
+              onChange={(event) => setImportInput(event.target.value)}
+            />
+            <button disabled={!importInput.trim()} onClick={importCard}>
+              Import card
+            </button>
+          </section>
+
+          {exchangeMessage ? (
+            <div className="card-shop-message" aria-live="polite">
+              {exchangeMessage}
+            </div>
+          ) : null}
+
+          <section className="panel">
+            <div className="section-heading">
+              <div>
+                <span className="eyebrow">VISITING CARDS</span>
+                <h3>Characters from other LOK games</h3>
+              </div>
+            </div>
+            {collection.foreignCharacters.length ? (
+              <div className="visiting-card-list">
+                {collection.foreignCharacters.map((character) => {
+                  const copies = collection.cards.filter(
+                    (card) => card.characterId === character.id,
+                  ).length;
+                  return (
+                    <article key={character.id}>
+                      <PixelPetSprite
+                        petId={character.id}
+                        mood="idle"
+                        size={44}
+                      />
+                      <div>
+                        <b>{character.name}</b>
+                        <small>
+                          from {character.sourceGame} · {character.rarity}
+                        </small>
+                      </div>
+                      <span>
+                        {copies} cop{copies === 1 ? "y" : "ies"}
+                      </span>
+                    </article>
+                  );
+                })}
+              </div>
+            ) : (
+              <div className="empty-card-shop">
+                No visiting cards yet. Import one from another LOK game above.
+              </div>
+            )}
+          </section>
         </section>
       ) : null}
 

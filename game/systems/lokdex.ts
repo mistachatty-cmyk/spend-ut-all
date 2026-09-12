@@ -1,12 +1,17 @@
 import { lokPets } from '@/data/customizations';
+import { lokDexEntryById } from '@/data/lokdex';
 import type { CustomizationInventory } from '../customization-types';
-import type { LokDexCollection, LokDexOwnedCard, LokDexAcquisition, LokDexCardVariant } from '../lokdex-types';
+import type { LokDexCharacter, LokDexCollection, LokDexOwnedCard, LokDexAcquisition, LokDexCardVariant } from '../lokdex-types';
 
 export const LOKDEX_COLLECTION_KEY = 'spend-it-all-lokdex-v1';
 export const LOKDEX_COLLECTION_VERSION = 1;
 
 export function createLokDexCollection(): LokDexCollection {
-  return { version: LOKDEX_COLLECTION_VERSION, discoveredIds: [], discoveredAt: {}, cards: [], favoriteCharacterIds: [] };
+  return { version: LOKDEX_COLLECTION_VERSION, discoveredIds: [], discoveredAt: {}, cards: [], favoriteCharacterIds: [], foreignCharacters: [] };
+}
+
+function isForeignCharacter(value: unknown): value is LokDexCharacter {
+  return !!value && typeof value === 'object' && typeof (value as LokDexCharacter).id === 'string' && typeof (value as LokDexCharacter).name === 'string';
 }
 
 export function normalizeLokDexCollection(input?: Partial<LokDexCollection> | null): LokDexCollection {
@@ -22,13 +27,26 @@ export function normalizeLokDexCollection(input?: Partial<LokDexCollection> | nu
     tradeLocked: card.tradeLocked ?? true,
     transferCount: Math.max(0, Number.isFinite(card.transferCount) ? card.transferCount : 0),
   })) : [];
+  const foreignCharacters = Array.isArray(input?.foreignCharacters) ? input!.foreignCharacters.filter(isForeignCharacter) : base.foreignCharacters;
   return {
     version: LOKDEX_COLLECTION_VERSION,
     discoveredIds,
     discoveredAt: input?.discoveredAt && typeof input.discoveredAt === 'object' ? input.discoveredAt : {},
     cards,
     favoriteCharacterIds: Array.isArray(input?.favoriteCharacterIds) ? [...new Set(input!.favoriteCharacterIds.filter((id): id is string => typeof id === 'string'))] : [],
+    foreignCharacters,
   };
+}
+
+/** Looks a character up in the native Firstlight roster first, then the local foreign-card cache. */
+export function resolveLokDexCharacter(collection: LokDexCollection, characterId: string): LokDexCharacter | null {
+  return lokDexEntryById(characterId) ?? collection.foreignCharacters.find((entry) => entry.id === characterId) ?? null;
+}
+
+/** Caches (or refreshes) one foreign character definition alongside its owned card instances. */
+export function upsertForeignLokDexCharacter(input: LokDexCollection, character: LokDexCharacter): LokDexCollection {
+  const collection = normalizeLokDexCollection(input);
+  return { ...collection, foreignCharacters: [...collection.foreignCharacters.filter((entry) => entry.id !== character.id), character] };
 }
 
 export function loadLokDexCollection() {

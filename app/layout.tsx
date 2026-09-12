@@ -26,6 +26,7 @@ import './looper-card-art.css';
 import './lokdex.css';
 import './card-shop.css';
 import './card-releases.css';
+import './card-universe-exchange.css';
 import './micro-animations.css';
 import './effects-levels.css';
 import './debt.css';

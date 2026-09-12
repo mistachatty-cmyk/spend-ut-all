@@ -29,6 +29,13 @@ export type LokDexCharacter = {
   cardStats: LokDexCardStats;
   tags: string[];
   companionCustomizationId?: string;
+  /**
+   * Absent (or 'spend-it-all') for the native Firstlight roster in data/lokdex.ts.
+   * Set on a character definition that arrived through the LOK card exchange
+   * protocol (see game/systems/lok-card-exchange.ts) from another G-Six game,
+   * identified by its portable namespace (e.g. 'g6.616-survivor').
+   */
+  sourceGame?: string;
 };
 
 /**
@@ -78,4 +85,11 @@ export type LokDexCollection = {
   discoveredAt: Record<string, number>;
   cards: LokDexOwnedCard[];
   favoriteCharacterIds: string[];
+  /**
+   * Cached character definitions for cards imported from another game via the
+   * LOK card exchange protocol. The native Firstlight roster (data/lokdex.ts)
+   * never lives here; this is only the "definition" half of foreign cards
+   * whose id isn't in that static roster. See resolveLokDexCharacter().
+   */
+  foreignCharacters: LokDexCharacter[];
 };
