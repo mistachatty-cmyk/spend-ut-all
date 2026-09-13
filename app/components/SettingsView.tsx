@@ -9,6 +9,7 @@ import { loadHudPreferences, saveHudPreferences, subscribeHudPreferences, type H
 import type { MicroMotionLevel, MicroMotionPreferences } from '@/game/micro-animation-types';
 import { setDebtSystemEnabled } from '@/game/debt-actions';
 import { lokRuntime } from '@/integrations/lok/runtime';
+import { AccountPanel } from './AccountPanel';
 import type { GameState } from '@/game/types';
 
 type RuleSection = 'economy' | 'world' | 'difficulty' | 'progression';
@@ -134,7 +135,10 @@ export function SettingsView({ state, setState }: { state: GameState; setState: 
       <label className="settings-toggle"><span>Floating symbol treatment</span><select value={motionPrefs.symbolStyle} onChange={(e) => patchMotion({symbolStyle:e.target.value as MicroMotionPreferences['symbolStyle']})}><option value="auto">Auto</option><option value="minimal">Minimal</option><option value="burst">Burst</option></select></label>
     </section> : null}
 
-    {section === 'account' ? <section className="panel account-settings"><div><span className="eyebrow">ACCOUNT & PERSISTENCE</span><h2>Local-first today, portable later</h2><p>Your active run, Legacy Collection, leaderboard, cosmetics and LOK wallet are local for now. Future account sync can carry them between devices without making an account mandatory to play.</p></div><div className="persistence-cards"><span><small>LOK wallet</small><b>◈ {wallet.balance.toLocaleString()}</b><em>{wallet.lifetimeEarned.toLocaleString()} lifetime earned</em></span><span><small>Identity</small><b>Local</b><em>Cloud linking planned</em></span><span><small>LOK Pass</small><b>Future</b><em>Supporter / ad-free entitlement</em></span><span><small>Cloud saves</small><b>Future</b><em>Server adapter ready</em></span></div></section> : null}
+    {section === 'account' ? <div className="settings-section-content">
+      <section className="panel account-settings"><div><span className="eyebrow">ACCOUNT & PERSISTENCE</span><h2>Local-first today, portable later</h2><p>Your active run, Legacy Collection, leaderboard, cosmetics and LOK wallet are local for now. Future account sync can carry them between devices without making an account mandatory to play.</p></div><div className="persistence-cards"><span><small>LOK wallet</small><b>◈ {wallet.balance.toLocaleString()}</b><em>{wallet.lifetimeEarned.toLocaleString()} lifetime earned</em></span><span><small>Identity</small><b>Local</b><em>Cloud linking planned</em></span><span><small>LOK Pass</small><b>Future</b><em>Supporter / ad-free entitlement</em></span><span><small>Cloud saves</small><b>Future</b><em>Server adapter ready</em></span></div></section>
+      <section className="panel settings-group"><span className="eyebrow">SIGN IN &amp; FEEDBACK</span><h2>Optional, doesn&apos;t touch your local save</h2><AccountPanel /></section>
+    </div> : null}
   </section>;
 }
 

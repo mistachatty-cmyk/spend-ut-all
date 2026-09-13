@@ -16,7 +16,20 @@ Use:
 
 ## Environment variables
 
-The current MVP has no required server environment variables. Saves and the temporary LOK balance are browser-local.
+The game itself has no required server environment variables. Saves and the temporary LOK balance are browser-local.
+
+Optional: the Settings → Account tab's sign-in, waitlist, and feedback form
+gate themselves off automatically when unset (see `integrations/lok/founder.ts`'s
+`lokAccountsAvailable`) -- the game plays identically without them. To turn
+those on, set these in the Vercel project's Environment Variables:
+
+- `NEXT_PUBLIC_SUPABASE_URL`
+- `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+
+Both come from the shared LokServices Supabase project's API settings (the
+same project 616 Survivor and other Lok products use) -- ask for them rather
+than creating a second Supabase project. Leave them unset to ship with
+account features quietly disabled.
 
 When the shared LOK wallet is connected, keep the integration modular under `integrations/lok/`. Public browser configuration may use `NEXT_PUBLIC_` variables, but credentials, signing keys, service-role keys, and other secrets must stay server-only in Vercel Project Settings.
 
