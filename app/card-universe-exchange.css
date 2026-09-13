@@ -1,0 +1,114 @@
+.universe-exchange {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.universe-exchange p {
+  color: #6d747f;
+  line-height: 1.5;
+  margin: 8px 0 12px;
+}
+.universe-exchange code {
+  background: #f3f5f8;
+  border-radius: 5px;
+  padding: 1px 5px;
+  font-size: 12px;
+}
+.exchange-controls {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.exchange-controls select {
+  flex: 1;
+  min-width: 200px;
+  border: 1px solid #dfe2e7;
+  border-radius: 10px;
+  padding: 9px 11px;
+  background: #fff;
+  font: inherit;
+}
+.universe-exchange button {
+  border: 0;
+  border-radius: 11px;
+  background: #17191e;
+  color: white;
+  padding: 10px 13px;
+  cursor: pointer;
+  font-weight: 700;
+}
+.universe-exchange button:disabled {
+  background: #e3e6ea;
+  color: #9aa0a8;
+  cursor: not-allowed;
+}
+.exchange-textarea {
+  width: 100%;
+  min-height: 130px;
+  margin-top: 10px;
+  margin-bottom: 10px;
+  border: 1px solid #dfe2e7;
+  border-radius: 12px;
+  padding: 11px;
+  font-family: ui-monospace, "SF Mono", Menlo, monospace;
+  font-size: 11px;
+  line-height: 1.5;
+  background: #f9fafb;
+  resize: vertical;
+}
+.visiting-card-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 12px;
+}
+.visiting-card-list article {
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: center;
+  border: 1px solid #e0e3e8;
+  border-radius: 13px;
+  padding: 9px 12px;
+}
+.visiting-card-list small {
+  color: #747b87;
+}
+.binder-card.visiting-card {
+  border-color: #8fb8ff;
+  background: linear-gradient(160deg, rgba(143, 184, 255, 0.12), transparent);
+}
+.binder-card.visiting-card .binder-number {
+  color: #3d6fd6;
+  font-weight: 800;
+}
+
+.midnight .exchange-controls select,
+.midnight .exchange-textarea {
+  background: #101318;
+  color: #f3f4f6;
+  border-color: #2a3039;
+}
+.midnight .universe-exchange code {
+  background: #101318;
+  color: #d8dde3;
+}
+.midnight .universe-exchange p {
+  color: #bfc5ce;
+}
+.midnight .visiting-card-list article {
+  border-color: #2a3039;
+}
+.midnight .binder-card.visiting-card {
+  border-color: #4d7de0;
+  background: linear-gradient(160deg, rgba(77, 125, 224, 0.16), transparent);
+}
+
+@media (max-width: 720px) {
+  .visiting-card-list article {
+    grid-template-columns: 36px 1fr;
+  }
+  .visiting-card-list article > span {
+    grid-column: 2;
+  }
+}

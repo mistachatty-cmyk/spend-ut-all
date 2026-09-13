@@ -4,6 +4,17 @@
 
 The LOKdex is a large collectible/card universe. Spend It All companions are only a small curated subset of LOKdex characters.
 
+**Cross-game exchange is now implemented, not just specified.** Any owned
+card can be exported as a portable `lok.card-exchange` JSON file
+(`game/systems/lok-card-exchange.ts`, `/cards` → Universe Exchange tab), and
+a card exported by another G-Six game can be imported back in as a
+"visiting card" with its own cached character definition. See
+`docs/LOK_CARD_EXCHANGE_PROTOCOL.md` for the exact envelope another game
+implements to participate. This is deliberately the foundation to build on
+next, ahead of new Card Shop products — see "Recommended next shop
+families" below, which stays paused on new storefronts until at least one
+other LOK game round-trips a real card through this exchange.
+
 The Card Shop is deliberately able to operate as its own local loop. A player should be able to visit `/cards`, open packs, fill a binder, chase variants, recycle duplicates, and work toward deck builds without needing to play the wealth simulation first.
 
 Random packs are currently purchased only with local in-game Card Credits. Do not connect randomized packs to Stripe, real-money purchases, or purchased LOK without a separate product/legal review and server authority.
@@ -92,7 +103,11 @@ Must not be built as local-only trading. Requires server accounts, authoritative
 13. Server account ownership.
 14. Player-to-player trade offers.
 15. Secure auction/listing system.
-16. Separate card game using the same LOKdex asset/instance IDs.
+16. ~~Separate card game using the same LOKdex asset/instance IDs.~~ The
+    cross-game exchange layer this item was gesturing at now exists (see the
+    note above and `docs/LOK_CARD_EXCHANGE_PROTOCOL.md`). What remains here
+    is specifically actual card-battle gameplay reusing those same ids —
+    still dormant.
 
 ## Economy principles
 
@@ -107,3 +122,9 @@ Must not be built as local-only trading. Requires server accounts, authoritative
 ## Standalone direction
 
 `/cards` is the first bridge toward a card-focused experience. Over time it can become a fuller card district with its own navigation, achievements, quests, collection profile, deck builder, NPC battles, and storefront while still sharing the same local/server LOKdex ownership layer with Spend It All and future G-Six experiences.
+
+The Universe Exchange tab is the first concrete step of that sharing: it is
+deliberately game-agnostic JSON, not a Spend It All-only feature, so any
+other LOK game's own import/export code (implemented independently, in
+whatever language that game uses) can participate without adopting this
+codebase.

@@ -8,6 +8,8 @@ This repository owns the game itself: UI, simulation, content, scenarios, buildi
 
 LOK is intentionally external. The game connects to the broader LOK ecosystem through a modular adapter/API layer rather than living inside the ecosystem repository. The current adapter lives under `integrations/lok/` and can later be replaced with the authoritative shared wallet/ledger service.
 
+LOKdex cards are portable across the G-Six universe: any owned card can be exported as a `lok.card-exchange` JSON file from `/cards` → Universe Exchange, and a card exported by another LOK game can be imported back in as a visiting card. See `docs/LOK_CARD_EXCHANGE_PROTOCOL.md` for the exact contract another game implements to participate, and `docs/LOK_PORTABLE_ASSET_SPEC.md` for the broader portable-asset contract this specializes.
+
 ## Current playable slice
 
 - Millionaire, Billionaire, and Trillionaire scenarios

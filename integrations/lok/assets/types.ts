@@ -16,7 +16,7 @@ export type LokAssetKind =
 
 export type LokAssetRarity = 'common' | 'uncommon' | 'rare' | 'epic' | 'legendary' | 'mythic' | 'secret';
 export type LokAssetTransferPolicy = 'soulbound' | 'tradeable' | 'giftable' | 'server-controlled';
-export type LokAssetAcquisitionMethod = 'starter' | 'achievement' | 'scenario' | 'lok' | 'lok-pass' | 'event' | 'secret' | 'supporter' | 'generated' | 'trade';
+export type LokAssetAcquisitionMethod = 'starter' | 'achievement' | 'scenario' | 'lok' | 'lok-pass' | 'event' | 'secret' | 'supporter' | 'generated' | 'trade' | 'pack';
 
 export type LokAssetProvenance = {
   sourceGame: string;

@@ -172,14 +172,30 @@ Implemented now:
 - local owned-instance helper
 - transfer-policy guard
 - JSON serialization helper
+- **A concrete card exchange protocol** (`game/systems/lok-card-exchange.ts`,
+  documented in `docs/LOK_CARD_EXCHANGE_PROTOCOL.md`) that turns an owned
+  LOKdex card into a portable `lok.card-exchange` JSON envelope and accepts
+  one back in, with the LOKdex collection now able to cache a foreign
+  character's definition (`LokDexCollection.foreignCharacters`) alongside its
+  owned instances — this is the "definition vs. owned instance" split from
+  this document, actually wired up end to end for one asset kind (`card`).
+- A `/cards` → Universe Exchange UI that exercises the above: export any
+  owned card to clipboard JSON, or paste one in from elsewhere.
 
 Not implemented now:
 
-- migration of existing cosmetics
+- migration of existing non-card cosmetics (theme/palette/HUD/etc. still
+  local-only; the exchange protocol above only covers `kind: 'card'` so far)
 - account/cloud ownership
-- trading
-- card gameplay
+- real trading (exported cards are `giftable` in *policy* but
+  `requiresServerAuthorityForTransfer: true`, so no local flow can move an
+  instance between two save files and call it secure — only copy-in as a new
+  local card, same as opening a pack)
+- card gameplay (imported cards get neutral placeholder `cardStats`, never a
+  fabricated power ranking)
 - generated pet factory
-- cross-game imports
+- a second game's own exporter/importer (Spend It All can now receive one;
+  no other G-Six game currently emits one — see the protocol doc for what
+  that would take)
 
 Those remain deliberately deferred.
