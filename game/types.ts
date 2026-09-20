@@ -8,6 +8,8 @@ import type { LifeRpgState } from "./life-types";
 import type { CareerState } from "./career-types";
 import type { EducationState } from "./education-types";
 import type { FreelanceState } from "./freelance-types";
+import type { FameState } from "./systems/fame";
+import type { DailyCheckInState } from "./systems/daily-rewards";
 
 export type FinancialMode = "simple" | "advanced";
 export type ScenarioId =
@@ -18,6 +20,20 @@ export type ScenarioId =
   | "thousand-x"
   | "billionaire"
   | "trillionaire"
+  | "bill-gates"
+  | "elon-musk"
+  | "jeff-bezos"
+  | "elon-prime"
+  | "bezos-prime"
+  | "gates-prime"
+  | "buffett"
+  | "arnault"
+  | "zuckerberg"
+  | "ellison"
+  | "huang"
+  | "steve-jobs"
+  | "rockefeller"
+  | "mansa-musa"
   | "custom";
 export type ItemCategory =
   | "everyday"
@@ -132,7 +148,27 @@ export type AchievementConditionId =
   | "explicit-consolidated"
   | "explicit-mortgage"
   | "explicit-foreclosure"
-  | "explicit-home-free";
+  | "explicit-home-free"
+  | "town-founded"
+  | "town-pop-1"
+  | "town-pop-100"
+  | "town-pop-1k"
+  | "town-pop-10k"
+  | "town-pop-100k"
+  | "town-pop-1m"
+  | "town-buildings-5"
+  | "town-buildings-15"
+  | "town-utopia"
+  | "town-festival"
+  | "town-petitions-3"
+  | "prime-elon-win"
+  | "prime-bezos-win"
+  | "prime-gates-win"
+  | "fame-500"
+  | "fame-forbes-top100"
+  | "fame-10k"
+  | "fame-time-person"
+  | "fame-planetary";
 
 export type GameItem = {
   id: string;
@@ -237,6 +273,8 @@ export type CardGameplayProgress = {
   businessBoostMultiplier: number;
 };
 
+import type { ReligionState } from "./systems/religion";
+
 export type GameState = {
   started: boolean;
   scenarioId: ScenarioId;
@@ -278,6 +316,9 @@ export type GameState = {
   cardGameplay: CardGameplayProgress;
   lokTokens: number;
   lokProgressMs: number;
+  fame?: FameState;
+  dailyRewards?: DailyCheckInState;
+  religion?: ReligionState;
   theme: "light" | "midnight";
   createdAt: number;
   updatedAt: number;
