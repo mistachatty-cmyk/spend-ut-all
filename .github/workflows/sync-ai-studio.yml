@@ -1,0 +1,69 @@
+name: Sync Google AI Studio intake
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '17 * * * *'
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: ai-studio-intake
+  cancel-in-progress: false
+
+jobs:
+  import-and-verify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out production repository
+        uses: actions/checkout@v4
+        with:
+          path: production
+          fetch-depth: 0
+
+      - name: Check out Google AI Studio intake
+        uses: actions/checkout@v4
+        with:
+          repository: mistachatty-cmyk/Spend-it-all-secondary-
+          ref: main
+          path: intake
+          fetch-depth: 0
+
+      - name: Import changed intake paths
+        id: sync
+        working-directory: production
+        env:
+          AI_STUDIO_INTAKE_DIR: ../intake
+        run: node scripts/import-ai-studio.mjs
+
+      - name: Install dependencies
+        if: steps.sync.outputs.changed == 'true'
+        working-directory: production
+        run: npm ci
+
+      - name: Build combined application
+        if: steps.sync.outputs.changed == 'true'
+        working-directory: production
+        run: npm run build
+
+      - name: Open or update integration pull request
+        if: steps.sync.outputs.changed == 'true'
+        working-directory: production
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SOURCE_SHA: ${{ steps.sync.outputs.source_sha }}
+        run: |
+          BRANCH="automation/ai-studio-sync"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git checkout -B "$BRANCH"
+          git add --all
+          git commit -m "Sync Google AI Studio intake ${SOURCE_SHA:0:12}"
+          git push --force-with-lease origin "$BRANCH"
+          if gh pr view "$BRANCH" --json url >/dev/null 2>&1; then
+            gh pr comment "$BRANCH" --body "Updated from Google AI Studio intake commit \`$SOURCE_SHA\`. Combined build passed; wait for the Vercel preview before merging."
+          else
+            gh pr create --base main --head "$BRANCH" --title "Sync Google AI Studio build" --body-file .git/ai-studio-sync-summary.md
+          fi
