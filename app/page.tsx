@@ -185,7 +185,10 @@ export default function Home() {
     const companionId = customization.equipped.petId ?? "pet-lok-slime";
     const synced = syncBaseGameCardRewards(cardShop, state, companionId);
     const withQuest = ensureCompanionQuest(synced.shop, state, companionId);
-    if (synced.changed || withQuest !== synced.shop) setCardShop(withQuest);
+    const questChanged =
+      withQuest.activeCompanionQuest?.id !==
+      synced.shop.activeCompanionQuest?.id;
+    if (synced.changed || questChanged) setCardShop(withQuest);
     for (const reward of synced.rewards) {
       emitMicroMotion({
         target: "card-credits",

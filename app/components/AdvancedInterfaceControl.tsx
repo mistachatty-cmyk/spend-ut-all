@@ -43,8 +43,8 @@ export function AdvancedInterfaceControl() {
       <div>
         <span className="eyebrow">LOOPER / COMPANION ART</span>
         <b>{production ? 'Production Looper Art' : 'Classic Pixel Art'}</b>
-        <small>{production ? 'Canonical high-detail Firstlight characters with personality motifs, materials and signature visual layers.' : 'Original compact companion sprites preserved as the lightweight legacy option.'}</small>
-        <em>Production is the primary art direction. Classic remains available at any time for preference and lower visual load.</em>
+        <small>{production ? 'Canonical high-detail Firstlight characters with personality motifs, materials and signature visual layers.' : 'The default, lightweight companion sprites.'}</small>
+        <em>Classic is the default art direction. Production remains available any time for higher-detail characters.</em>
       </div>
       <div className="interface-setting-actions"><button type="button" className={production ? 'active' : ''} onClick={() => patch({ looperArtStyle: production ? 'classic' : 'production' })} aria-pressed={production}>{production ? 'Switch to Classic' : 'Use Production Art'}</button><a href="/loopers">Open Looper Production Lab</a></div>
     </section>
