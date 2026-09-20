@@ -9,6 +9,7 @@ import {
   scenarios,
   townTiers,
 } from "@/data/content";
+import { townBuildings } from "@/data/town-content";
 import { lokRuntime } from "@/integrations/lok/runtime";
 import type { CustomScenarioDefinition } from "./custom-scenario-types";
 import {
@@ -36,8 +37,10 @@ import {
 import { incomeStreamsPerSecond, incomeStreamValue } from "./systems/earnings";
 import {
   advanceLifeHousingCosts,
+  advanceLifeNeeds,
   createLifeRpgState,
   gainLifeSkillXp,
+  getSimMood,
   housingAssetValue,
 } from "./systems/life-progression";
 import { advanceCareerPay, createCareerState } from "./systems/careers";
@@ -63,21 +66,73 @@ import {
   customGoalLabel,
   normalizeCustomScenario,
 } from "./systems/custom-scenarios";
+import { getMarketWeatherForDay } from "./systems/market-weather";
+import {
+  loadPrestigeState,
+  getPrestigeMultiplier,
+  getPrestigeDiscount,
+  getPrestigeStartingCash,
+} from "./systems/prestige";
+import { loadExecutiveDeck, calculateDeckSynergies } from "./systems/card-synergies";
+import {
+  calculateItemFameReward,
+  calculateTownTourismSnapshot,
+  getFameTier,
+  CELEBRITY_IMMIGRANTS,
+  MAGAZINE_COVERS,
+  createFameState,
+} from "./systems/fame";
+import { addFame } from "./fame-actions";
+import { ReligionId, createReligionState } from "./systems/religion";
+
 export function newGame(
   scenarioId: ScenarioId,
   mode: GameState["mode"],
   riskMode = false,
+  selectedReligion?: ReligionId | null,
+  customPrayerTimes?: Record<string, string>,
 ): GameState {
   const scenario = scenarios.find((e) => e.id === scenarioId) ?? scenarios[0],
     now = Date.now(),
     lok = lokRuntime.snapshot(),
     time = createTimeSimulationState();
+  const prestige = loadPrestigeState();
+  const starterTrustFund = scenario.id === "nothing" ? 0 : getPrestigeStartingCash(prestige.perks);
+  const startCash = scenario.startingCash + starterTrustFund;
+
+  let initialFame = 0;
+  if (scenario.id === "elon-prime") initialFame = 280_000;
+  else if (scenario.id === "bezos-prime") initialFame = 210_000;
+  else if (scenario.id === "gates-prime") initialFame = 175_000;
+  else if (scenario.id === "rockefeller") initialFame = 250_000;
+  else if (scenario.id === "mansa-musa") initialFame = 260_000;
+  else if (scenario.id === "arnault") initialFame = 160_000;
+  else if (scenario.id === "zuckerberg") initialFame = 150_000;
+  else if (scenario.id === "buffett") initialFame = 140_000;
+  else if (scenario.id === "ellison") initialFame = 130_000;
+  else if (scenario.id === "huang") initialFame = 120_000;
+  else if (scenario.id === "steve-jobs") initialFame = 110_000;
+  else if (scenario.id === "elon-musk") initialFame = 75_000;
+  else if (scenario.id === "jeff-bezos") initialFame = 60_000;
+  else if (scenario.id === "bill-gates") initialFame = 50_000;
+  else if (scenario.id === "trillionaire") initialFame = 20_000;
+  else if (scenario.id === "billionaire") initialFame = 5_000;
+
+  const unlockedCovers = MAGAZINE_COVERS.filter((m) => initialFame >= m.requiredFame).map((m) => m.id);
+  const celebrityResidents = CELEBRITY_IMMIGRANTS.filter((c) => initialFame >= c.requiredFame).map((c) => c.id);
+  const initialFameState = {
+    ...createFameState(),
+    points: initialFame,
+    totalEarned: initialFame,
+    unlockedCovers,
+    celebrityResidents,
+  };
   return {
     started: true,
     scenarioId: scenario.id,
     customScenario: null,
     mode,
-    cash: scenario.startingCash,
+    cash: startCash,
     totalSpent: 0,
     totalSold: 0,
     lifetimeIncome: 0,
@@ -121,14 +176,20 @@ export function newGame(
     },
     lokTokens: lok.balance,
     lokProgressMs: lok.progressMs,
+    fame: initialFameState,
+    religion: selectedReligion ? createReligionState(selectedReligion, customPrayerTimes) : undefined,
     theme: "light",
     createdAt: now,
     updatedAt: now,
   };
 }
-export function newCustomGame(input: CustomScenarioDefinition): GameState {
+export function newCustomGame(
+  input: CustomScenarioDefinition,
+  selectedReligion?: ReligionId | null,
+  customPrayerTimes?: Record<string, string>,
+): GameState {
   const scenario = normalizeCustomScenario(input),
-    base = newGame("nothing", scenario.mode, scenario.riskMode);
+    base = newGame("nothing", scenario.mode, scenario.riskMode, selectedReligion, customPrayerTimes);
   return {
     ...base,
     scenarioId: "custom",
@@ -149,15 +210,27 @@ export function newCustomGame(input: CustomScenarioDefinition): GameState {
 export function normalizeState(state: GameState) {
   return normalizeGameState(state);
 }
+function getGameDay(s?: GameState | null): number {
+  if (!s || !s.time) return 1;
+  const dayLength = s.time.settings?.dayLengthMinutes ?? 1440;
+  return Math.floor((s.time.gameMinute ?? 0) / dayLength) + 1;
+}
+
 export function itemUnitPrice(
   item: GameItem,
   owned: number,
   state?: GameState,
 ) {
+  const weatherDiscount = state ? getMarketWeatherForDay(getGameDay(state)).purchaseDiscount : 1;
+  const prestigeDiscount = getPrestigeDiscount(loadPrestigeState().perks);
+  const deckDiscount = calculateDeckSynergies(loadExecutiveDeck()).holdingsDiscount;
+  const totalDiscount = weatherDiscount * prestigeDiscount * deckDiscount;
+
   return (
     item.basePrice *
     Math.pow(item.growthRate, owned) *
-    (state?.rules?.economy.purchasePriceMultiplier ?? 1)
+    (state?.rules?.economy.purchasePriceMultiplier ?? 1) *
+    totalDiscount
   );
 }
 export function itemBulkPrice(
@@ -167,7 +240,12 @@ export function itemBulkPrice(
   state?: GameState,
 ) {
   if (q <= 0) return 0;
-  const m = state?.rules?.economy.purchasePriceMultiplier ?? 1;
+  const weatherDiscount = state ? getMarketWeatherForDay(getGameDay(state)).purchaseDiscount : 1;
+  const prestigeDiscount = getPrestigeDiscount(loadPrestigeState().perks);
+  const deckDiscount = calculateDeckSynergies(loadExecutiveDeck()).holdingsDiscount;
+  const totalDiscount = weatherDiscount * prestigeDiscount * deckDiscount;
+
+  const m = (state?.rules?.economy.purchasePriceMultiplier ?? 1) * totalDiscount;
   if (item.growthRate === 1) return item.basePrice * q * m;
   return (
     item.basePrice *
@@ -211,8 +289,17 @@ function businessEnvironment(s: GameState) {
   };
 }
 export function grossIncomePerSecond(s: GameState) {
+  const weather = getMarketWeatherForDay(getGameDay(s));
+  const deckSynergies = calculateDeckSynergies(loadExecutiveDeck());
+  const prestigeMult = getPrestigeMultiplier(loadPrestigeState().perks);
+
   const a = items.reduce(
-      (t, i) => t + (i.incomePerSecond ?? 0) * (s.owned[i.id] ?? 0),
+      (t, i) => {
+        const catMult = (weather.categoryBonus && i.category === weather.categoryBonus)
+          ? (weather.categoryMultiplier ?? 1)
+          : 1;
+        return t + (i.incomePerSecond ?? 0) * (s.owned[i.id] ?? 0) * catMult;
+      },
       0,
     ),
     sp = specializationMultipliers(s),
@@ -221,12 +308,31 @@ export function grossIncomePerSecond(s: GameState) {
     businessBoost =
       s.time.gameMinute < s.cardGameplay.businessBoostUntilGameMinute
         ? s.cardGameplay.businessBoostMultiplier
-        : 1;
+        : 1,
+    townTax = s.cityEconomy?.founded
+      ? cityEconomySnapshot(s.cityEconomy, s.businesses ?? {}, s.townLevel).taxRevenuePerSecond
+      : 0,
+    fameMult = 1 + getFameTier(s.fame?.points ?? 0).incomeBonusPct,
+    celebIncome = (s.fame?.celebrityResidents ?? []).reduce((sum, id) => {
+      const c = CELEBRITY_IMMIGRANTS.find((x) => x.id === id);
+      return sum + (c?.cashBonusPerSecond ?? 0);
+    }, 0),
+    tourismIncome = s.cityEconomy?.founded
+      ? calculateTownTourismSnapshot(s.fame?.points ?? 0, s.cityEconomy.population, s.cityEconomy.communityGoodwill).tourismRevenuePerSec
+      : 0;
   return (
     (a * upgradeIncomeMultiplier(s) * sp.income * e.income +
-      b.revenuePerSecond * businessBoost +
-      incomeStreamsPerSecond(s)) *
-    s.rules.economy.incomeMultiplier
+      b.revenuePerSecond * businessBoost * deckSynergies.businessMultiplier +
+      incomeStreamsPerSecond(s) * deckSynergies.workMultiplier +
+      townTax +
+      tourismIncome +
+      celebIncome) *
+    s.rules.economy.incomeMultiplier *
+    weather.incomeMultiplier *
+    deckSynergies.revenueMultiplier *
+    prestigeMult *
+    fameMult *
+    (s.life?.enabled ? getSimMood(s.life).incomeMultiplier : 1)
   );
 }
 export function upkeepPerSecond(s: GameState) {
@@ -265,6 +371,17 @@ export function upgradesValue(s: GameState) {
     return t + v;
   }, 0);
 }
+export function townBuildingsValue(s: GameState) {
+  if (!s.cityEconomy?.buildings) return 0;
+  let val = 0;
+  for (const b of townBuildings) {
+    const count = s.cityEconomy.buildings[b.id] ?? 0;
+    for (let i = 0; i < count; i++) {
+      val += b.baseCost * Math.pow(b.growthRate, i);
+    }
+  }
+  return val;
+}
 export function netWorth(s: GameState) {
   const h = houseTiers.find((t) => t.level === s.houseLevel)?.cost ?? 0,
     tw = townTiers.find((t) => t.level === (s.townLevel ?? 0))?.cost ?? 0,
@@ -273,6 +390,7 @@ export function netWorth(s: GameState) {
     s.cash +
     holdingsValue(s) +
     upgradesValue(s) +
+    townBuildingsValue(s) +
     incomeStreamValue(s) +
     housingAssetValue(s.life) +
     h +
@@ -308,7 +426,7 @@ export function buyItem(s: GameState, i: GameItem, q = 1) {
     !canRiskSpend(s, p, netWorth(s))
   )
     return s;
-  return {
+  const next: GameState = {
     ...s,
     cash: s.cash - p,
     totalSpent: s.totalSpent + p,
@@ -316,6 +434,8 @@ export function buyItem(s: GameState, i: GameItem, q = 1) {
     lowestCash: Math.min(s.lowestCash, s.cash - p),
     updatedAt: Date.now(),
   };
+  const fameBonus = calculateItemFameReward(i) * q;
+  return fameBonus > 0 ? addFame(next, fameBonus) : next;
 }
 export function canSellItem(s: GameState, i: GameItem) {
   return (
@@ -531,12 +651,15 @@ export function advance(state: GameState, deltaMs: number) {
       s.businesses ?? {},
       s.townLevel,
       deltaMs,
+      now,
+      s.fame?.points ?? 0,
     ),
   };
   const prev = s.time.gameMinute,
     t = advanceTimeSimulation(s.time, deltaMs);
   s = { ...s, time: t.time };
   s = advanceLifeHousingCosts(s, prev, t.time.gameMinute);
+  s = advanceLifeNeeds(s, prev, t.time.gameMinute);
   s = advanceCareerPay(s, prev, t.time.gameMinute);
   s = advanceEducation(s, prev, t.time.gameMinute);
   let activityIncome = 0;
