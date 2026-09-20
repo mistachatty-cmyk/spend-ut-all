@@ -9,6 +9,7 @@ import { CustomizationView } from "@/app/components/CustomizationView";
 import { DebtView } from "@/app/components/DebtView";
 import { EarningsView } from "@/app/components/EarningsView";
 import { GameOverView } from "@/app/components/GameOverView";
+import { ItemPixelSprite } from "@/app/components/ItemPixelSprite";
 import { LeaderboardView } from "@/app/components/LeaderboardView";
 import { MoneyCounter } from "@/app/components/MoneyCounter";
 import { PetCompanion } from "@/app/components/PetCompanion";
@@ -677,7 +678,9 @@ export default function Home() {
                       className={`item-card ${!unlocked ? "locked" : ""}`}
                       key={item.id}
                     >
-                      <div className="item-icon">{item.emoji}</div>
+                      <div className="item-icon">
+                        <ItemPixelSprite itemId={item.id} emoji={item.emoji} />
+                      </div>
                       <div className="item-copy">
                         <div className="item-title">
                           <h3>{item.name}</h3>
