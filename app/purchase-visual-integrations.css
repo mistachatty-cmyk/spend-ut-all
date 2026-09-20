@@ -1,0 +1,10 @@
+.city-actions button{display:flex;align-items:center;gap:9px;text-align:left}
+.city-actions button>.purchase-visual{pointer-events:none;flex:0 0 58px;min-width:58px;width:58px;height:50px}
+.finance-tool>.purchase-visual{width:100%;height:105px;margin:10px 0}
+.activity-card>.purchase-visual{flex:0 0 66px}
+.stream-grid article,.investment-grid article{grid-template-columns:72px 1fr auto}
+.upgrade-card{grid-template-columns:80px 1fr}
+.activity-card{grid-template-columns:72px 1fr auto}
+.customization-card{grid-template-columns:76px minmax(0,1fr) auto}
+@media(max-width:900px){.activity-card{grid-template-columns:72px 1fr}.activity-card button{grid-column:2}}
+@media(max-width:600px){.stream-grid article,.investment-grid article{grid-template-columns:72px 1fr}.customization-card{grid-template-columns:76px minmax(0,1fr)}.customization-action{grid-column:2}.activity-card{grid-template-columns:72px minmax(0,1fr)}.activity-card button{grid-column:1/-1}}
