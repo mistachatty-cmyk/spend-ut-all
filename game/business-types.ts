@@ -24,6 +24,10 @@ export type BusinessDefinition = {
   id: BusinessId;
   name: string;
   emoji: string;
+  imageUrl?: string;
+  miniImageUrl?: string;
+  badge?: string;
+  accentColor?: string;
   description: string;
   foundingCost: number;
   baseRevenuePerSecond: number;
@@ -45,6 +49,10 @@ export type ManagedBusiness = {
   marketingLevel: number;
   operationsLevel: number;
   qualityLevel: number;
+  customName?: string;
+  slogan?: string;
+  brandColor?: string;
+  logoIcon?: string;
 };
 
 export type BusinessPortfolio = Record<string, ManagedBusiness>;

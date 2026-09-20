@@ -239,6 +239,7 @@ export function saveCardShopState(input: CardShopState) {
 }
 
 export function ensureCardShopStarterGrant(input: CardShopState) {
+  if (input?.starterGrantClaimed) return input;
   const state = normalizeCardShopState(input);
   if (state.starterGrantClaimed) return state;
   return {

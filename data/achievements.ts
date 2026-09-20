@@ -92,9 +92,14 @@ export const achievements: Achievement[] = [
   // BUSINESS
   { id: 'first-stream', name: 'First Passive Dollar', description: 'Own your first passive income stream.', emoji: '🪴', kind: 'incomeStreams', threshold: 1, category: 'business', subgroup: 'Passive Income', points: 10 },
   { id: 'ten-streams', name: 'Income Stack', description: 'Own 10 passive income streams.', emoji: '🧱', kind: 'incomeStreams', threshold: 10, category: 'business', subgroup: 'Passive Income', points: 20 },
+  { id: 'twenty-streams', name: 'Diversified Stacks', description: 'Own 20 passive income streams.', emoji: '📑', kind: 'incomeStreams', threshold: 20, category: 'business', subgroup: 'Passive Income', points: 30 },
+  { id: 'fifty-streams', name: 'Cash Fountain', description: 'Own 50 passive income streams.', emoji: '⛲', kind: 'incomeStreams', threshold: 50, category: 'business', subgroup: 'Passive Income', points: 50 },
   { id: 'hundred-streams', name: 'Income Web', description: 'Own 100 passive income streams.', emoji: '🕸️', kind: 'incomeStreams', threshold: 100, category: 'business', subgroup: 'Passive Income', points: 40 },
   { id: 'first-company', name: 'Founder CEO', description: 'Found your first managed company.', emoji: '🏢', kind: 'businesses', threshold: 1, category: 'business', subgroup: 'Company Builder', points: 25 },
   { id: 'three-companies', name: 'Serial Founder', description: 'Own 3 managed companies.', emoji: '🧠', kind: 'businesses', threshold: 3, category: 'business', subgroup: 'Company Builder', points: 50 },
+  { id: 'five-companies', name: 'Boardroom Titan', description: 'Own 5 managed companies.', emoji: '👔', kind: 'businesses', threshold: 5, category: 'business', subgroup: 'Company Builder', points: 60 },
+  { id: 'ten-companies', name: 'Conglomerate Architect', description: 'Own 10 managed companies.', emoji: '🏙️', kind: 'businesses', threshold: 10, category: 'business', subgroup: 'Company Builder', points: 90 },
+  { id: 'fifteen-companies', name: 'Global Syndicate', description: 'Own 15 managed companies.', emoji: '🌐', kind: 'businesses', threshold: 15, category: 'business', subgroup: 'Company Builder', points: 140 },
   { id: 'all-companies', name: 'Conglomerate', description: 'Found every managed business type.', emoji: '🏛️', kind: 'combo', threshold: 1, condition: 'all-businesses', category: 'business', subgroup: 'Company Builder', points: 100 },
   { id: 'diversified', name: 'Three-Legged Empire', description: 'Own a marketplace asset, a passive income stream, and a managed business.', emoji: '🔺', kind: 'combo', threshold: 1, condition: 'diversified', category: 'business', subgroup: 'Diversification', points: 50 },
 
