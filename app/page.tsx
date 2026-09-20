@@ -954,6 +954,9 @@ export default function Home() {
         <button className="secondary" onClick={() => setView("settings")}>
           Game Rules ⚙
         </button>
+        <button className="secondary" onClick={() => setState(null)}>
+          Main Menu ↩
+        </button>
         <button
           className="danger"
           onClick={() => {
