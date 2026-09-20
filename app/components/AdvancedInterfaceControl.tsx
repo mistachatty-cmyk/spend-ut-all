@@ -14,7 +14,11 @@ export function AdvancedInterfaceControl() {
   useEffect(() => {
     document.documentElement.dataset.interfaceMode = prefs.interfaceMode;
     document.documentElement.dataset.looperArt = prefs.looperArtStyle;
-  }, [prefs.interfaceMode, prefs.looperArtStyle]);
+    document.documentElement.dataset.uiEdge = prefs.uiEdgeStyle;
+    document.documentElement.dataset.informationDensity = prefs.informationDensity;
+    document.documentElement.dataset.visualArt = prefs.visualArtMode;
+    document.documentElement.dataset.visualQuality = prefs.visualQualityPreset;
+  }, [prefs.informationDensity, prefs.interfaceMode, prefs.looperArtStyle, prefs.uiEdgeStyle, prefs.visualArtMode, prefs.visualQualityPreset]);
 
   const advanced = prefs.interfaceMode === 'advanced';
   const production = prefs.looperArtStyle === 'production';

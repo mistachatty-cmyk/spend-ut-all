@@ -6,6 +6,7 @@ import { EducationView } from './EducationView';
 import { FreelanceView } from './FreelanceView';
 import { LifeRpgView } from './LifeRpgView';
 import { TimeView } from './TimeView';
+import { PurchaseVisual } from './PurchaseVisual';
 import { activeEarnings, incomeStreams } from '@/data/earnings';
 import { lifeSkills } from '@/data/life-progression';
 import { investments } from '@/data/investments';
@@ -80,7 +81,7 @@ export function EarningsView({
                   });
                 }}
               >
-                <span>{earning.emoji}</span>
+                <PurchaseVisual id={earning.id} name={earning.name} emoji={earning.emoji} family="income" value={earning.payout} compact locked={!unlocked} />
                 <div>
                   <b>{earning.name}</b>
                   <small>{earning.description}</small>
@@ -116,7 +117,7 @@ export function EarningsView({
               && lifeSkillLevel(state.life, stream.requiredSkillId) < (stream.requiredSkillLevel ?? 0);
             return (
               <article key={stream.id}>
-                <span>{stream.emoji}</span>
+                <PurchaseVisual id={stream.id} name={stream.name} emoji={stream.emoji} family="income" value={stream.baseCost} compact locked={!unlocked} />
                 <div>
                   <b>{stream.name}</b>
                   <small>{stream.description}</small>
@@ -146,7 +147,7 @@ export function EarningsView({
             const unlocked = investmentUnlocked(state, investment);
             return (
               <article key={investment.id}>
-                <span>{investment.emoji}</span>
+                <PurchaseVisual id={investment.id} name={investment.name} emoji={investment.emoji} family="investment" value={investment.minimumStake} compact locked={!unlocked} />
                 <div><b>{investment.name}</b><small>{investment.description}</small></div>
                 <div>
                   {[0.1, 0.25, 0.5].map(fraction => (

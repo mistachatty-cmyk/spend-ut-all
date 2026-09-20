@@ -3,10 +3,12 @@
 import { useEffect, useState } from 'react';
 import { lokPets } from '@/data/customizations';
 import { equipCustomization, grantCustomization, loadCustomizationInventory, saveCustomizationInventory } from '@/game/systems/customizations';
+import { InterfaceStyleDeck } from './InterfaceStyleDeck';
 import { PixelPetSprite } from './PixelPetSprite';
 
 const SAVE_KEY = 'spend-it-all-v1';
 const STARTER_COMPANION_KEY = 'spend-it-all-starter-companion-v1';
+const STARTER_INTERFACE_STYLE_KEY = 'spend-it-all-starter-interface-style-v1';
 const choices = [
   { id: 'pet-lok-slime', benefit: 'Balanced guide', detail: 'General economy, milestone, risk and progression reminders.' },
   { id: 'pet-coin-cat', benefit: 'Money watcher', detail: 'Focuses more often on balances, purchases, cash flow and value.' },
@@ -15,15 +17,21 @@ const choices = [
 
 export function StarterCompanionPrompt() {
   const [open, setOpen] = useState(false);
+  const [step, setStep] = useState<'companion' | 'style'>('companion');
+  const [companionName, setCompanionName] = useState('your companion');
 
   useEffect(() => {
     const check = () => {
       try {
-        if (localStorage.getItem(STARTER_COMPANION_KEY)) return setOpen(false);
         const raw = localStorage.getItem(SAVE_KEY);
         if (!raw) return setOpen(false);
         const save = JSON.parse(raw) as { started?: boolean };
-        setOpen(!!save.started);
+        if (!save.started) return setOpen(false);
+        const selectedId = localStorage.getItem(STARTER_COMPANION_KEY);
+        const selectedPet = lokPets.find((entry) => entry.id === selectedId);
+        setCompanionName(selectedPet?.name ?? 'your companion');
+        setStep(selectedId ? 'style' : 'companion');
+        setOpen(selectedId ? !localStorage.getItem(STARTER_INTERFACE_STYLE_KEY) : true);
       } catch { setOpen(false); }
     };
     check();
@@ -39,12 +47,18 @@ export function StarterCompanionPrompt() {
     inventory = equipCustomization(inventory, id);
     saveCustomizationInventory(inventory);
     localStorage.setItem(STARTER_COMPANION_KEY, id);
+    setCompanionName(lokPets.find((entry) => entry.id === id)?.name ?? 'your companion');
+    setStep('style');
+  };
+
+  const completeStyleDeck = () => {
+    localStorage.setItem(STARTER_INTERFACE_STYLE_KEY, '1');
     setOpen(false);
     window.location.reload();
   };
 
   return <div className="starter-companion-backdrop" role="dialog" aria-modal="true" aria-labelledby="starter-companion-title">
-    <section className="starter-companion-panel">
+    {step === 'style' ? <InterfaceStyleDeck companionName={companionName} onComplete={completeStyleDeck} /> : <section className="starter-companion-panel">
       <span className="eyebrow">YOUR FIRST PRODUCTION LOOPER</span>
       <h2 id="starter-companion-title">Pick who starts the climb with you</h2>
       <p>Choose one starter companion. Their benefit is guidance and personality—not extra money or economic power. You can collect and switch companions later.</p>
@@ -62,6 +76,6 @@ export function StarterCompanionPrompt() {
         })}
       </div>
       <small className="starter-companion-note">This choice is permanent only as your free starter grant. You can equip another owned companion anytime from Style → Companions. Classic art remains available from Settings.</small>
-    </section>
+    </section>}
   </div>;
 }

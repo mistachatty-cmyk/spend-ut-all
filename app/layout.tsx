@@ -34,6 +34,10 @@ import './game-shell.css';
 import './card-access.css';
 import './card-district-access.css';
 import './advanced-interface.css';
+import './interface-style-deck.css';
+import './purchase-visuals.css';
+import './purchase-visual-integrations.css';
+import './pixel-purchase-integrations.css';
 
 export const metadata: Metadata = {
   title: 'Spend It All',

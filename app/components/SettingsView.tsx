@@ -78,6 +78,12 @@ export function SettingsView({ state, setState }: { state: GameState; setState: 
         <Toggle label="Hours" checked={state.time.display.showHours} onChange={(v) => patchDisplay({showHours:v})}/>
         <Toggle label="Days" checked={state.time.display.showDays} onChange={(v) => patchDisplay({showDays:v})}/>
       </section>
+      <section className="panel settings-group settings-single"><span className="eyebrow">STYLE DECK</span><h2>Panel frame &amp; information level</h2><p className="muted">The setup shown after choosing your first companion is always available here. It changes presentation only.</p>
+        <label className="settings-toggle"><span>Panel corners</span><select value={hudPrefs.uiEdgeStyle} onChange={(event) => patchHud({ uiEdgeStyle: event.target.value === 'boxed' ? 'boxed' : 'rounded' })}><option value="rounded">Rounded edges</option><option value="boxed">Boxed edges</option></select></label>
+        <label className="settings-toggle"><span>Information on screen</span><select value={hudPrefs.informationDensity} onChange={(event) => patchHud({ informationDensity: event.target.value === 'more' ? 'more' : event.target.value === 'less' ? 'less' : 'balanced' })}><option value="more">More information</option><option value="balanced">Middle information</option><option value="less">Less information</option></select></label>
+        <label className="settings-toggle"><span>Economy art</span><select value={hudPrefs.visualArtMode} onChange={(event) => patchHud({ visualArtMode: event.target.value === 'photo' ? 'photo' : 'pixel' })}><option value="pixel">Pixel Collection</option><option value="photo">Real-life pictures</option></select></label>
+        <label className="settings-toggle"><span>Visual quality</span><select value={hudPrefs.visualQualityPreset} onChange={(event) => patchHud({ visualQualityPreset: event.target.value === 'potato' ? 'potato' : event.target.value === 'high' ? 'high' : 'mid' })}><option value="potato">Potato</option><option value="mid">Mid</option><option value="high">High-end</option></select></label>
+      </section>
     </div> : null}
 
     {section === 'gameplay' ? <fieldset className="settings-lockable" disabled={challengeLocked}>
