@@ -14,4 +14,4 @@ Google AI Studio work belongs in `mistachatty-cmyk/Spend-it-all-secondary-`. The
 
 The importer never writes directly to `main`, never imports the secondary repository's workflow files, and preserves production-only modules unless the secondary commit explicitly changes the same allowed path.
 
-Current integrated secondary commit: `de2b1aa3bb4addd233a463f6647b24dc2b0285be`.
+Current integrated secondary commit: `257de462ee2ff7bc88ff45d09145ebba0b4c682f`.
