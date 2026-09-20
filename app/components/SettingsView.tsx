@@ -9,11 +9,25 @@ import { loadHudPreferences, saveHudPreferences, subscribeHudPreferences, type H
 import type { MicroMotionLevel, MicroMotionPreferences } from '@/game/micro-animation-types';
 import { setDebtSystemEnabled } from '@/game/debt-actions';
 import { lokRuntime } from '@/integrations/lok/runtime';
+import {
+  getAudioSettings,
+  setAudioMuted,
+  setAudioVolume,
+  subscribeAudioSettings,
+  playClickSound,
+  playCoinSound,
+  playPurchaseSound,
+  playAchievementSound,
+  playPrestigeSound,
+  playWeatherSound,
+  type AudioSettings,
+} from '@/game/systems/audio-sfx';
+import { isFloatersEnabled, setFloatersEnabled } from '@/game/systems/floating-numbers';
 import { AccountPanel } from './AccountPanel';
 import type { GameState } from '@/game/types';
 
 type RuleSection = 'economy' | 'world' | 'difficulty' | 'progression';
-type SettingsSection = 'display' | 'gameplay' | 'time' | 'risk' | 'effects' | 'account';
+type SettingsSection = 'display' | 'gameplay' | 'time' | 'risk' | 'effects' | 'audio' | 'account';
 
 const settingsSections: Array<{ id: SettingsSection; icon: string; label: string; hint: string }> = [
   { id: 'display', icon: '◫', label: 'Display', hint: 'HUD & counters' },
@@ -21,6 +35,7 @@ const settingsSections: Array<{ id: SettingsSection; icon: string; label: string
   { id: 'time', icon: '◷', label: 'Time', hint: 'Clock & schedule' },
   { id: 'risk', icon: '⚖', label: 'Risk', hint: 'Debt & legal' },
   { id: 'effects', icon: '✦', label: 'Effects', hint: 'Motion & feedback' },
+  { id: 'audio', icon: '🔊', label: 'Audio', hint: 'Synthesizer & SFX' },
   { id: 'account', icon: '◇', label: 'Account', hint: 'Persistence' },
 ];
 
@@ -32,10 +47,13 @@ export function SettingsView({ state, setState }: { state: GameState; setState: 
   const [section, setSection] = useState<SettingsSection>('display');
   const [motionPrefs, setMotionPrefs] = useState<MicroMotionPreferences>(() => loadMicroMotionPreferences());
   const [hudPrefs, setHudPrefs] = useState<HudPreferences>(() => loadHudPreferences());
+  const [audioPrefs, setAudioPrefs] = useState<AudioSettings>(() => getAudioSettings());
+  const [floatersOn, setFloatersOn] = useState<boolean>(() => isFloatersEnabled());
   const motionProfile = microMotionProfile(motionPrefs.amplificationLevel);
 
   useEffect(() => subscribeMicroMotionPreferences(setMotionPrefs), []);
   useEffect(() => subscribeHudPreferences(setHudPrefs), []);
+  useEffect(() => subscribeAudioSettings(setAudioPrefs), []);
 
   const patchMotion = (patch: Partial<MicroMotionPreferences>) => setMotionPrefs((current) => saveMicroMotionPreferences({ ...current, ...patch }));
   const patchHud = (patch: Partial<HudPreferences>) => setHudPrefs((current) => saveHudPreferences({ ...current, ...patch }));
@@ -61,7 +79,13 @@ export function SettingsView({ state, setState }: { state: GameState; setState: 
     {challengeLocked && ['gameplay','time','risk'].includes(section) ? <div className="challenge-locked-note">🔒 This custom challenge locked gameplay rules at the start. Display, effects and account preferences remain editable.</div> : null}
 
     {section === 'display' ? <div className="settings-section-content">
-      <section className="panel settings-group"><span className="eyebrow">HUD & BALANCE</span><h2>What belongs on the play screen</h2><p className="muted">These controls used to sit under the balance. They now live here so the game HUD stays clean.</p>
+      <section className="panel settings-group"><span className="eyebrow">VISUAL PRESENTATION & PICTURES</span><h2>Purchases & Escalating Photo Cards</h2><p className="muted">Enhances items, residences, superyachts, and megaprojects with high-resolution royalty-free and commercial-free photography, escalating luxury tier badges, and inspectable specs.</p>
+        <Toggle label="Show purchasable item photos (Default: ON)" checked={hudPrefs.showItemPhotos} onChange={(v) => patchHud({ showItemPhotos: v })}/>
+        <Toggle label="Escalating tier borders & badges" checked={hudPrefs.itemPhotoEscalation} onChange={(v) => patchHud({ itemPhotoEscalation: v })}/>
+      </section>
+      <section className="panel settings-group"><span className="eyebrow">HUD & BALANCE</span><h2>What belongs on the play screen</h2><p className="muted">These controls configure your main counters and numbers. Full digit precision and animated flip can also be toggled directly on the main balance.</p>
+        <Toggle label="Show every digit (Full precision)" checked={hudPrefs.showFullDigits} onChange={(v) => patchHud({ showFullDigits: v })}/>
+        <Toggle label="Animated digit flip (mechanical roll)" checked={hudPrefs.animatedFlip} onChange={(v) => patchHud({ animatedFlip: v })} disabled={hudPrefs.potatoMode}/>
         <Toggle label="Compact HUD" checked={hudPrefs.compactHud} onChange={(v) => patchHud({ compactHud: v })}/>
         <Toggle label="Boxed balance digits" checked={hudPrefs.boxedBalance} onChange={(v) => patchHud({ boxedBalance: v })}/>
         <Toggle label="LOK counter" checked={hudPrefs.showLok} onChange={(v) => patchHud({ showLok: v })}/>
@@ -77,12 +101,6 @@ export function SettingsView({ state, setState }: { state: GameState; setState: 
         <Toggle label="Minutes" checked={state.time.display.showMinutes} onChange={(v) => patchDisplay({showMinutes:v})}/>
         <Toggle label="Hours" checked={state.time.display.showHours} onChange={(v) => patchDisplay({showHours:v})}/>
         <Toggle label="Days" checked={state.time.display.showDays} onChange={(v) => patchDisplay({showDays:v})}/>
-      </section>
-      <section className="panel settings-group settings-single"><span className="eyebrow">STYLE DECK</span><h2>Panel frame &amp; information level</h2><p className="muted">The setup shown after choosing your first companion is always available here. It changes presentation only.</p>
-        <label className="settings-toggle"><span>Panel corners</span><select value={hudPrefs.uiEdgeStyle} onChange={(event) => patchHud({ uiEdgeStyle: event.target.value === 'boxed' ? 'boxed' : 'rounded' })}><option value="rounded">Rounded edges</option><option value="boxed">Boxed edges</option></select></label>
-        <label className="settings-toggle"><span>Information on screen</span><select value={hudPrefs.informationDensity} onChange={(event) => patchHud({ informationDensity: event.target.value === 'more' ? 'more' : event.target.value === 'less' ? 'less' : 'balanced' })}><option value="more">More information</option><option value="balanced">Middle information</option><option value="less">Less information</option></select></label>
-        <label className="settings-toggle"><span>Economy art</span><select value={hudPrefs.visualArtMode} onChange={(event) => patchHud({ visualArtMode: event.target.value === 'photo' ? 'photo' : 'pixel' })}><option value="pixel">Pixel Collection</option><option value="photo">Real-life pictures</option></select></label>
-        <label className="settings-toggle"><span>Visual quality</span><select value={hudPrefs.visualQualityPreset} onChange={(event) => patchHud({ visualQualityPreset: event.target.value === 'potato' ? 'potato' : event.target.value === 'high' ? 'high' : 'mid' })}><option value="potato">Potato</option><option value="mid">Mid</option><option value="high">High-end</option></select></label>
       </section>
     </div> : null}
 
@@ -129,16 +147,62 @@ export function SettingsView({ state, setState }: { state: GameState; setState: 
       </section>
     </div></fieldset> : null}
 
-    {section === 'effects' ? <section className="panel settings-group settings-single"><span className="eyebrow">EFFECTS & MICRO MOTION</span><h2>From quiet feedback to absurd spectacle</h2>
-      <p className="muted">Themes can provide their own animation language, but this global control remains the performance ceiling. It never changes rewards or challenge rules.</p>
-      <EffectsKnob value={motionPrefs.amplificationLevel} onChange={(value) => patchMotion({ amplificationLevel:value })} />
-      <div className={`motion-profile-summary level-${motionProfile.level}`}><div><span className="motion-profile-orb" /><div><b>{motionProfile.name}</b><small>{motionProfile.description}</small></div></div><div className="motion-profile-metrics"><span>{motionProfile.particles} particles</span><span>{motionProfile.echoes} echoes</span><span>{motionProfile.maxConcurrent} max flyouts</span></div></div>
-      <Toggle label="Micro-motion system" checked={motionPrefs.enabled} onChange={(v) => patchMotion({enabled:v})}/>
-      <Toggle label="Flying value trails" checked={motionPrefs.flyoutsEnabled} onChange={(v) => patchMotion({flyoutsEnabled:v})}/>
-      <Toggle label="Animated counter counting" checked={motionPrefs.counterCountingEnabled} onChange={(v) => patchMotion({counterCountingEnabled:v})}/>
-      <Toggle label="Match active palette / counter color" checked={motionPrefs.paletteReactive} onChange={(v) => patchMotion({paletteReactive:v})}/>
-      <Toggle label="Respect reduced-motion preference" checked={motionPrefs.respectReducedMotion} onChange={(v) => patchMotion({respectReducedMotion:v})}/>
-      <label className="settings-toggle"><span>Floating symbol treatment</span><select value={motionPrefs.symbolStyle} onChange={(e) => patchMotion({symbolStyle:e.target.value as MicroMotionPreferences['symbolStyle']})}><option value="auto">Auto</option><option value="minimal">Minimal</option><option value="burst">Burst</option></select></label>
+    {section === 'effects' ? <div className="settings-section-content">
+      <section className="panel settings-group settings-single" style={{ border: hudPrefs.potatoMode ? '2px solid #f59e0b' : undefined, background: hudPrefs.potatoMode ? 'rgba(254, 243, 199, 0.2)' : undefined }}>
+        <span className="eyebrow" style={{ color: '#d97706' }}>🥔 POTATO PC & LOW-SPEC HARDWARE MODE</span>
+        <h2>Zero-lag performance optimizations</h2>
+        <p className="muted">Running on an older laptop, integrated graphics, or battery saver? Toggle Potato PC mode to instantly disable GPU-heavy effects, glassmorphism blurs, digit flipping, and high-frequency timers.</p>
+        <Toggle
+          label="🥔 Potato PC Master Switch (Maximum FPS)"
+          checked={hudPrefs.potatoMode}
+          onChange={(v) => {
+            patchHud({
+              potatoMode: v,
+              animatedFlip: !v,
+              disableBlur: v,
+              lowPowerTicks: v,
+            });
+            if (v) {
+              patchMotion({ enabled: false, amplificationLevel: 0, flyoutsEnabled: false });
+              setFloatersOn(false);
+              setFloatersEnabled(false);
+            }
+          }}
+        />
+        <Toggle label="Disable backdrop blur & glassmorphism filters" checked={hudPrefs.disableBlur} onChange={(v) => patchHud({ disableBlur: v })} disabled={hudPrefs.potatoMode}/>
+        <Toggle label="Low-power CPU clock ticks (Eco timer mode)" checked={hudPrefs.lowPowerTicks} onChange={(v) => patchHud({ lowPowerTicks: v })} disabled={hudPrefs.potatoMode}/>
+        <Toggle label="Animated mechanical digit flip" checked={hudPrefs.animatedFlip && !hudPrefs.potatoMode} onChange={(v) => patchHud({ animatedFlip: v })} disabled={hudPrefs.potatoMode}/>
+      </section>
+
+      <section className="panel settings-group settings-single"><span className="eyebrow">EFFECTS & MICRO MOTION</span><h2>From quiet feedback to absurd spectacle</h2>
+        <p className="muted">Themes can provide their own animation language, but this global control remains the performance ceiling. It never changes rewards or challenge rules.</p>
+        <EffectsKnob value={motionPrefs.amplificationLevel} onChange={(value) => patchMotion({ amplificationLevel:value })} />
+        <div className={`motion-profile-summary level-${motionProfile.level}`}><div><span className="motion-profile-orb" /><div><b>{motionProfile.name}</b><small>{motionProfile.description}</small></div></div><div className="motion-profile-metrics"><span>{motionProfile.particles} particles</span><span>{motionProfile.echoes} echoes</span><span>{motionProfile.maxConcurrent} max flyouts</span></div></div>
+        <Toggle label="Micro-motion system" checked={motionPrefs.enabled} onChange={(v) => patchMotion({enabled:v})}/>
+        <Toggle label="Flying value trails" checked={motionPrefs.flyoutsEnabled} onChange={(v) => patchMotion({flyoutsEnabled:v})}/>
+        <Toggle label="Animated counter counting" checked={motionPrefs.counterCountingEnabled} onChange={(v) => patchMotion({counterCountingEnabled:v})}/>
+        <Toggle label="Match active palette / counter color" checked={motionPrefs.paletteReactive} onChange={(v) => patchMotion({paletteReactive:v})}/>
+        <Toggle label="Respect reduced-motion preference" checked={motionPrefs.respectReducedMotion} onChange={(v) => patchMotion({respectReducedMotion:v})}/>
+        <Toggle label="Floating numbers & value change particles" checked={floatersOn} onChange={(v) => { setFloatersOn(v); setFloatersEnabled(v); }}/>
+        <label className="settings-toggle"><span>Floating symbol treatment</span><select value={motionPrefs.symbolStyle} onChange={(e) => patchMotion({symbolStyle:e.target.value as MicroMotionPreferences['symbolStyle']})}><option value="auto">Auto</option><option value="minimal">Minimal</option><option value="burst">Burst</option></select></label>
+      </section>
+    </div> : null}
+
+    {section === 'audio' ? <section className="panel settings-group settings-single"><span className="eyebrow">AUDIO & SYNTHESIZER</span><h2>Zero-Asset Web Audio Soundscapes</h2>
+      <p className="muted">All sound effects are synthesized natively in your browser using standard Web Audio oscillators with zero external media files.</p>
+      <Toggle label="Sound effects enabled" checked={!audioPrefs.muted} onChange={(v) => { setAudioMuted(!v); if (v) playCoinSound(); }}/>
+      <Range label="Master audio volume" value={audioPrefs.volume} min={0} max={1} step={0.05} suffix="×" onChange={(v) => { setAudioVolume(v); playClickSound(); }}/>
+      <div style={{ marginTop: '16px' }}>
+        <b style={{ fontSize: '13px', display: 'block', marginBottom: '8px' }}>Test Synthesized Sounds</b>
+        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+          <button type="button" className="pill" onClick={() => playClickSound()}>UI Tick</button>
+          <button type="button" className="pill" onClick={() => playCoinSound()}>Coin Clink</button>
+          <button type="button" className="pill" onClick={() => playPurchaseSound()}>Purchase Chime</button>
+          <button type="button" className="pill" onClick={() => playAchievementSound()}>Fanfare</button>
+          <button type="button" className="pill" onClick={() => playPrestigeSound()}>Celestial Gong</button>
+          <button type="button" className="pill" onClick={() => playWeatherSound()}>Morning Chime</button>
+        </div>
+      </div>
     </section> : null}
 
     {section === 'account' ? <div className="settings-section-content">

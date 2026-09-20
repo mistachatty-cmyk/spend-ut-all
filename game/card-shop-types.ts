@@ -60,7 +60,8 @@ export type CardCreditRewardSource =
   | "income-milestone"
   | "world-event"
   | "companion-gift"
-  | "companion-quest";
+  | "companion-quest"
+  | "achievement";
 
 export type CardCreditReward = {
   id: string;
@@ -79,6 +80,8 @@ export type CardGameplayLedger = {
   marketEventsProcessed: number;
   incomeTierProcessed: number;
   lastCompanionGiftDay: number;
+  achievementsProcessed?: number;
+  claimedAchievementIds?: string[];
 };
 
 export type CompanionQuestKind =

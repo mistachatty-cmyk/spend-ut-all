@@ -14,11 +14,6 @@ Use:
 - Node.js: `22.x`
 - Production Branch: `main`
 
-Keep **Preview Deployments** enabled in Project Settings -> Git. If that
-toggle is off, only pushes to the production branch build -- every other
-branch (including ones pushed from a chat session) gets silently skipped
-with no deployment record at all.
-
 ## Environment variables
 
 The game itself has no required server environment variables. Saves and the temporary LOK balance are browser-local.

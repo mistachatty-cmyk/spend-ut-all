@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import { businessDefinitions, hqTiers } from '@/data/businesses';
 import { freelanceServices } from '@/data/freelance';
 import { lifeSkills } from '@/data/life-progression';
@@ -8,6 +9,7 @@ import {
   businessFoundingCost,
   businessSnapshot,
   businessUnlocked,
+  customizeBusiness,
   foundBusiness,
   hireEmployees,
   reduceEmployees,
@@ -20,6 +22,10 @@ import { hqUpgradeCost, locationCost, managementUpgradeCost, portfolioEconomics 
 import { cityEconomySnapshot, housingExpansionCost, infrastructureUpgradeCost } from '@/game/systems/city-economy';
 import { freelanceBusinessReadiness } from '@/game/systems/freelance';
 import { lifeSkillLevel } from '@/game/systems/life-progression';
+import { playPurchaseSound, playClickSound } from '@/game/systems/audio-sfx';
+import { emitFloatingNumber } from '@/game/systems/floating-numbers';
+import { emitMicroMotion } from '@/game/systems/micro-animations';
+import { SponsoredAdBanner } from './SponsoredAdBanner';
 import type { GameState } from '@/game/types';
 
 export function BusinessView({
@@ -29,6 +35,12 @@ export function BusinessView({
   state: GameState;
   setState: React.Dispatch<React.SetStateAction<GameState | null>>;
 }) {
+  const [customizingId, setCustomizingId] = useState<string | null>(null);
+  const [customNameInput, setCustomNameInput] = useState('');
+  const [customSloganInput, setCustomSloganInput] = useState('');
+  const [customColorInput, setCustomColorInput] = useState('');
+  const [customIconInput, setCustomIconInput] = useState('');
+
   const city = cityEconomySnapshot(state.cityEconomy, state.businesses ?? {}, state.townLevel);
   const portfolio = portfolioEconomics(state.businesses ?? {}, {
     demandMultiplier: city.businessDemandMultiplier,
@@ -37,6 +49,29 @@ export function BusinessView({
   const founded = businessDefinitions.filter(definition => state.businesses?.[definition.id]?.founded).length;
   const housingCost = housingExpansionCost(state.cityEconomy);
   const infrastructureCost = infrastructureUpgradeCost(state.cityEconomy);
+
+  const openCustomizer = (defId: string, currentBus: any, def: any) => {
+    if (customizingId === defId) {
+      setCustomizingId(null);
+    } else {
+      setCustomizingId(defId);
+      setCustomNameInput(currentBus.customName || def.name);
+      setCustomSloganInput(currentBus.slogan || '');
+      setCustomColorInput(currentBus.brandColor || def.accentColor || '#3b82f6');
+      setCustomIconInput(currentBus.logoIcon || def.emoji);
+    }
+  };
+
+  const saveCustomization = (defId: string) => {
+    playClickSound();
+    setState(curr => curr ? customizeBusiness(curr, defId, {
+      customName: customNameInput.trim() || undefined,
+      slogan: customSloganInput.trim() || undefined,
+      brandColor: customColorInput || undefined,
+      logoIcon: customIconInput || undefined,
+    }) : curr);
+    setCustomizingId(null);
+  };
 
   return (
     <section className="business-shell">
@@ -107,16 +142,42 @@ export function BusinessView({
           const readiness = freelanceBusinessReadiness(state, definition.id);
           const relatedServices = freelanceServices.filter(service => service.targetBusinessId === definition.id);
           const startupSavings = Math.max(0, definition.foundingCost - foundingCost);
+          const displayName = business.customName || definition.name;
+          const displayEmoji = business.logoIcon || definition.emoji;
+          const displayColor = business.brandColor || definition.accentColor || '#3b82f6';
 
           return (
             <article className={`panel company-card ${!unlocked ? 'locked' : ''}`} key={definition.id}>
+              {definition.imageUrl ? (
+                <div className="company-cover-wrap">
+                  <img
+                    src={definition.imageUrl}
+                    alt={displayName}
+                    className="company-cover-img"
+                    loading="lazy"
+                    onError={(e) => {
+                      (e.currentTarget as HTMLElement).style.display = 'none';
+                    }}
+                  />
+                  {definition.badge ? (
+                    <span
+                      className="company-category-badge"
+                      style={{ backgroundColor: displayColor }}
+                    >
+                      {definition.badge}
+                    </span>
+                  ) : null}
+                </div>
+              ) : null}
+
               <header>
-                <span className="company-emoji">{definition.emoji}</span>
+                <span className="company-emoji">{displayEmoji}</span>
                 <div>
                   <span className="eyebrow">
                     {business.founded ? hqTiers[business.hqLevel] : definition.foundingCost < 100_000 ? 'STARTER BUSINESS' : 'NEW COMPANY'}
                   </span>
-                  <h3>{definition.name}</h3>
+                  <h3>{displayName}</h3>
+                  {business.slogan ? <div className="company-slogan">"{business.slogan}"</div> : null}
                 </div>
                 {business.founded ? <span className="margin-chip">{Math.round(economics.margin * 100)}% margin</span> : null}
               </header>
@@ -148,7 +209,26 @@ export function BusinessView({
                 <button
                   className="primary company-found"
                   disabled={!unlocked || state.cash < foundingCost}
-                  onClick={() => setState(current => current ? foundBusiness(current, definition) : current)}
+                  onClick={event => {
+                    const sourceElement = event.currentTarget;
+                    playPurchaseSound();
+                    emitFloatingNumber({
+                      text: `-${money(foundingCost)}`,
+                      x: event.clientX,
+                      y: event.clientY,
+                      color: '#e11d48',
+                    });
+                    emitMicroMotion({
+                      target: 'cash',
+                      amount: -foundingCost,
+                      displayText: `-${money(foundingCost)}`,
+                      symbol: definition.emoji,
+                      tone: 'negative',
+                      kind: 'currency',
+                      sourceElement,
+                    });
+                    setState(current => current ? foundBusiness(current, definition) : current);
+                  }}
                 >
                   {townLocked
                     ? `Reach town level ${definition.requiredTownLevel}`
@@ -176,10 +256,54 @@ export function BusinessView({
                     <small>Target {targetStaff.toLocaleString()} staff across {business.locations} location{business.locations === 1 ? '' : 's'}.</small>
                   </div>
                   <div className="company-actions">
-                    <button disabled={state.cash < nextLocation} onClick={() => setState(current => current ? addBusinessLocation(current, definition) : current)}>
+                    <button
+                      disabled={state.cash < nextLocation}
+                      onClick={event => {
+                        const sourceElement = event.currentTarget;
+                        playPurchaseSound();
+                        emitFloatingNumber({
+                          text: `-${money(nextLocation)}`,
+                          x: event.clientX,
+                          y: event.clientY,
+                          color: '#e11d48',
+                        });
+                        emitMicroMotion({
+                          target: 'cash',
+                          amount: -nextLocation,
+                          displayText: `-${money(nextLocation)}`,
+                          symbol: '🏢',
+                          tone: 'negative',
+                          kind: 'currency',
+                          sourceElement,
+                        });
+                        setState(current => current ? addBusinessLocation(current, definition) : current);
+                      }}
+                    >
                       + Location · {money(nextLocation)}
                     </button>
-                    <button disabled={business.hqLevel >= hqTiers.length - 1 || state.cash < nextHq} onClick={() => setState(current => current ? upgradeBusinessHq(current, definition) : current)}>
+                    <button
+                      disabled={business.hqLevel >= hqTiers.length - 1 || state.cash < nextHq}
+                      onClick={event => {
+                        const sourceElement = event.currentTarget;
+                        playPurchaseSound();
+                        emitFloatingNumber({
+                          text: `-${money(nextHq)}`,
+                          x: event.clientX,
+                          y: event.clientY,
+                          color: '#e11d48',
+                        });
+                        emitMicroMotion({
+                          target: 'cash',
+                          amount: -nextHq,
+                          displayText: `-${money(nextHq)}`,
+                          symbol: '🏛',
+                          tone: 'negative',
+                          kind: 'currency',
+                          sourceElement,
+                        });
+                        setState(current => current ? upgradeBusinessHq(current, definition) : current);
+                      }}
+                    >
                       {business.hqLevel >= hqTiers.length - 1 ? 'HQ MAXED' : `HQ → ${hqTiers[business.hqLevel + 1]} · ${money(nextHq)}`}
                     </button>
                   </div>
@@ -206,12 +330,97 @@ export function BusinessView({
                       );
                     })}
                   </div>
+
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '6px' }}>
+                    <button
+                      type="button"
+                      className="company-custom-toggle-btn"
+                      onClick={() => openCustomizer(definition.id, business, definition)}
+                    >
+                      🎨 {customizingId === definition.id ? 'Close Customizer' : 'Customize Brand'}
+                    </button>
+                    {business.customName || business.brandColor || business.logoIcon || business.slogan ? (
+                      <span style={{ fontSize: '11px', color: '#10b981', fontWeight: 800 }}>★ Customized Brand</span>
+                    ) : null}
+                  </div>
+
+                  {customizingId === definition.id ? (
+                    <div className="company-custom-panel">
+                      <label>
+                        Company Name
+                        <input
+                          type="text"
+                          value={customNameInput}
+                          maxLength={35}
+                          onChange={(e) => setCustomNameInput(e.target.value)}
+                          placeholder="Enter custom business name..."
+                        />
+                      </label>
+                      <label>
+                        Brand Slogan
+                        <input
+                          type="text"
+                          value={customSloganInput}
+                          maxLength={60}
+                          onChange={(e) => setCustomSloganInput(e.target.value)}
+                          placeholder="e.g. Scaling innovation at lightspeed"
+                        />
+                      </label>
+                      <label>
+                        Brand Theme Color
+                        <div className="brand-color-row">
+                          {['#10b981', '#3b82f6', '#8b5cf6', '#ec4899', '#f59e0b', '#06b6d4', '#ef4444', '#1e293b'].map(c => (
+                            <button
+                              key={c}
+                              type="button"
+                              className={`brand-color-swatch ${customColorInput === c ? 'active' : ''}`}
+                              style={{ backgroundColor: c }}
+                              onClick={() => setCustomColorInput(c)}
+                              title={c}
+                            />
+                          ))}
+                        </div>
+                      </label>
+                      <label>
+                        Brand Logo Icon
+                        <div className="brand-icon-row">
+                          {['🚀', '⚡', '💎', '👑', '🛡️', '🌐', '🌟', '🎯', '🧬', '🤖', '💼', '🏢', '🔥', definition.emoji].map(icon => (
+                            <button
+                              key={icon}
+                              type="button"
+                              className={`brand-icon-btn ${customIconInput === icon ? 'active' : ''}`}
+                              onClick={() => setCustomIconInput(icon)}
+                            >
+                              {icon}
+                            </button>
+                          ))}
+                        </div>
+                      </label>
+                      <div style={{ display: 'flex', gap: '8px', marginTop: '6px' }}>
+                        <button
+                          type="button"
+                          style={{ flex: 1, background: '#16a34a', color: '#fff', border: 'none', borderRadius: '8px', padding: '8px 12px', fontWeight: 800, cursor: 'pointer' }}
+                          onClick={() => saveCustomization(definition.id)}
+                        >
+                          ✓ Save Brand
+                        </button>
+                        <button
+                          type="button"
+                          style={{ background: '#e2e8f0', color: '#475569', border: 'none', borderRadius: '8px', padding: '8px 12px', fontWeight: 700, cursor: 'pointer' }}
+                          onClick={() => setCustomizingId(null)}
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    </div>
+                  ) : null}
                 </>
               )}
             </article>
           );
         })}
       </section>
+      <SponsoredAdBanner slotId="7849102487" format="horizontal" />
     </section>
   );
 }

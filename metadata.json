@@ -1,0 +1,6 @@
+{
+  "name": "Spend It All",
+  "description": "Spend billionaire fortunes or climb from $0 in this incremental economy and life simulation game featuring customizable avatars, sim needs & routines, interior furnishings, relationships, and vehicles.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

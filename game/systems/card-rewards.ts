@@ -1,4 +1,5 @@
 import { lokPets } from "@/data/customizations";
+import { achievements as allAchievements } from "@/data/achievement-catalog";
 import type {
   CardCreditReward,
   CardCreditRewardSource,
@@ -95,6 +96,8 @@ function defaultLedger(state: GameState): CardGameplayLedger {
     marketEventsProcessed: 0,
     incomeTierProcessed: 0,
     lastCompanionGiftDay: 1,
+    achievementsProcessed: 0,
+    claimedAchievementIds: [],
   };
 }
 
@@ -109,6 +112,7 @@ export function syncBaseGameCardRewards(
     (entry) => entry.runId === runId,
   );
   const ledger = savedLedger ?? defaultLedger(state);
+  const claimedSet = new Set(ledger.claimedAchievementIds ?? []);
   const rewards: CardCreditReward[] = [];
   const add = (
     amount: number,
@@ -150,6 +154,24 @@ export function syncBaseGameCardRewards(
       `${eventDelta} city ${eventDelta === 1 ? "event" : "events"} experienced`,
       `${runId}:events:${state.cardGameplay.timeEventsEncountered}:${state.cardGameplay.marketEventsEncountered}`,
     );
+
+  // Unlocked achievements award generous Card Credits!
+  const currentAchievements = Object.keys(state.runAchievements ?? {});
+  const nextClaimedAchievementIds = [...claimedSet];
+  for (const achId of currentAchievements) {
+    if (!claimedSet.has(achId)) {
+      const achDef = allAchievements.find((a) => a.id === achId);
+      const creditReward = Math.max(25, Math.min(250, (achDef?.points ?? 10) * 4));
+      add(
+        creditReward,
+        "achievement",
+        `Achievement unlocked: ${achDef?.name ?? achId}`,
+        `${runId}:achievement:${achId}`,
+      );
+      claimedSet.add(achId);
+      nextClaimedAchievementIds.push(achId);
+    }
+  }
 
   const nextIncomeTier = incomeTier(state.lifetimeIncome);
   for (
@@ -206,24 +228,30 @@ export function syncBaseGameCardRewards(
     ),
     incomeTierProcessed: Math.max(ledger.incomeTierProcessed, nextIncomeTier),
     lastCompanionGiftDay: Math.max(ledger.lastCompanionGiftDay, today),
+    achievementsProcessed: currentAchievements.length,
+    claimedAchievementIds: nextClaimedAchievementIds,
   };
-  const ledgers = [
-    ...shop.gameplayLedgers.filter((entry) => entry.runId !== runId),
-    nextLedger,
-  ].slice(-8);
-  shop = normalizeCardShopState({ ...shop, gameplayLedgers: ledgers });
   const ledgerChanged =
     !savedLedger ||
     nextLedger.lastGameDay !== ledger.lastGameDay ||
     nextLedger.activitiesProcessed !== ledger.activitiesProcessed ||
     nextLedger.timeEventsProcessed !== ledger.timeEventsProcessed ||
     nextLedger.marketEventsProcessed !== ledger.marketEventsProcessed ||
-    nextLedger.incomeTierProcessed !== ledger.incomeTierProcessed;
+    nextLedger.incomeTierProcessed !== ledger.incomeTierProcessed ||
+    nextClaimedAchievementIds.length !== (ledger.claimedAchievementIds?.length ?? 0);
+  const changed = ledgerChanged || rewards.length > 0;
+  if (ledgerChanged) {
+    const ledgers = [
+      ...shop.gameplayLedgers.filter((entry) => entry.runId !== runId),
+      nextLedger,
+    ].slice(-8);
+    shop = normalizeCardShopState({ ...shop, gameplayLedgers: ledgers });
+  }
   return {
-    shop,
+    shop: changed ? shop : input,
     rewards,
     creditsAwarded: rewardTotal(rewards),
-    changed: ledgerChanged || rewards.length > 0,
+    changed,
   };
 }
 
@@ -324,13 +352,13 @@ export function ensureCompanionQuest(
   state: GameState,
   companionId: string,
 ) {
-  const shop = ensureCardShopStarterGrant(input);
-  const active = shop.activeCompanionQuest;
+  const active = input.activeCompanionQuest;
   if (
     active?.runId === String(state.createdAt) &&
     active.companionId === companionId
   )
-    return shop;
+    return input;
+  const shop = ensureCardShopStarterGrant(input);
   return normalizeCardShopState({
     ...shop,
     activeCompanionQuest: createCompanionQuest(shop, state, companionId),
@@ -422,6 +450,7 @@ export function claimCompanionQuest(
 
 export function cardCreditEarningSummary() {
   return [
+    "25–250 CC per unlocked achievement",
     "8 CC per completed activity",
     "12 CC per world or city event",
     "Day-end stipend that grows to 50 CC",

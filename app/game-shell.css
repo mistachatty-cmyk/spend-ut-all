@@ -182,11 +182,24 @@
 .business-shell,
 .empire-shell,
 .achievement-shell,
+.achievements-shell,
 .collection-shell,
 .debt-shell,
 .settings-shell,
 .customization-shell {
   scroll-margin-top: 76px;
+}
+.earnings-shell,
+.leaderboard-shell,
+.business-shell,
+.empire-shell,
+.achievement-shell,
+.achievements-shell,
+.collection-shell,
+.debt-shell,
+.settings-shell,
+.customization-shell {
+  margin-top: 14px;
 }
 .panel {
   box-shadow: 0 8px 26px rgba(20, 24, 32, 0.035);
@@ -352,7 +365,7 @@
 @media (max-width: 700px) {
   .app {
     --shell-gutter: 10px;
-    padding-bottom: calc(104px + env(safe-area-inset-bottom));
+    padding-bottom: calc(64px + env(safe-area-inset-bottom));
   }
   .topbar {
     padding: 10px var(--shell-gutter) 8px;
@@ -457,21 +470,22 @@
     font-size: 8px;
   }
 
-  /* Two-level fixed dock: gameplay destinations below, utility destinations above. No horizontal hunting. */
+  /* Two-level sticky dock: gameplay destinations below, utility destinations above. Positioned at top so codex bar hugs the bottom. */
   .view-tabs {
-    position: fixed;
-    left: 8px;
-    right: 8px;
-    bottom: calc(6px + env(safe-area-inset-bottom));
-    top: auto;
-    margin: 0;
+    position: sticky;
+    top: 0;
+    z-index: 25;
+    left: auto;
+    right: auto;
+    bottom: auto;
+    margin: 4px var(--shell-gutter) 0;
     display: grid;
     grid-template-columns: repeat(5, minmax(0, 1fr));
     grid-template-rows: 28px 46px;
     gap: 3px 4px;
     padding: 5px 6px 6px;
-    border-radius: 20px;
-    box-shadow: 0 14px 44px rgba(10, 14, 22, 0.18);
+    border-radius: 17px;
+    box-shadow: 0 4px 16px rgba(10, 14, 22, 0.08);
     overflow: visible;
   }
   .view-tabs button {

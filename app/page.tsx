@@ -8,15 +8,53 @@ import { CustomScenarioBuilder } from "@/app/components/CustomScenarioBuilder";
 import { CustomizationView } from "@/app/components/CustomizationView";
 import { DebtView } from "@/app/components/DebtView";
 import { EarningsView } from "@/app/components/EarningsView";
-import { ReligionFrontPageSection } from "@/app/components/ReligionFrontPageSection";
-import { ReligionView } from "@/app/components/ReligionView";
+import { ExecutiveDeckView } from "@/app/components/ExecutiveDeckView";
+import { FamilyOfficeView } from "@/app/components/FamilyOfficeView";
+import { FloatingNumbersOverlay } from "@/app/components/FloatingNumbersOverlay";
+import { PersistentFollowHud } from "@/app/components/PersistentFollowHud";
 import { GameOverView } from "@/app/components/GameOverView";
-import { ItemPixelSprite } from "@/app/components/ItemPixelSprite";
 import { LeaderboardView } from "@/app/components/LeaderboardView";
+import { MarketWeatherBanner } from "@/app/components/MarketWeatherBanner";
 import { MoneyCounter } from "@/app/components/MoneyCounter";
 import { PetCompanion } from "@/app/components/PetCompanion";
 import { SettingsView } from "@/app/components/SettingsView";
-import { achievements } from "@/data/achievements";
+import { SponsoredAdBanner } from "@/app/components/SponsoredAdBanner";
+import { SponsorBoostBar } from "@/app/components/SponsorBoostBar";
+import {
+  playClickSound,
+  playCoinSound,
+  playPurchaseSound,
+  playAchievementSound,
+  playPrayerBellSound,
+  toggleAudioMute,
+  getAudioSettings,
+  type AudioSettings,
+} from "@/game/systems/audio-sfx";
+import { ReligionFrontPageSection } from "@/app/components/ReligionFrontPageSection";
+import { ReligionView } from "@/app/components/ReligionView";
+import { ReligionId, getReligionDefinition } from "@/game/systems/religion";
+import { emitFloatingNumber } from "@/game/systems/floating-numbers";
+import { achievements } from "@/data/achievement-catalog";
+import { TownCommunityView } from "@/app/components/TownCommunityView";
+import { ItemPhotoModal } from "@/app/components/ItemPhotoModal";
+import { RoyaltyFreeLibraryModal } from "@/app/components/RoyaltyFreeLibraryModal";
+import { HouseVisualBanner } from "@/app/components/HouseVisualBanner";
+import { RichPeopleSelector } from "@/app/components/RichPeopleSelector";
+import {
+  getRichPersonProfile,
+  PRIME_TITANS,
+  OTHER_RICH_PEOPLE,
+} from "@/data/rich-people";
+import {
+  getPurchaseVisual,
+  type PurchaseVisualItem,
+} from "@/data/purchase-visuals";
+import {
+  loadHudPreferences,
+  saveHudPreferences,
+  subscribeHudPreferences,
+  type HudPreferences,
+} from "@/game/systems/hud-preferences";
 import {
   citySpecializations,
   empireUpgrades,
@@ -103,7 +141,10 @@ import type {
   CompanionQuestBonus,
 } from "@/game/card-shop-types";
 import { FinancialMode, GameState, ScenarioId } from "@/game/types";
-import { type ReligionId, getReligionDefinition } from "@/game/systems/religion";
+import { DailyRewardsModal, DailyRewardsView } from "@/app/components/DailyRewardsModal";
+import { NotificationCenter } from "@/app/components/NotificationCenter";
+import { getDailyCheckInStatus } from "@/game/systems/daily-rewards";
+import { detectActiveReminders, loadNotificationPreferences } from "@/game/systems/notifications";
 
 const SAVE_KEY = "spend-it-all-v1";
 const META_KEY = "spend-it-all-meta-v1";
@@ -112,10 +153,14 @@ type View =
   | "earnings"
   | "businesses"
   | "empire"
+  | "town"
   | "religion"
+  | "daily"
   | "debt"
   | "achievements"
   | "collection"
+  | "familyOffice"
+  | "deck"
   | "leaderboard"
   | "customize"
   | "settings";
@@ -132,15 +177,53 @@ export default function Home() {
     ensureCardShopStarterGrant(createCardShopState()),
   );
   const [cardShopLoaded, setCardShopLoaded] = useState(false);
+  const cardShopRef = useRef(cardShop);
+  cardShopRef.current = cardShop;
   const [scenarioId, setScenarioId] = useState<ScenarioId>("nothing");
   const [mode, setMode] = useState<FinancialMode>("simple");
   const [riskMode, setRiskMode] = useState(false);
-  const [selectedReligionId, setSelectedReligionId] = useState<ReligionId | null>("christianity");
-  const [customPrayerTimes, setCustomPrayerTimes] = useState<Record<string, string>>({});
   const [category, setCategory] = useState("all");
   const [view, setView] = useState<View>("market");
   const [offlineAward, setOfflineAward] = useState(0);
   const [customBuilderOpen, setCustomBuilderOpen] = useState(false);
+  const [inMainMenu, setInMainMenu] = useState(false);
+  const [scenarioFilter, setScenarioFilter] = useState<"all" | "rich" | "prime" | "build">("all");
+  const [sponsorBoostUntil, setSponsorBoostUntil] = useState(0);
+  const [dailyRewardsModalOpen, setDailyRewardsModalOpen] = useState(false);
+  const [notificationsOpen, setNotificationsOpen] = useState(false);
+  const [nowTime, setNowTime] = useState(() => Date.now());
+  const [audioSettings, setAudioSettings] = useState<AudioSettings>(() => getAudioSettings());
+  const [hudPrefs, setHudPrefs] = useState<HudPreferences>(() => loadHudPreferences());
+  const [selectedVisual, setSelectedVisual] = useState<PurchaseVisualItem | null>(null);
+  const [libraryModalOpen, setLibraryModalOpen] = useState(false);
+  const [selectedReligionId, setSelectedReligionId] = useState<ReligionId | null>("christianity");
+  const [customPrayerTimes, setCustomPrayerTimes] = useState<Record<string, string>>({});
+  const notifiedPrayersRef = useRef<Set<string>>(new Set());
+
+  useEffect(() => subscribeHudPreferences(setHudPrefs), []);
+
+  useEffect(() => {
+    const timer = window.setInterval(() => setNowTime(Date.now()), 1000);
+    return () => window.clearInterval(timer);
+  }, []);
+
+  const sponsorBoostRemainingSeconds = Math.max(0, Math.ceil((sponsorBoostUntil - nowTime) / 1000));
+
+  const handleActivateSponsorBoost = (addedMinutes: number) => {
+    const nextBoostUntil = Math.max(Date.now(), sponsorBoostUntil) + addedMinutes * 60 * 1000;
+    setSponsorBoostUntil(nextBoostUntil);
+    setState((current) => {
+      if (!current) return current;
+      return {
+        ...current,
+        cardGameplay: {
+          ...current.cardGameplay,
+          businessBoostUntilGameMinute: current.time.gameMinute + addedMinutes * 4,
+          businessBoostMultiplier: 2,
+        },
+      };
+    });
+  };
   const recordedWin = useRef<number | null>(null);
   const rewardGameDay = Math.floor(
     (state?.time.gameMinute ?? 0) /
@@ -189,13 +272,11 @@ export default function Home() {
   }, [cardShop, cardShopLoaded]);
   useEffect(() => {
     if (!state?.started || !cardShopLoaded || !customizationLoaded) return;
+    const currentShop = cardShopRef.current;
     const companionId = customization.equipped.petId ?? "pet-lok-slime";
-    const synced = syncBaseGameCardRewards(cardShop, state, companionId);
+    const synced = syncBaseGameCardRewards(currentShop, state, companionId);
     const withQuest = ensureCompanionQuest(synced.shop, state, companionId);
-    const questChanged =
-      withQuest.activeCompanionQuest?.id !==
-      synced.shop.activeCompanionQuest?.id;
-    if (synced.changed || questChanged) setCardShop(withQuest);
+    if (synced.changed || withQuest !== currentShop) setCardShop(withQuest);
     for (const reward of synced.rewards) {
       emitMicroMotion({
         target: "card-credits",
@@ -216,18 +297,28 @@ export default function Home() {
     customization.equipped.petId,
     customizationLoaded,
     cardShopLoaded,
-    cardShop,
   ]);
   useEffect(() => {
     if (!state || !metaLoaded) return;
-    setMeta((current) =>
-      syncMetaProgression(current, state, {
+    setMeta((current) => {
+      const next = syncMetaProgression(current, state, {
         netWorth: leveragedNetWorth(state),
         incomePerSecond: passiveCashPerSecond(state),
         totalOwned: totalOwned(state),
         scenarioComplete: scenarioProgressWithDebt(state) >= 1,
-      }),
-    );
+      });
+      if (
+        next.badges.length === current.badges.length &&
+        next.collectibles.length === current.collectibles.length &&
+        next.titles.length === current.titles.length &&
+        next.completedSets.length === current.completedSets.length &&
+        next.scenariosCompleted.length === current.scenariosCompleted.length &&
+        next.discoveries.length === current.discoveries.length
+      ) {
+        return current;
+      }
+      return next;
+    });
   }, [state, metaLoaded]);
   useEffect(() => {
     if (!state || !customizationLoaded) return;
@@ -275,13 +366,66 @@ export default function Home() {
     return () => window.clearInterval(timer);
   }, [state?.started, state?.runStatus]);
 
+  useEffect(() => {
+    if (!state?.religion || !state.religion.notificationsEnabled) return;
+    const interval = window.setInterval(() => {
+      const now = new Date();
+      const currentHHMM = `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
+      const todayKey = `${now.toDateString()}_${currentHHMM}`;
+
+      for (const prayer of state.religion?.scheduledPrayers ?? []) {
+        if (!prayer.enabled || prayer.completedToday) continue;
+        if (prayer.scheduledTime === currentHHMM) {
+          const prayerKey = `${prayer.id}_${todayKey}`;
+          if (!notifiedPrayersRef.current.has(prayerKey)) {
+            notifiedPrayersRef.current.add(prayerKey);
+            if (state.religion?.chimeSoundEnabled) {
+              playPrayerBellSound();
+            }
+            try {
+              if (typeof window !== "undefined" && "Notification" in window && Notification?.permission === "granted") {
+                new Notification(`🕊️ Prayer Time: ${prayer.name}`, {
+                  body: `It is your decided time (${prayer.scheduledTime}) for ${prayer.name}. Take a quiet moment for contemplation.`,
+                  icon: "/favicon.ico",
+                });
+              }
+            } catch {
+              // Notification restricted in iframe
+            }
+          }
+        }
+      }
+    }, 15000);
+
+    return () => window.clearInterval(interval);
+  }, [state?.religion]);
+
   const visibleItems = useMemo(
     () =>
       items.filter((item) => category === "all" || item.category === category),
     [category],
   );
 
-  if (!state?.started)
+  const filteredScenarios = useMemo(() => {
+    if (scenarioFilter === "rich") {
+      return scenarios.filter((s) =>
+        ["bill-gates", "elon-musk", "jeff-bezos", "billionaire", "trillionaire", "elon-prime", "bezos-prime", "gates-prime"].includes(s.id),
+      );
+    }
+    if (scenarioFilter === "prime") {
+      return scenarios.filter((s) =>
+        ["elon-prime", "bezos-prime", "gates-prime"].includes(s.id),
+      );
+    }
+    if (scenarioFilter === "build") {
+      return scenarios.filter((s) =>
+        ["nothing", "ten-x", "hundred-x", "thousand-x", "freeplay"].includes(s.id),
+      );
+    }
+    return scenarios;
+  }, [scenarioFilter]);
+
+  if (!state?.started || inMainMenu)
     return (
       <main className="menu-shell">
         {customBuilderOpen ? (
@@ -292,33 +436,211 @@ export default function Home() {
               setView(custom.startingCash === 0 ? "earnings" : "market");
               recordedWin.current = null;
               setCustomBuilderOpen(false);
+              setInMainMenu(false);
               setState(newCustomGame(custom, selectedReligionId, customPrayerTimes));
             }}
           />
         ) : (
           <section className="hero-card">
+            {state?.started ? (
+              <div className="resume-run-card">
+                <div>
+                  <span className="eyebrow">SAVED RUN IN PROGRESS</span>
+                  <h3>Active {state.rules.presetId.toUpperCase()} Empire</h3>
+                  <p>Current balance: <b>{money(state.cash)}</b> · Net worth: <b>{money(leveragedNetWorth(state))}</b> · Day {Math.floor((state.time.gameMinute ?? 0) / (state.time.settings?.dayLengthMinutes ?? 1440)) + 1}</p>
+                </div>
+                <button
+                  className="primary"
+                  style={{ width: "auto", padding: "12px 24px", fontSize: "15px" }}
+                  onClick={() => {
+                    playClickSound();
+                    setInMainMenu(false);
+                  }}
+                >
+                  ▶ Resume Active Run
+                </button>
+              </div>
+            ) : null}
             <div className="eyebrow">ECONOMIC EMPIRE SANDBOX · LOK READY</div>
             <h1>Spend It All</h1>
             <p className="lead">
               Start from absolutely nothing, multiply a small fortune 10× to
-              1,000×, play with no finish line, or begin absurdly rich.
+              1,000×, play with no finish line, or spend the vast wealth of real-world billionaires.
               Speedrunner, Wolf Boss, Comeback, Risk, Empire and hidden
               achievements track how you built it.
             </p>
-            <div className="choice-grid">
-              {scenarios.map((scenario) => (
-                <button
-                  key={scenario.id}
-                  className={`choice ${scenarioId === scenario.id ? "selected" : ""}`}
-                  onClick={() => setScenarioId(scenario.id)}
-                >
-                  <strong>{scenario.name}</strong>
-                  <span>{scenario.description}</span>
-                  <b>{money(scenario.startingCash)}</b>
-                  <small>{scenario.goalLabel}</small>
-                </button>
-              ))}
+
+            <div className="mode-row" style={{ marginBottom: "16px", justifyContent: "center", flexWrap: "wrap" }}>
+              <button
+                type="button"
+                className={scenarioFilter === "rich" ? "pill selected" : "pill"}
+                onClick={() => {
+                  playClickSound();
+                  setScenarioFilter("rich");
+                }}
+              >
+                💰 Spend Fortunes of The Rich ({PRIME_TITANS.length + OTHER_RICH_PEOPLE.length})
+              </button>
+              <button
+                type="button"
+                className={scenarioFilter === "prime" ? "pill selected" : "pill"}
+                onClick={() => {
+                  playClickSound();
+                  setScenarioFilter("prime");
+                }}
+              >
+                ⚡ Prime Titans Peak (3)
+              </button>
+              <button
+                type="button"
+                className={scenarioFilter === "build" ? "pill selected" : "pill"}
+                onClick={() => {
+                  playClickSound();
+                  setScenarioFilter("build");
+                }}
+              >
+                📈 Build Empire From $0 (5)
+              </button>
+              <button
+                type="button"
+                className={scenarioFilter === "all" ? "pill selected" : "pill"}
+                onClick={() => {
+                  playClickSound();
+                  setScenarioFilter("all");
+                }}
+              >
+                🌐 All Scenarios ({scenarios.length})
+              </button>
             </div>
+
+            {scenarioFilter === "rich" || scenarioFilter === "prime" ? (
+              <RichPeopleSelector
+                selectedScenarioId={scenarioId}
+                onSelectScenario={(id) => setScenarioId(id)}
+                playClickSound={playClickSound}
+              />
+            ) : scenarioFilter === "build" ? (
+              <div className="choice-grid">
+                {scenarios
+                  .filter((s) =>
+                    ["nothing", "ten-x", "hundred-x", "thousand-x", "freeplay"].includes(s.id),
+                  )
+                  .map((scenario) => (
+                    <button
+                      key={scenario.id}
+                      type="button"
+                      className={`choice ${scenarioId === scenario.id ? "selected" : ""}`}
+                      onClick={() => {
+                        playClickSound();
+                        setScenarioId(scenario.id);
+                      }}
+                    >
+                      <span
+                        style={{
+                          display: "inline-block",
+                          background: "rgba(16, 185, 129, 0.15)",
+                          color: "#059669",
+                          padding: "2px 8px",
+                          borderRadius: "999px",
+                          fontSize: "10px",
+                          fontWeight: 800,
+                          textTransform: "uppercase",
+                          marginBottom: "4px",
+                        }}
+                      >
+                        📈 Empire Progression
+                      </span>
+                      <strong>{scenario.name}</strong>
+                      <span>{scenario.description}</span>
+                      <b>{money(scenario.startingCash)}</b>
+                      <small>{scenario.goalLabel}</small>
+                    </button>
+                  ))}
+              </div>
+            ) : (
+              <div style={{ display: "flex", flexDirection: "column", gap: "24px", width: "100%" }}>
+                <RichPeopleSelector
+                  selectedScenarioId={scenarioId}
+                  onSelectScenario={(id) => setScenarioId(id)}
+                  playClickSound={playClickSound}
+                />
+                <div
+                  style={{
+                    paddingTop: "20px",
+                    borderTop: "1px solid #e2e8f0",
+                    textAlign: "left",
+                    width: "100%",
+                  }}
+                >
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "space-between",
+                      marginBottom: "14px",
+                      flexWrap: "wrap",
+                      gap: "6px",
+                    }}
+                  >
+                    <h3
+                      style={{
+                        fontSize: "15px",
+                        fontWeight: 800,
+                        color: "#0f172a",
+                        margin: 0,
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "6px",
+                      }}
+                    >
+                      <span>📈</span> Build From Scratch & Multipliers (5)
+                    </h3>
+                    <span style={{ fontSize: "12px", color: "#64748b" }}>
+                      Start at $0 or multiply initial capital
+                    </span>
+                  </div>
+                  <div className="choice-grid">
+                    {scenarios
+                      .filter((s) =>
+                        ["nothing", "ten-x", "hundred-x", "thousand-x", "freeplay"].includes(s.id),
+                      )
+                      .map((scenario) => (
+                        <button
+                          key={scenario.id}
+                          type="button"
+                          className={`choice ${scenarioId === scenario.id ? "selected" : ""}`}
+                          onClick={() => {
+                            playClickSound();
+                            setScenarioId(scenario.id);
+                          }}
+                        >
+                          <span
+                            style={{
+                              display: "inline-block",
+                              background: "rgba(16, 185, 129, 0.15)",
+                              color: "#059669",
+                              padding: "2px 8px",
+                              borderRadius: "999px",
+                              fontSize: "10px",
+                              fontWeight: 800,
+                              textTransform: "uppercase",
+                              marginBottom: "4px",
+                            }}
+                          >
+                            📈 Empire Progression
+                          </span>
+                          <strong>{scenario.name}</strong>
+                          <span>{scenario.description}</span>
+                          <b>{money(scenario.startingCash)}</b>
+                          <small>{scenario.goalLabel}</small>
+                        </button>
+                      ))}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            <SponsoredAdBanner slotId="7849102480" format="horizontal" />
             <div className="custom-launch">
               <div>
                 <b>🧬 Custom Challenge Lab</b>
@@ -363,17 +685,29 @@ export default function Home() {
                 </small>
               </div>
             </label>
-            <ReligionFrontPageSection selectedReligionId={selectedReligionId} onSelectReligion={setSelectedReligionId} customPrayerTimes={customPrayerTimes} onUpdatePrayerTime={(prayerId, time) => setCustomPrayerTimes((current) => ({ ...current, [prayerId]: time }))} playClickSound={() => undefined} />
+
+            <ReligionFrontPageSection
+              selectedReligionId={selectedReligionId}
+              onSelectReligion={setSelectedReligionId}
+              customPrayerTimes={customPrayerTimes}
+              onUpdatePrayerTime={(prayerId, time) => {
+                setCustomPrayerTimes((prev) => ({ ...prev, [prayerId]: time }));
+              }}
+              playClickSound={playClickSound}
+            />
+
             <button
               className="primary"
               onClick={() => {
+                playClickSound();
                 setOfflineAward(0);
                 setView(scenarioId === "nothing" ? "earnings" : "market");
                 recordedWin.current = null;
+                setInMainMenu(false);
                 setState(newGame(scenarioId, mode, riskMode, selectedReligionId, customPrayerTimes));
               }}
             >
-              Start Scenario
+              Start Scenario: {scenarios.find((s) => s.id === scenarioId)?.name ?? scenarioId}
             </button>
             <p className="micro">
               Start From Nothing begins at exactly $0, so your first move is
@@ -442,6 +776,17 @@ export default function Home() {
       kind: "reward",
     });
   };
+  const dailyStatus = getDailyCheckInStatus(state?.dailyRewards, nowTime);
+  const activeReminders = state
+    ? detectActiveReminders({
+        gameState: state,
+        offlineAward,
+        companionQuestReady: Boolean(companionQuest?.complete),
+        sponsorBoostReady: sponsorBoostRemainingSeconds === 0,
+        prefs: loadNotificationPreferences(),
+        now: nowTime,
+      })
+    : [];
   const debtState = normalizeDebtState(state.debt);
   const darkTheme = [
     "theme-midnight",
@@ -451,17 +796,174 @@ export default function Home() {
   ].includes(customization.equipped.themeId ?? "");
   const appClass = `app ${darkTheme ? "midnight " : ""}${themeClass(customization)} ${moneyCounterClass(customization)}`;
 
+  const handleBuy = (item: (typeof items)[number], q: number, e?: React.MouseEvent) => {
+    const o = state.owned[item.id] ?? 0;
+    const cost = itemBulkPrice(item, o, q, state);
+    setState((s) => {
+      if (!s) return s;
+      const next = buyItem(s, item, q);
+      if (next !== s) {
+        playPurchaseSound();
+        if (e) {
+          emitFloatingNumber({
+            text: `-${money(cost)}`,
+            x: e.clientX,
+            y: e.clientY,
+            color: '#dc2626',
+          });
+        }
+      }
+      return next;
+    });
+  };
+
+  const handleSell = (item: (typeof items)[number], q: number, e?: React.MouseEvent) => {
+    const o = state.owned[item.id] ?? 0;
+    const n = Math.min(Math.max(0, q), o);
+    const refund = itemBulkPrice(item, o - n, n, state) * 0.7;
+    setState((s) => {
+      if (!s) return s;
+      const next = sellItemWithDebt(s, item, q);
+      if (next !== s) {
+        playCoinSound();
+        if (e) {
+          emitFloatingNumber({
+            text: `+${money(refund)}`,
+            x: e.clientX,
+            y: e.clientY,
+            color: '#16a34a',
+          });
+        }
+      }
+      return next;
+    });
+  };
+
   return (
     <main className={appClass}>
+      <FloatingNumbersOverlay />
+      <PersistentFollowHud
+        state={state}
+        income={income}
+        worth={worth}
+        cardCredits={cardShop.credits}
+        activeTab={view}
+        onTabChange={setView}
+      />
       <header className="topbar">
         <div>
-          <div className="eyebrow">
-            SPEND IT ALL {state.riskMode ? "· RISK MODE" : ""} ·{" "}
-            {state.rules.presetId.toUpperCase()}{" "}
-            {state.customScenario
-              ? `· ${state.customScenario.name.toUpperCase()}`
-              : ""}{" "}
-            {meta.equippedTitle ? `· ${meta.equippedTitle.toUpperCase()}` : ""}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
+            <button
+              type="button"
+              className="main-menu-btn"
+              title="Return to Main Menu"
+              onClick={() => {
+                playClickSound();
+                setInMainMenu(true);
+              }}
+            >
+              ‹ Main Menu
+            </button>
+            <button
+              type="button"
+              className="audio-quick-btn"
+              title={audioSettings.muted ? "Sound Effects Muted (Click to Unmute)" : "Sound Effects Active (Click to Mute)"}
+              onClick={() => {
+                const next = toggleAudioMute();
+                setAudioSettings(next);
+                if (!next.muted) playCoinSound();
+              }}
+            >
+              {audioSettings.muted ? "🔇" : "🔊"}
+            </button>
+            <button
+              type="button"
+              className="header-action-badge-btn"
+              onClick={() => {
+                playClickSound();
+                setDailyRewardsModalOpen(true);
+              }}
+              title="Daily In-Game Rewards & Streak Check-In"
+            >
+              <span>🎁</span>
+              <span>Daily Rewards</span>
+              {dailyStatus.canClaim ? (
+                <span className="header-badge-count ready-glow">CLAIM</span>
+              ) : (
+                <span style={{ fontSize: '10.5px', color: '#16a34a', fontWeight: 800 }}>D{dailyStatus.currentDayInCycle}</span>
+              )}
+            </button>
+            <button
+              type="button"
+              className="header-action-badge-btn"
+              onClick={() => {
+                playClickSound();
+                setNotificationsOpen(true);
+              }}
+              title="Notification Reminders & In-Game Alerts"
+            >
+              <span>🔔</span>
+              <span>Reminders</span>
+              {activeReminders.length > 0 ? (
+                <span className="header-badge-count">{activeReminders.length}</span>
+              ) : null}
+            </button>
+            <span className="eyebrow" style={{ margin: 0 }}>
+              SPEND IT ALL {state.riskMode ? "· RISK MODE" : ""} ·{" "}
+              {state.rules.presetId.toUpperCase()}{" "}
+              {state.customScenario
+                ? `· ${state.customScenario.name.toUpperCase()}`
+                : ""}{" "}
+              {meta.equippedTitle ? `· ${meta.equippedTitle.toUpperCase()}` : ""}
+            </span>
+            {(() => {
+              const richPerson = getRichPersonProfile(state.scenarioId);
+              if (!richPerson) return null;
+              return (
+                <div
+                  style={{
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: "7px",
+                    background: "rgba(255, 255, 255, 0.95)",
+                    padding: "3px 10px 3px 6px",
+                    borderRadius: "999px",
+                    border: "1px solid #cbd5e1",
+                    boxShadow: "0 1px 3px rgba(0, 0, 0, 0.05)",
+                    fontSize: "11.5px",
+                    margin: "0 4px",
+                  }}
+                  title={richPerson.quote}
+                >
+                  <img
+                    src={richPerson.portraitUrl}
+                    alt={richPerson.name}
+                    style={{
+                      width: "20px",
+                      height: "20px",
+                      borderRadius: "50%",
+                      objectFit: "cover",
+                      display: "block",
+                    }}
+                    referrerPolicy="no-referrer"
+                    onError={(e) => {
+                      const target = e.currentTarget;
+                      if (target.src !== richPerson.fallbackSeedUrl) {
+                        target.src = richPerson.fallbackSeedUrl;
+                      }
+                    }}
+                  />
+                  <strong style={{ color: "#0f172a" }}>{richPerson.name}</strong>
+                  <span style={{ color: richPerson.badgeColor, fontWeight: 800, fontSize: "10px" }}>
+                    {richPerson.badge}
+                  </span>
+                </div>
+              );
+            })()}
+            <SponsorBoostBar
+              boostRemainingSeconds={sponsorBoostRemainingSeconds}
+              onActivateBoost={handleActivateSponsorBoost}
+            />
           </div>
           <MoneyCounter state={state} income={income} />
         </div>
@@ -497,6 +999,7 @@ export default function Home() {
           </div>
         </div>
       </header>
+      <MarketWeatherBanner gameDay={Math.floor((state.time?.gameMinute ?? 0) / (state.time?.settings?.dayLengthMinutes ?? 1440)) + 1} />
       <PetCompanion
         state={state}
         income={income}
@@ -547,70 +1050,126 @@ export default function Home() {
       <nav className="view-tabs">
         <button
           className={view === "market" ? "active" : ""}
-          onClick={() => setView("market")}
+          onClick={() => { playClickSound(); setView("market"); }}
         >
           Marketplace
         </button>
         <button
           className={view === "earnings" ? "active" : ""}
-          onClick={() => setView("earnings")}
+          onClick={() => { playClickSound(); setView("earnings"); }}
         >
           Earn
         </button>
         <button
           className={view === "businesses" ? "active" : ""}
-          onClick={() => setView("businesses")}
+          onClick={() => { playClickSound(); setView("businesses"); }}
         >
           Businesses
         </button>
         <button
           className={view === "empire" ? "active" : ""}
-          onClick={() => setView("empire")}
+          onClick={() => { playClickSound(); setView("empire"); }}
         >
           Empire
         </button>
         <button
+          className={view === "town" ? "active" : ""}
+          onClick={() => { playClickSound(); setView("town"); }}
+        >
+          Town & Community 🏘️
+          {state.cityEconomy?.population > 0 ? (
+            <span style={{ marginLeft: "5px", fontSize: "0.8em", opacity: 0.9 }}>
+              ({Math.round(state.cityEconomy.population).toLocaleString()})
+            </span>
+          ) : null}
+        </button>
+        <button
+          className={view === "daily" ? "active" : ""}
+          onClick={() => { playClickSound(); setView("daily"); }}
+        >
+          Daily Rewards 🎁
+          {dailyStatus.canClaim ? (
+            <span style={{ marginLeft: "5px", color: "#16a34a", fontWeight: 900 }}>•</span>
+          ) : null}
+        </button>
+        <button
+          className={view === "religion" ? "active" : ""}
+          onClick={() => { playClickSound(); setView("religion"); }}
+        >
+          {state.religion
+            ? `${getReligionDefinition(state.religion.religionId).emblem} Faith & Sanctuary`
+            : "🕊️ Faith & Religion"}
+        </button>
+        <button
+          className={view === "familyOffice" ? "active" : ""}
+          onClick={() => { playClickSound(); setView("familyOffice"); }}
+        >
+          Prestige 🏛
+        </button>
+        <button
+          className={view === "deck" ? "active" : ""}
+          onClick={() => { playClickSound(); setView("deck"); }}
+        >
+          Card Deck 🎴
+        </button>
+        <button
           className={view === "debt" ? "active" : ""}
-          onClick={() => setView("debt")}
+          onClick={() => { playClickSound(); setView("debt"); }}
         >
           Debt & Court ⚖
         </button>
-        <button className={view === "religion" ? "active" : ""} onClick={() => setView("religion")}>
-          {state.religion ? `${getReligionDefinition(state.religion.religionId).emblem} Faith & Sanctuary` : "🕊️ Faith & Sanctuary"}
-        </button>
         <button
           className={view === "achievements" ? "active" : ""}
-          onClick={() => setView("achievements")}
+          onClick={() => { playClickSound(); setView("achievements"); }}
         >
           Achievements · {achievementCount}
         </button>
         <button
           className={view === "collection" ? "active" : ""}
-          onClick={() => setView("collection")}
+          onClick={() => { playClickSound(); setView("collection"); }}
         >
           Collection · {meta.collectibles.length}
         </button>
         <button
           className={view === "leaderboard" ? "active" : ""}
-          onClick={() => setView("leaderboard")}
+          onClick={() => { playClickSound(); setView("leaderboard"); }}
         >
           Leaderboard
         </button>
         <button
           className={view === "customize" ? "active" : ""}
-          onClick={() => setView("customize")}
+          onClick={() => { playClickSound(); setView("customize"); }}
         >
           Customize ◈
         </button>
         <button
           className={view === "settings" ? "active" : ""}
-          onClick={() => setView("settings")}
+          onClick={() => { playClickSound(); setView("settings"); }}
         >
           Settings ⚙
         </button>
       </nav>
 
-      {view === "religion" ? <ReligionView state={state} setState={setState} /> : null}
+      {view === "familyOffice" ? (
+        <FamilyOfficeView
+          state={state}
+          onPrestige={() => {
+            setState((curr) => curr ? newGame(curr.scenarioId, curr.mode, curr.riskMode) : null);
+            setView("market");
+          }}
+        />
+      ) : null}
+      {view === "daily" ? (
+        <DailyRewardsView
+          state={state}
+          onUpdateState={(s) => setState(s)}
+          onOpenCards={() => setView("deck")}
+        />
+      ) : null}
+      {view === "religion" ? (
+        <ReligionView state={state} setState={setState} />
+      ) : null}
+      {view === "deck" ? <ExecutiveDeckView meta={meta} /> : null}
       {view === "achievements" ? <AchievementsView state={state} /> : null}
       {view === "collection" ? (
         <CollectionView
@@ -642,6 +1201,9 @@ export default function Home() {
       {view === "businesses" ? (
         <BusinessView state={state} setState={setState} />
       ) : null}
+      {view === "town" ? (
+        <TownCommunityView state={state} setState={setState} money={money} />
+      ) : null}
       {view === "market" ? (
         <>
           <nav className="tabs">
@@ -662,6 +1224,7 @@ export default function Home() {
               </button>
             ))}
           </nav>
+          <SponsoredAdBanner slotId="7849102481" format="horizontal" />
           <section className="dashboard-grid">
             <section className="catalog panel">
               <div className="section-heading">
@@ -669,13 +1232,44 @@ export default function Home() {
                   <span className="eyebrow">MARKETPLACE</span>
                   <h2>Buy the world</h2>
                 </div>
-                <span>
-                  {state.riskMode
-                    ? "Credit enabled · bankruptcy possible"
-                    : state.mode === "advanced"
-                      ? "Revenue + upkeep active"
-                      : "Simple economy"}
-                </span>
+                <div style={{ display: "flex", alignItems: "center", gap: "10px", flexWrap: "wrap" }}>
+                  <div className="photo-mode-controls">
+                    <button
+                      type="button"
+                      className={`photo-toggle-btn ${hudPrefs.showItemPhotos ? "active" : ""}`}
+                      onClick={() => {
+                        playClickSound();
+                        const next = saveHudPreferences({
+                          ...hudPrefs,
+                          showItemPhotos: !hudPrefs.showItemPhotos,
+                        });
+                        setHudPrefs(next);
+                      }}
+                      title="Toggle between high-res photo cards and compact list mode"
+                    >
+                      {hudPrefs.showItemPhotos ? "🖼️ Photo Cards: ON" : "📋 Compact Mode"}
+                    </button>
+                    <button
+                      type="button"
+                      className="photo-library-info-btn"
+                      onClick={() => {
+                        playClickSound();
+                        setLibraryModalOpen(true);
+                      }}
+                      title="Learn about royalty-free photo sources, licenses, and customization"
+                    >
+                      <span>ℹ️</span>
+                      <span>Royalty-Free Photos</span>
+                    </button>
+                  </div>
+                  <span>
+                    {state.riskMode
+                      ? "Credit enabled · bankruptcy possible"
+                      : state.mode === "advanced"
+                        ? "Revenue + upkeep active"
+                        : "Simple economy"}
+                  </span>
+                </div>
               </div>
               <div className="item-list">
                 {visibleItems.map((item) => {
@@ -684,23 +1278,85 @@ export default function Home() {
                     price = itemBulkPrice(item, owned, 1, state),
                     maxQty = maxAffordableQuantity(state, item),
                     pledged = isItemPledged(debtState, item.id);
+                  const visual = getPurchaseVisual(item.id);
+                  const cardTierClass =
+                    hudPrefs.showItemPhotos && visual
+                      ? hudPrefs.itemPhotoEscalation
+                        ? `has-photo tier-${visual.tier}`
+                        : "has-photo"
+                      : "";
+
                   return (
                     <article
-                      className={`item-card ${!unlocked ? "locked" : ""}`}
+                      className={`item-card ${!unlocked ? "locked" : ""} ${cardTierClass}`}
                       key={item.id}
                     >
-                      <div className="item-icon">
-                        <ItemPixelSprite itemId={item.id} emoji={item.emoji} />
-                      </div>
-                      <div className="item-copy">
+                      {hudPrefs.showItemPhotos && visual ? (
+                        <div
+                          className="item-photo-wrapper"
+                          onClick={() => setSelectedVisual(visual)}
+                          title="Click to inspect asset specifications & high-res photography"
+                        >
+                          <img
+                            src={visual.imageUrl}
+                            alt={visual.name}
+                            className="item-photo-img"
+                            referrerPolicy="no-referrer"
+                            onError={(e) => {
+                              const img = e.currentTarget;
+                              if (img.src !== visual.fallbackSeedUrl) {
+                                img.src = visual.fallbackSeedUrl;
+                              }
+                            }}
+                          />
+                          <div className="item-photo-overlay">
+                            <span className={`item-photo-tier-badge tier-${visual.tier}`}>
+                              {visual.badge}
+                            </span>
+                            <button
+                              type="button"
+                              className="item-photo-inspect-hint"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setSelectedVisual(visual);
+                              }}
+                            >
+                              🔍 Inspect Specs
+                            </button>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="item-icon">{item.emoji}</div>
+                      )}
+
+                      <div
+                        className="item-copy"
+                        style={hudPrefs.showItemPhotos && visual ? { padding: "12px 14px" } : undefined}
+                      >
                         <div className="item-title">
-                          <h3>{item.name}</h3>
+                          <h3>
+                            {hudPrefs.showItemPhotos && visual ? (
+                              <span style={{ marginRight: "6px" }}>{item.emoji}</span>
+                            ) : null}
+                            {item.name}
+                          </h3>
                           <span>
                             Owned {owned.toLocaleString()}
                             {pledged ? " · 🔒 pledged" : ""}
                           </span>
                         </div>
                         <p>{item.description}</p>
+
+                        {hudPrefs.showItemPhotos && visual && Object.keys(visual.specs).length > 0 ? (
+                          <div className="item-photo-specs-strip">
+                            {Object.entries(visual.specs).slice(0, 3).map(([k, v]) => (
+                              <span className="item-photo-spec-pill" key={k}>
+                                <b>{k.replace(/([A-Z])/g, " $1").trim()}:</b> {v}
+                              </span>
+                            ))}
+                          </div>
+                        ) : null}
+
                         <div className="item-meta">
                           <b>{money(price)}</b>
                           {item.incomePerSecond ? (
@@ -713,45 +1369,34 @@ export default function Home() {
                           ) : null}
                         </div>
                       </div>
-                      <div className="buy-stack">
+                      <div
+                        className="buy-stack"
+                        style={hudPrefs.showItemPhotos && visual ? { padding: "0 14px 14px 14px" } : undefined}
+                      >
                         {unlocked ? (
                           <>
                             <button
                               disabled={!canBuyItem(state, item, 1)}
-                              onClick={() =>
-                                setState((s) => (s ? buyItem(s, item, 1) : s))
-                              }
+                              onClick={(e) => handleBuy(item, 1, e)}
                             >
                               Buy
                             </button>
                             <button
                               disabled={!canBuyItem(state, item, 10)}
-                              onClick={() =>
-                                setState((s) => (s ? buyItem(s, item, 10) : s))
-                              }
+                              onClick={(e) => handleBuy(item, 10, e)}
                             >
                               ×10
                             </button>
                             <button
                               disabled={!canBuyItem(state, item, 100)}
-                              onClick={() =>
-                                setState((s) => (s ? buyItem(s, item, 100) : s))
-                              }
+                              onClick={(e) => handleBuy(item, 100, e)}
                             >
                               ×100
                             </button>
                             <button
                               disabled={maxQty < 1}
-                              onClick={() =>
-                                setState((s) =>
-                                  s
-                                    ? buyItem(
-                                        s,
-                                        item,
-                                        maxAffordableQuantity(s, item),
-                                      )
-                                    : s,
-                                )
+                              onClick={(e) =>
+                                handleBuy(item, maxAffordableQuantity(state, item), e)
                               }
                             >
                               MAX
@@ -759,11 +1404,7 @@ export default function Home() {
                             <button
                               className="sell"
                               disabled={!canSellItemWithDebt(state, item)}
-                              onClick={() =>
-                                setState((s) =>
-                                  s ? sellItemWithDebt(s, item, 1) : s,
-                                )
-                              }
+                              onClick={(e) => handleSell(item, 1, e)}
                             >
                               {pledged
                                 ? "Pledged"
@@ -818,7 +1459,11 @@ export default function Home() {
                 currentRegion={currentRegion}
                 nextRegion={nextRegion}
                 setState={setState}
+                onOpenTown={() => setView("town")}
+                showPhotos={hudPrefs.showItemPhotos}
+                onInspectVisual={setSelectedVisual}
               />
+              <SponsoredAdBanner slotId="7849102482" format="rectangle" />
             </aside>
           </section>
         </>
@@ -870,9 +1515,23 @@ export default function Home() {
                     </div>
                     <button
                       disabled={!canBuyUpgrade(state, upgrade)}
-                      onClick={() =>
-                        setState((s) => (s ? buyUpgrade(s, upgrade) : s))
-                      }
+                      onClick={(e) => {
+                        const cost = upgradeCost(state, upgrade);
+                        setState((s) => {
+                          if (!s) return s;
+                          const next = buyUpgrade(s, upgrade);
+                          if (next !== s) {
+                            playPurchaseSound();
+                            emitFloatingNumber({
+                              text: `-${money(cost)}`,
+                              x: e.clientX,
+                              y: e.clientY,
+                              color: '#dc2626',
+                            });
+                          }
+                          return next;
+                        });
+                      }}
                     >
                       {level >= upgrade.maxLevel
                         ? "MAXED"
@@ -927,6 +1586,9 @@ export default function Home() {
               currentRegion={currentRegion}
               nextRegion={nextRegion}
               setState={setState}
+              onOpenTown={() => setView("town")}
+              showPhotos={hudPrefs.showItemPhotos}
+              onInspectVisual={setSelectedVisual}
             />
             <section className="panel">
               <span className="eyebrow">ACHIEVEMENT VAULT</span>
@@ -947,6 +1609,7 @@ export default function Home() {
           </aside>
         </section>
       ) : null}
+      <SponsoredAdBanner slotId="7849102485" format="horizontal" />
       <footer className="game-footer">
         <button
           onClick={() =>
@@ -971,9 +1634,6 @@ export default function Home() {
         <button className="secondary" onClick={() => setView("settings")}>
           Game Rules ⚙
         </button>
-        <button className="secondary" onClick={() => setState(null)}>
-          Main Menu ↩
-        </button>
         <button
           className="danger"
           onClick={() => {
@@ -985,6 +1645,51 @@ export default function Home() {
           Reset Run
         </button>
       </footer>
+
+      {dailyRewardsModalOpen ? (
+        <DailyRewardsModal
+          state={state}
+          onUpdateState={(s) => setState(s)}
+          onClose={() => setDailyRewardsModalOpen(false)}
+          onOpenCards={() => setView("deck")}
+        />
+      ) : null}
+
+      <NotificationCenter
+        state={state}
+        offlineAward={offlineAward}
+        companionQuestReady={Boolean(companionQuest?.complete)}
+        sponsorBoostReady={sponsorBoostRemainingSeconds === 0}
+        isOpen={notificationsOpen}
+        onClose={() => setNotificationsOpen(false)}
+        onOpenDaily={() => setDailyRewardsModalOpen(true)}
+        onSwitchView={(v) => setView(v as View)}
+        onOpenCards={() => setView("deck")}
+        onClaimOffline={() => {
+          setState((curr) => {
+            if (!curr) return curr;
+            const updated = {
+              ...curr,
+              cash: curr.cash + offlineAward,
+              lifetimeIncome: curr.lifetimeIncome + offlineAward,
+              updatedAt: Date.now(),
+            };
+            setOfflineAward(0);
+            return updated;
+          });
+        }}
+        onActivateSponsorBoost={() => handleActivateSponsorBoost(15)}
+      />
+      <ItemPhotoModal visual={selectedVisual} onClose={() => setSelectedVisual(null)} />
+      <RoyaltyFreeLibraryModal
+        isOpen={libraryModalOpen}
+        onClose={() => setLibraryModalOpen(false)}
+        hudPrefs={hudPrefs}
+        onUpdateHudPrefs={(patch) => {
+          const next = saveHudPreferences({ ...hudPrefs, ...patch });
+          setHudPrefs(next);
+        }}
+      />
     </main>
   );
 }
@@ -1066,6 +1771,9 @@ function ProgressPanels({
   currentRegion,
   nextRegion,
   setState,
+  onOpenTown,
+  showPhotos,
+  onInspectVisual,
 }: {
   state: GameState;
   currentHouse: (typeof houseTiers)[number];
@@ -1075,16 +1783,45 @@ function ProgressPanels({
   currentRegion: (typeof regionTiers)[number];
   nextRegion: (typeof regionTiers)[number] | undefined;
   setState: React.Dispatch<React.SetStateAction<GameState | null>>;
+  onOpenTown?: () => void;
+  showPhotos?: boolean;
+  onInspectVisual?: (visual: PurchaseVisualItem) => void;
 }) {
   const price = state.rules.economy.purchasePriceMultiplier;
   return (
     <>
+      <section className="panel compact-progress">
+        <span className="eyebrow">TOWN & SETTLEMENT</span>
+        <h2>{state.cityEconomy?.townName || currentTown.name}</h2>
+        <p>
+          {state.cityEconomy?.founded
+            ? `${Math.round(state.cityEconomy.population).toLocaleString()} residents · ${state.cityEconomy.communityGoodwill}% goodwill`
+            : "Claim territory and welcome immigrants"}
+        </p>
+        {onOpenTown && (
+          <button
+            className="secondary"
+            style={{ width: "100%", marginTop: "6px", fontWeight: 700 }}
+            onClick={onOpenTown}
+          >
+            {state.cityEconomy?.founded ? "Open Town Hub 🏘️ →" : "Found Settlement 🏛️ →"}
+          </button>
+        )}
+      </section>
       <section className="panel compact-progress">
         <span className="eyebrow">HOME</span>
         <h2>{currentHouse.name}</h2>
         <p>
           {currentHouse.rooms} rooms · Level {currentHouse.level}
         </p>
+        {showPhotos && onInspectVisual ? (
+          <HouseVisualBanner
+            currentHouse={currentHouse}
+            nextHouse={nextHouse}
+            onInspect={onInspectVisual}
+            showPhotos={showPhotos}
+          />
+        ) : null}
         {nextHouse ? (
           <button
             className="primary"

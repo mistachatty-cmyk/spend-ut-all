@@ -4,6 +4,7 @@ import { badges, collectibleSets, collectibles } from '@/data/meta';
 import { money } from '@/game/format';
 import type { MetaState } from '@/game/meta-types';
 import { nextTrophyRoomTier, trophyRoomProgress, trophyRoomTier } from '@/game/systems/trophy-room';
+import { ExecutiveDeckView } from './ExecutiveDeckView';
 
 export function CollectionView({ meta, onEquipTitle, onToggleBadge }: { meta: MetaState; onEquipTitle: (title: string | null) => void; onToggleBadge: (id: string) => void }) {
   const completion = collectibles.length ? Math.round((meta.collectibles.length / collectibles.length) * 100) : 0;
@@ -16,6 +17,8 @@ export function CollectionView({ meta, onEquipTitle, onToggleBadge }: { meta: Me
       <div><span className="eyebrow">LEGACY COLLECTION</span><h2>Your empire leaves artifacts behind</h2><p>Badges, titles and collectibles survive individual runs. Secret discoveries stay hidden until you trigger them.</p></div>
       <div className="collection-stats"><span><b>{meta.badges.length}</b> badges</span><span><b>{meta.collectibles.length}/{collectibles.length}</b> relics</span><span><b>{meta.completedSets.length}</b> sets</span><span><b>{completion}%</b> museum</span></div>
     </section>
+
+    <ExecutiveDeckView meta={meta} />
 
     <section className="panel trophy-room-card">
       <div className="trophy-room-icon">{room.emoji}</div>

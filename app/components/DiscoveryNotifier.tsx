@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { badges, collectibleSets, collectibles } from '@/data/meta';
 import { normalizeMetaState } from '@/game/systems/meta-progression';
+import { playNotificationSound } from '@/game/systems/audio-sfx';
 import type { DiscoveryRecord, MetaState } from '@/game/meta-types';
 
 const META_KEY = 'spend-it-all-meta-v1';
@@ -35,6 +36,7 @@ export function DiscoveryNotifier() {
       if (key === lastKey.current) return;
       lastKey.current = key;
       setDiscovery(latest);
+      playNotificationSound();
       window.setTimeout(() => setDiscovery((current) => current === latest ? null : current), 6500);
     };
 

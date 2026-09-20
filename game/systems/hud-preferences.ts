@@ -2,9 +2,7 @@ export type InterfaceMode = 'simple' | 'advanced';
 export type LooperArtStyle = 'classic' | 'production';
 export type UiEdgeStyle = 'rounded' | 'boxed';
 export type InformationDensity = 'more' | 'balanced' | 'less';
-/** Photo becomes selectable only when a rights-cleared local photo pack is installed. */
 export type VisualArtMode = 'pixel' | 'photo';
-/** Reserved for the incoming asset pack; today it controls no game rules. */
 export type VisualQualityPreset = 'potato' | 'mid' | 'high';
 
 export type HudPreferences = {
@@ -15,17 +13,24 @@ export type HudPreferences = {
   showDebt: boolean;
   compactHud: boolean;
   boxedBalance: boolean;
+  showFullDigits: boolean;
+  animatedFlip: boolean;
+  potatoMode: boolean;
+  disableBlur: boolean;
+  lowPowerTicks: boolean;
+  incomePulse: boolean;
   interfaceMode: InterfaceMode;
   looperArtStyle: LooperArtStyle;
-  /** Global chrome treatment selected in the post-companion Style Deck. */
+  showItemPhotos: boolean;
+  itemPhotoEscalation: boolean;
   uiEdgeStyle: UiEdgeStyle;
-  /** Controls how much secondary HUD information stays visible by default. */
   informationDensity: InformationDensity;
   visualArtMode: VisualArtMode;
   visualQualityPreset: VisualQualityPreset;
 };
 
 export const HUD_PREFS_KEY = 'spend-it-all-hud-counters-v1';
+const LOOPER_PRODUCTION_MIGRATION_KEY = 'spend-it-all-looper-production-art-v2';
 
 export const DEFAULT_HUD_PREFS: HudPreferences = {
   showLok: true,
@@ -35,32 +40,57 @@ export const DEFAULT_HUD_PREFS: HudPreferences = {
   showDebt: false,
   compactHud: true,
   boxedBalance: false,
+  showFullDigits: false,
+  animatedFlip: true,
+  potatoMode: false,
+  disableBlur: false,
+  lowPowerTicks: false,
+  incomePulse: true,
   interfaceMode: 'simple',
   looperArtStyle: 'classic',
+  showItemPhotos: true,
+  itemPhotoEscalation: true,
   uiEdgeStyle: 'rounded',
   informationDensity: 'balanced',
-  visualArtMode: 'pixel',
+  visualArtMode: 'photo',
   visualQualityPreset: 'mid',
 };
 
 const EVENT_NAME = 'spend-it-all-hud-preferences';
 
-function normalize(input?: Partial<HudPreferences> & { looperArtStyle?: string; uiEdgeStyle?: string; informationDensity?: string; visualArtMode?: string; visualQualityPreset?: string } | null): HudPreferences {
+function normalize(input?: Partial<HudPreferences> & { looperArtStyle?: string } | null): HudPreferences {
   const legacyStyle = input?.looperArtStyle;
   const looperArtStyle: LooperArtStyle = legacyStyle === 'production' ? 'production' : 'classic';
-  const uiEdgeStyle: UiEdgeStyle = input?.uiEdgeStyle === 'boxed' ? 'boxed' : 'rounded';
-  const informationDensity: InformationDensity = input?.informationDensity === 'more'
-    ? 'more'
-    : input?.informationDensity === 'less'
-      ? 'less'
-      : 'balanced';
-  const visualArtMode: VisualArtMode = input?.visualArtMode === 'photo' ? 'photo' : 'pixel';
-  const visualQualityPreset: VisualQualityPreset = input?.visualQualityPreset === 'potato'
-    ? 'potato'
-    : input?.visualQualityPreset === 'high'
-      ? 'high'
-      : 'mid';
-  return { ...DEFAULT_HUD_PREFS, ...input, looperArtStyle, uiEdgeStyle, informationDensity, visualArtMode, visualQualityPreset } as HudPreferences;
+  const potato = input?.potatoMode ?? false;
+  return {
+    ...DEFAULT_HUD_PREFS,
+    ...input,
+    looperArtStyle,
+    showFullDigits: input?.showFullDigits ?? DEFAULT_HUD_PREFS.showFullDigits,
+    animatedFlip: potato ? false : (input?.animatedFlip ?? DEFAULT_HUD_PREFS.animatedFlip),
+    potatoMode: potato,
+    disableBlur: potato || (input?.disableBlur ?? DEFAULT_HUD_PREFS.disableBlur),
+    lowPowerTicks: potato || (input?.lowPowerTicks ?? DEFAULT_HUD_PREFS.lowPowerTicks),
+    incomePulse: potato ? false : (input?.incomePulse ?? DEFAULT_HUD_PREFS.incomePulse),
+    showItemPhotos: input?.showItemPhotos ?? DEFAULT_HUD_PREFS.showItemPhotos,
+    itemPhotoEscalation: input?.itemPhotoEscalation ?? DEFAULT_HUD_PREFS.itemPhotoEscalation,
+    uiEdgeStyle: input?.uiEdgeStyle === 'boxed' ? 'boxed' : 'rounded',
+    informationDensity: input?.informationDensity === 'more' || input?.informationDensity === 'less' ? input.informationDensity : 'balanced',
+    visualArtMode: input?.visualArtMode === 'pixel' ? 'pixel' : 'photo',
+    visualQualityPreset: input?.visualQualityPreset === 'potato' || input?.visualQualityPreset === 'high' ? input.visualQualityPreset : 'mid',
+  } as HudPreferences;
+}
+
+export function syncDocumentPerformanceAttrs(prefs: HudPreferences) {
+  if (typeof document === 'undefined') return;
+  document.documentElement.dataset.potatoMode = String(prefs.potatoMode);
+  document.documentElement.dataset.disableBlur = String(prefs.disableBlur || prefs.potatoMode);
+  document.documentElement.dataset.animatedFlip = String(prefs.animatedFlip && !prefs.potatoMode);
+  document.documentElement.dataset.looperArt = prefs.looperArtStyle;
+  document.documentElement.dataset.uiEdge = prefs.uiEdgeStyle;
+  document.documentElement.dataset.informationDensity = prefs.informationDensity;
+  document.documentElement.dataset.visualArt = prefs.visualArtMode;
+  document.documentElement.dataset.visualQuality = prefs.visualQualityPreset;
 }
 
 export function loadHudPreferences(): HudPreferences {
@@ -79,7 +109,9 @@ export function saveHudPreferences(value: HudPreferences): HudPreferences {
   if (typeof window !== 'undefined') {
     try {
       window.localStorage.setItem(HUD_PREFS_KEY, JSON.stringify(normalized));
+      window.localStorage.setItem(LOOPER_PRODUCTION_MIGRATION_KEY, '1');
     } catch {}
+    syncDocumentPerformanceAttrs(normalized);
     window.dispatchEvent(new CustomEvent(EVENT_NAME, { detail: normalized }));
   }
   return normalized;

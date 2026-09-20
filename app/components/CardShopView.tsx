@@ -125,7 +125,7 @@ export function CardShopView({
         );
       }
     }
-  }, [inventory.ownedIds, loaded]);
+  }, [inventory.ownedIds.join(','), loaded]);
 
   useEffect(() => {
     if (!loaded) return;

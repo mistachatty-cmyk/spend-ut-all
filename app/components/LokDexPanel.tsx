@@ -26,7 +26,7 @@ export function LokDexPanel({ inventory }: { inventory: CustomizationInventory }
   useEffect(() => {
     if (!loaded) return;
     setCollection((current) => saveLokDexCollection(syncCompanionsToLokDex(current, inventory)));
-  }, [inventory.ownedIds, loaded]);
+  }, [inventory.ownedIds.join(','), loaded]);
 
   const companionCount = useMemo(() => lokDexEntries.filter((entry) => !!entry.companionCustomizationId).length, []);
   const discovered = collection.discoveredIds.length;

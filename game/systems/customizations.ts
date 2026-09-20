@@ -6,7 +6,7 @@ export const CUSTOMIZATION_KEY = 'spend-it-all-customization-v1';
 export const CUSTOMIZATION_VERSION = 1;
 
 const starterIds = allCustomizations.filter((entry) => entry.acquisition.includes('starter')).map((entry) => entry.id);
-const darkThemeKeys = new Set(['midnight','executive-glass','market-terminal','neon-pulse','aurora-ledger','deep-ocean','retrofuture','gilded-empire','orbital-command','living-city','singularity-finance','quantum-casino','lunar-office']);
+const darkThemeKeys = new Set(['midnight','executive-glass','market-terminal','neon-pulse','aurora-ledger','deep-ocean','retrofuture','gilded-empire','orbital-command','living-city','singularity-finance','quantum-casino','lunar-office','cyber-grid','emerald-vault','solar-flare','vegas-highroller','cyberpunk-tokyo','royal-amethyst','steampunk-vault']);
 
 export function createCustomizationInventory(now = Date.now()): CustomizationInventory {
   return {

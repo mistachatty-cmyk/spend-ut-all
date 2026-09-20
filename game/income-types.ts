@@ -21,6 +21,7 @@ export type IncomeStreamDefinition = {
   id: IncomeStreamId;
   name: string;
   emoji: string;
+  imageUrl?: string;
   description: string;
   baseCost: number;
   growthRate: number;
@@ -36,6 +37,7 @@ export type ActiveEarningDefinition = {
   id: string;
   name: string;
   emoji: string;
+  imageUrl?: string;
   description: string;
   payout: number;
   unlockSpent?: number;

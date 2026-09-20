@@ -151,3 +151,23 @@ export function businessSnapshot(state: GameState, definition: BusinessDefinitio
     }),
   };
 }
+
+export function customizeBusiness(
+  state: GameState,
+  businessId: string,
+  updates: { customName?: string; slogan?: string; brandColor?: string; logoIcon?: string }
+): GameState {
+  const current = state.businesses?.[businessId];
+  if (!current) return state;
+  return {
+    ...state,
+    businesses: {
+      ...state.businesses,
+      [businessId]: {
+        ...current,
+        ...updates,
+      },
+    },
+    updatedAt: Date.now(),
+  };
+}

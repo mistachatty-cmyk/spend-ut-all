@@ -17,6 +17,9 @@ import { netWorth } from '@/game/engine';
 import { canUnlockIncomeStream, incomeStreamUnitCost, incomeStreamsPerSecond } from '@/game/systems/earnings';
 import { lifeSkillLevel } from '@/game/systems/life-progression';
 import { emitMicroMotion } from '@/game/systems/micro-animations';
+import { playCoinSound, playPurchaseSound, playClickSound } from '@/game/systems/audio-sfx';
+import { emitFloatingNumber } from '@/game/systems/floating-numbers';
+import { SponsoredAdBanner } from './SponsoredAdBanner';
 import type { GameState } from '@/game/types';
 
 function skillName(id?: string) {
@@ -75,13 +78,20 @@ export function EarningsView({
                     const next = performActiveEarning(current, earning);
                     const delta = next.cash - current.cash;
                     if (delta > 0) {
+                      playCoinSound();
+                      emitFloatingNumber({
+                        text: `+${money(delta)}`,
+                        x: event.clientX,
+                        y: event.clientY,
+                        color: '#16a34a',
+                      });
                       emitMicroMotion({ target:'cash', amount:delta, displayText:`+${money(delta)}`, symbol:earning.emoji, tone:'positive', kind:'currency', sourceElement });
                     }
                     return next;
                   });
                 }}
               >
-                <PurchaseVisual id={earning.id} name={earning.name} emoji={earning.emoji} family="income" value={earning.payout} compact locked={!unlocked} />
+                <PurchaseVisual id={earning.id} name={earning.name} emoji={earning.emoji} family="income" value={earning.payout} imageSrc={earning.imageUrl} compact locked={!unlocked} />
                 <div>
                   <b>{earning.name}</b>
                   <small>{earning.description}</small>
@@ -117,7 +127,7 @@ export function EarningsView({
               && lifeSkillLevel(state.life, stream.requiredSkillId) < (stream.requiredSkillLevel ?? 0);
             return (
               <article key={stream.id}>
-                <PurchaseVisual id={stream.id} name={stream.name} emoji={stream.emoji} family="income" value={stream.baseCost} compact locked={!unlocked} />
+                <PurchaseVisual id={stream.id} name={stream.name} emoji={stream.emoji} family="income" value={stream.baseCost} imageSrc={stream.imageUrl} compact locked={!unlocked} />
                 <div>
                   <b>{stream.name}</b>
                   <small>{stream.description}</small>
@@ -128,7 +138,26 @@ export function EarningsView({
                 </div>
                 <button
                   disabled={!unlocked || state.cash < cost || state.runStatus !== 'active'}
-                  onClick={() => setState(current => current ? buyIncomeStream(current, stream) : current)}
+                  onClick={event => {
+                    const sourceElement = event.currentTarget;
+                    playPurchaseSound();
+                    emitFloatingNumber({
+                      text: `-${money(cost)}`,
+                      x: event.clientX,
+                      y: event.clientY,
+                      color: '#e11d48',
+                    });
+                    emitMicroMotion({
+                      target: 'cash',
+                      amount: -cost,
+                      displayText: `-${money(cost)}`,
+                      symbol: stream.emoji,
+                      tone: 'negative',
+                      kind: 'currency',
+                      sourceElement,
+                    });
+                    setState(current => current ? buyIncomeStream(current, stream) : current);
+                  }}
                 >
                   Buy · {money(cost)}
                 </button>
@@ -137,6 +166,8 @@ export function EarningsView({
           })}
         </div>
       </section>
+
+      <SponsoredAdBanner slotId="7849102486" format="horizontal" />
 
       <section className="panel investment-panel">
         <span className="eyebrow">OPTIONAL INVESTING</span>
@@ -147,23 +178,62 @@ export function EarningsView({
             const unlocked = investmentUnlocked(state, investment);
             return (
               <article key={investment.id}>
-                <PurchaseVisual id={investment.id} name={investment.name} emoji={investment.emoji} family="investment" value={investment.minimumStake} compact locked={!unlocked} />
+                <span>{investment.emoji}</span>
                 <div><b>{investment.name}</b><small>{investment.description}</small></div>
                 <div>
                   {[0.1, 0.25, 0.5].map(fraction => (
                     <button
                       key={fraction}
                       disabled={!unlocked || state.runStatus !== 'active'}
-                      onClick={() => setState(current => {
-                        if (!current) return current;
-                        const result = executeInvestment(current, investment, fraction, worth);
-                        if (!result.stake) {
-                          setLastResult(`Need at least ${money(investment.minimumStake)} available.`);
-                          return current;
-                        }
-                        setLastResult(`${investment.name}: ${result.delta >= 0 ? '+' : ''}${money(result.delta)}.`);
-                        return result.state;
-                      })}
+                      onClick={event => {
+                        const sourceElement = event.currentTarget;
+                        setState(current => {
+                          if (!current) return current;
+                          const result = executeInvestment(current, investment, fraction, worth);
+                          if (!result.stake) {
+                            playClickSound();
+                            setLastResult(`Need at least ${money(investment.minimumStake)} available.`);
+                            return current;
+                          }
+                          if (result.delta >= 0) {
+                            playCoinSound();
+                            emitFloatingNumber({
+                              text: `+${money(result.delta)}`,
+                              x: event.clientX,
+                              y: event.clientY,
+                              color: '#16a34a',
+                            });
+                            emitMicroMotion({
+                              target: 'cash',
+                              amount: result.delta,
+                              displayText: `+${money(result.delta)}`,
+                              symbol: '📈',
+                              tone: 'positive',
+                              kind: 'currency',
+                              sourceElement,
+                            });
+                          } else {
+                            playPurchaseSound();
+                            emitFloatingNumber({
+                              text: `${money(result.delta)}`,
+                              x: event.clientX,
+                              y: event.clientY,
+                              color: '#e11d48',
+                            });
+                            emitMicroMotion({
+                              target: 'cash',
+                              amount: result.delta,
+                              displayText: `${money(result.delta)}`,
+                              symbol: '📉',
+                              tone: 'negative',
+                              kind: 'currency',
+                              sourceElement,
+                            });
+                          }
+                          setLastResult(`${investment.name}: ${result.delta >= 0 ? '+' : ''}${money(result.delta)}.`);
+                          return result.state;
+                        });
+                      }}
                     >
                       {Math.round(fraction * 100)}%
                     </button>

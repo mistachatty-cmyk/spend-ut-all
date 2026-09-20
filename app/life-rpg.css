@@ -4,3 +4,147 @@
 .career-panel,.freelance-panel{display:flex;flex-direction:column;gap:14px}.career-current-actions{display:flex;flex-wrap:wrap;gap:8px}.career-current-actions button{border:1px solid #d9dee5;background:#fff;color:inherit;border-radius:11px;padding:9px 12px;font-size:10px;font-weight:900;cursor:pointer}.career-current-actions button:disabled{opacity:.4;cursor:not-allowed}.career-market-toolbar{border:1px solid #dde3e8;border-radius:16px;background:#f7f9fb;padding:13px;display:flex;align-items:flex-end;justify-content:space-between;gap:14px}.career-market-toolbar>div:first-child{display:flex;flex-direction:column;gap:4px}.career-market-toolbar b{font-size:13px}.career-market-toolbar small{font-size:10px;color:#727b86;line-height:1.35}.career-grid,.freelance-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px}.career-grid article,.freelance-grid article{border:1px solid #e0e4e9;border-radius:17px;background:#fff;padding:13px;display:flex;flex-direction:column;min-width:0}.career-grid article.selected{border-color:#62a37c;background:#f4fbf6;box-shadow:inset 0 0 0 1px #62a37c}.career-grid header,.freelance-grid header{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:8px;align-items:start}.career-grid header>span,.freelance-grid header>span{font-size:24px}.career-grid header div,.freelance-grid header div{display:flex;flex-direction:column;min-width:0}.career-grid header b,.freelance-grid header b{font-size:12px;line-height:1.2}.career-grid header small,.freelance-grid header small{font-size:8px;color:#7a838d;letter-spacing:.08em}.career-grid header em,.freelance-grid header em{font-size:9px;font-style:normal;font-weight:900;white-space:nowrap}.career-grid article p,.freelance-grid article p{font-size:10px;line-height:1.35;color:#69717c;margin:9px 0}.career-grid article>small,.freelance-grid article>small{font-size:9px;line-height:1.35;color:#747d87;margin-bottom:5px}.career-grid article button,.freelance-grid article button{margin-top:auto;border:0;background:#17191e;color:#fff;border-radius:10px;min-height:38px;padding:8px;font-size:10px;font-weight:900;cursor:pointer}.career-grid article button:disabled,.freelance-grid article button:disabled{opacity:.35;cursor:not-allowed}.career-directory{border-top:1px solid #e1e5ea;padding-top:10px}.career-directory summary{cursor:pointer;font-size:11px;font-weight:900}.career-directory-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;margin-top:9px}.career-directory-row{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:8px;align-items:center;border:1px solid #e3e7eb;border-radius:12px;padding:9px;background:#fafbfc}.career-directory-row>span{font-size:19px}.career-directory-row div{display:flex;flex-direction:column;min-width:0}.career-directory-row b{font-size:10px}.career-directory-row small{font-size:8px;color:#7b838d;text-transform:uppercase}.career-directory-row strong{font-size:9px;white-space:nowrap}.freelance-stat-strip{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px}.freelance-stat-strip>div{display:flex;flex-direction:column;border:1px solid #e1e5ea;border-radius:13px;background:#fafbfc;padding:10px;min-width:0}.freelance-stat-strip span{font-size:8px;text-transform:uppercase;letter-spacing:.08em;color:#77808b;font-weight:900}.freelance-stat-strip b{font-size:15px;overflow:hidden;text-overflow:ellipsis}.midnight .career-market-toolbar,.midnight .career-directory-row,.midnight .freelance-stat-strip>div{background:#101318;border-color:#2b3039}.midnight .career-grid article,.midnight .freelance-grid article,.midnight .career-current-actions button{background:#111419;border-color:#2b3039}.midnight .career-grid article.selected{background:#112019;border-color:#477c5a}
 
 @media(max-width:900px){.life-background-grid,.housing-option-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.life-stat-grid{grid-template-columns:repeat(3,minmax(0,1fr))}.career-grid,.freelance-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:600px){.life-rpg-optin{grid-template-columns:1fr;gap:12px}.life-rpg-optin .primary{width:100%;min-width:0}.life-background-grid,.life-skill-grid,.housing-option-grid,.career-grid,.freelance-grid,.career-directory-list{grid-template-columns:1fr}.life-stat-grid,.freelance-stat-strip{grid-template-columns:repeat(2,minmax(0,1fr))}.life-profile-head{flex-direction:column}.life-profile-actions{align-items:flex-start;width:100%}.life-housing-chip{white-space:normal}.housing-option-grid p{min-height:0}.life-skill-grid header b,.housing-option-grid header b{font-size:14px}.life-skill-grid header small,.housing-option-grid p{font-size:11px}.housing-option-grid button{min-height:42px;font-size:11px}.career-market-toolbar{align-items:stretch;flex-direction:column}.career-market-toolbar .career-current-actions{display:grid;grid-template-columns:1fr 1fr}.career-market-toolbar .career-current-actions button{min-height:42px}.career-grid header b,.freelance-grid header b{font-size:14px}.career-grid article p,.freelance-grid article p{font-size:11px}.career-grid article button,.freelance-grid article button{min-height:42px;font-size:11px}}@media(prefers-reduced-motion:reduce){.life-background-grid button,.life-xp-bar i span{transition:none!important;transform:none!important}}
+
+/* Sim-specific gameplay styles */
+.sim-subtabs{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;border-bottom:1px solid #e2e6ea;margin-bottom:14px;scrollbar-width:none}
+.sim-subtabs button{border:1px solid #d9dfe6;background:#fff;border-radius:999px;padding:7px 13px;font-size:11px;font-weight:800;color:#555e69;cursor:pointer;display:inline-flex;align-items:center;gap:5px;white-space:nowrap}
+.sim-subtabs button.active{background:#17191e;color:#fff;border-color:#17191e}
+.midnight .sim-subtabs button{background:#111419;border-color:#2b3039;color:#abb3be}
+.midnight .sim-subtabs button.active{background:#f3f4f6;color:#111419}
+
+.sim-vitals-card{background:linear-gradient(135deg,rgba(255,255,255,.95),rgba(247,250,252,.92));border:1px solid #dfe4ea;border-radius:20px;padding:18px;display:flex;flex-direction:column;gap:14px}
+.midnight .sim-vitals-card{background:linear-gradient(135deg,rgba(23,26,32,.95),rgba(17,20,25,.92));border-color:#2b3039}
+.sim-mood-banner{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;padding:12px 14px;border-radius:14px;background:#fff;border:1px solid #e1e6eb}
+.midnight .sim-mood-banner{background:#111419;border-color:#2b3039}
+.sim-mood-left{display:flex;align-items:center;gap:12px}
+.sim-mood-icon{font-size:32px;display:flex;align-items:center;justify-content:center;width:48px;height:48px;border-radius:12px;background:#f3f6f9}
+.midnight .sim-mood-icon{background:#1b1f26}
+.sim-mood-title{display:flex;flex-direction:column}
+.sim-mood-title b{font-size:15px;letter-spacing:-.02em}
+.sim-mood-title small{font-size:11px;color:#6b7280;line-height:1.3}
+.sim-mood-perks{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.sim-perk-pill{font-size:10px;font-weight:900;padding:5px 9px;border-radius:999px;border:1px solid #d1fae5;background:#ecfdf5;color:#065f46;white-space:nowrap}
+.sim-perk-pill.income{border-color:#dbeafe;background:#eff6ff;color:#1e40af}
+.sim-perk-pill.penalty{border-color:#fee2e2;background:#fef2f2;color:#991b1b}
+
+.sim-needs-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px}
+.sim-need-box{background:#fff;border:1px solid #e1e6ec;border-radius:14px;padding:10px;display:flex;flex-direction:column;gap:5px}
+.midnight .sim-need-box{background:#111419;border-color:#2b3039}
+.sim-need-head{display:flex;align-items:center;justify-content:space-between}
+.sim-need-label{font-size:10px;font-weight:900;text-transform:uppercase;letter-spacing:.05em;color:#606a75;display:flex;align-items:center;gap:4px}
+.sim-need-val{font-size:11px;font-weight:900}
+.sim-need-bar{height:7px;background:#eef2f6;border-radius:999px;overflow:hidden}
+.midnight .sim-need-bar{background:#232933}
+.sim-need-fill{height:100%;border-radius:999px;transition:width .3s ease}
+
+/* Actions */
+.sim-category-filter{display:flex;gap:6px;overflow-x:auto;padding-bottom:6px;margin-bottom:12px}
+.sim-category-filter button{border:1px solid #dfe3e8;background:#fff;border-radius:999px;padding:6px 12px;font-size:11px;font-weight:800;color:#5c6570;cursor:pointer}
+.sim-category-filter button.active{background:#17191e;color:#fff;border-color:#17191e}
+.midnight .sim-category-filter button{background:#111419;border-color:#2b3039;color:#abb3be}
+.midnight .sim-category-filter button.active{background:#f3f4f6;color:#111419}
+
+.sim-actions-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.sim-action-card{border:1px solid #e0e4e9;background:#fff;border-radius:16px;padding:14px;display:flex;flex-direction:column;gap:8px;position:relative}
+.midnight .sim-action-card{background:#111419;border-color:#2b3039}
+.sim-action-top{display:flex;gap:10px;align-items:flex-start}
+.sim-action-icon{font-size:28px;flex-shrink:0}
+.sim-action-info{display:flex;flex-direction:column;min-width:0;flex:1}
+.sim-action-info b{font-size:13px;line-height:1.25}
+.sim-action-info small{font-size:11px;color:#69727e;margin-top:2px;line-height:1.35}
+.sim-impact-tags{display:flex;gap:5px;flex-wrap:wrap;margin:4px 0}
+.sim-impact-pill{font-size:9px;font-weight:900;padding:3px 7px;border-radius:6px;background:#f3f5f8;color:#475569;white-space:nowrap}
+.sim-impact-pill.pos{background:#ecfdf5;color:#047857}
+.sim-impact-pill.neg{background:#fff1f2;color:#be123c}
+.sim-impact-pill.skill{background:#eff6ff;color:#1d4ed8}
+.sim-action-bottom{display:flex;align-items:center;justify-content:space-between;margin-top:auto;gap:10px}
+.sim-action-cost{font-size:12px;font-weight:900;color:#1e293b}
+.midnight .sim-action-cost{color:#f1f5f9}
+.sim-act-btn{border:0;background:#17191e;color:#fff;border-radius:10px;padding:9px 15px;font-size:11px;font-weight:900;cursor:pointer;transition:transform .1s ease}
+.sim-act-btn:hover:not(:disabled){transform:translateY(-1px);background:#252932}
+.sim-act-btn:disabled{opacity:.4;cursor:not-allowed}
+
+/* Furnishings */
+.furnishing-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.furnishing-card{border:1px solid #e0e4e9;background:#fff;border-radius:16px;padding:14px;display:flex;flex-direction:column;gap:8px}
+.furnishing-card.installed{border-color:#10b981;background:#f5fbf7}
+.midnight .furnishing-card{background:#111419;border-color:#2b3039}
+.midnight .furnishing-card.installed{background:#0e1d15;border-color:#059669}
+.furnishing-header{display:flex;gap:10px;align-items:flex-start}
+.furnishing-icon{font-size:28px}
+.furnishing-title{display:flex;flex-direction:column;min-width:0;flex:1}
+.furnishing-title b{font-size:13px;line-height:1.2}
+.furnishing-title small{font-size:9px;text-transform:uppercase;color:#7a838d;letter-spacing:.06em}
+.furnishing-perk{font-size:10px;font-weight:800;color:#065f46;background:#d1fae5;padding:4px 8px;border-radius:8px;line-height:1.35}
+.midnight .furnishing-perk{background:#064e3b;color:#a7f3d0}
+.furnishing-desc{font-size:10px;color:#6b7280;line-height:1.35}
+.furnishing-install-btn{margin-top:auto;border:0;background:#17191e;color:#fff;border-radius:10px;padding:8px;font-size:10px;font-weight:900;cursor:pointer}
+.furnishing-install-btn:disabled{opacity:.35;cursor:not-allowed}
+.furnishing-install-btn.installed-badge{background:#10b981;cursor:default}
+
+/* Relationships */
+.contact-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:11px}
+.contact-card{border:1px solid #e0e4e9;background:#fff;border-radius:16px;padding:14px;display:flex;flex-direction:column;gap:10px}
+.midnight .contact-card{background:#111419;border-color:#2b3039}
+.contact-head{display:flex;gap:10px;align-items:center}
+.contact-avatar{font-size:30px;width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;background:#f3f4f6}
+.midnight .contact-avatar{background:#1f242d}
+.contact-meta{display:flex;flex-direction:column;min-width:0;flex:1}
+.contact-meta b{font-size:14px}
+.contact-meta small{font-size:11px;color:#6b7280}
+.contact-status-tag{margin-left:auto;font-size:9px;font-weight:900;text-transform:uppercase;padding:4px 8px;border-radius:999px;background:#eff6ff;color:#1d4ed8;letter-spacing:.06em}
+.contact-status-tag.partner{background:#fdf2f8;color:#be185d}
+.contact-status-tag.confidant{background:#f0fdf4;color:#15803d}
+.contact-affinity-strip{display:flex;flex-direction:column;gap:3px}
+.contact-affinity-labels{display:flex;justify-content:space-between;font-size:9px;font-weight:900;color:#6b7280}
+.contact-affinity-bar{height:6px;background:#eef2f6;border-radius:999px;overflow:hidden}
+.midnight .contact-affinity-bar{background:#232933}
+.contact-affinity-fill{height:100%;border-radius:999px;background:#6366f1;transition:width .3s ease}
+.contact-perk-hint{font-size:10px;color:#047857;background:#ecfdf5;padding:6px 9px;border-radius:8px;line-height:1.35}
+.midnight .contact-perk-hint{background:#064e3b;color:#a7f3d0}
+.contact-interact-buttons{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:5px}
+.contact-interact-buttons button{border:1px solid #d9dfe6;background:#f8fafc;border-radius:8px;padding:6px 4px;font-size:9px;font-weight:900;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:2px;color:inherit}
+.midnight .contact-interact-buttons button{background:#1a1f27;border-color:#2b3039}
+.contact-interact-buttons button:hover:not(:disabled){background:#e2e8f0}
+.contact-interact-buttons button:disabled{opacity:.35;cursor:not-allowed}
+
+/* Vehicles */
+.vehicle-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.vehicle-card{border:1px solid #e0e4e9;background:#fff;border-radius:16px;padding:14px;display:flex;flex-direction:column;gap:8px}
+.vehicle-card.equipped{border-color:#3b82f6;background:#f8faff;box-shadow:inset 0 0 0 1px #3b82f6}
+.midnight .vehicle-card{background:#111419;border-color:#2b3039}
+.midnight .vehicle-card.equipped{background:#111a26;border-color:#2563eb}
+.vehicle-header{display:flex;gap:10px;align-items:flex-start}
+.vehicle-icon{font-size:28px}
+.vehicle-info{display:flex;flex-direction:column;min-width:0;flex:1}
+.vehicle-info b{font-size:13px;line-height:1.2}
+.vehicle-info small{font-size:9px;color:#7a838d;text-transform:uppercase}
+.vehicle-stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:5px;margin:3px 0}
+.vehicle-stats span{background:#f4f6f8;border-radius:8px;padding:5px 7px;font-size:8px;color:#6b7280;display:flex;flex-direction:column}
+.midnight .vehicle-stats span{background:#1a1e26}
+.vehicle-stats b{font-size:10px;color:#1e293b}
+.midnight .vehicle-stats b{color:#f1f5f9}
+.vehicle-btn{margin-top:auto;border:0;background:#17191e;color:#fff;border-radius:10px;padding:8px;font-size:10px;font-weight:900;cursor:pointer}
+.vehicle-btn:disabled{opacity:.35;cursor:not-allowed}
+.vehicle-btn.equipped-badge{background:#3b82f6;cursor:default}
+
+/* Life Journal / Log */
+.life-log-list{display:flex;flex-direction:column;gap:7px;max-height:380px;overflow-y:auto;padding-right:4px}
+.life-log-item{display:flex;gap:10px;align-items:flex-start;padding:9px 12px;background:#f9fafb;border-radius:12px;border:1px solid #e5e7eb}
+.midnight .life-log-item{background:#14171d;border-color:#272c36}
+.life-log-icon{font-size:20px;flex-shrink:0;margin-top:1px}
+.life-log-content{display:flex;flex-direction:column;min-width:0;flex:1}
+.life-log-title{display:flex;justify-content:space-between;align-items:center;gap:6px}
+.life-log-title b{font-size:11px}
+.life-log-title small{font-size:8px;color:#9ca3af}
+.life-log-desc{font-size:10px;color:#6b7280;line-height:1.35;margin-top:1px}
+
+@media(max-width:900px){
+  .sim-needs-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .sim-actions-grid,.contact-grid,.furnishing-grid,.vehicle-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media(max-width:600px){
+  .sim-needs-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .sim-actions-grid,.contact-grid,.furnishing-grid,.vehicle-grid{grid-template-columns:1fr}
+}
+

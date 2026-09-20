@@ -1,6 +1,7 @@
 import { empireUpgrades, items } from '@/data/content';
 import type { Achievement, GameState } from '../types';
 import { debtSummary, normalizeDebtState } from './debt';
+import { calculateForbesRank } from './fame';
 
 export const ELON_GAME_BENCHMARK = 2_000_000_000_000;
 export const SPENDUTALL_SUPER_THRESHOLD = ELON_GAME_BENCHMARK * 100;
@@ -142,6 +143,33 @@ export function achievementUnlockedByRule(state: GameState, achievement: Achieve
     case 'all-upgrades-max': return allEmpireUpgradesMaxed(state);
     case 'spend-elon-benchmark': return state.totalSpent >= ELON_GAME_BENCHMARK;
     case 'spendutall-super': return state.totalSpent >= SPENDUTALL_SUPER_THRESHOLD;
+
+    // Town & Community Achievement Rules
+    case 'town-founded': return !!state.cityEconomy?.founded;
+    case 'town-pop-1': return (state.cityEconomy?.population ?? 0) >= 1;
+    case 'town-pop-100': return (state.cityEconomy?.population ?? 0) >= 100;
+    case 'town-pop-1k': return (state.cityEconomy?.population ?? 0) >= 1_000;
+    case 'town-pop-10k': return (state.cityEconomy?.population ?? 0) >= 10_000;
+    case 'town-pop-100k': return (state.cityEconomy?.population ?? 0) >= 100_000;
+    case 'town-pop-1m': return (state.cityEconomy?.population ?? 0) >= 1_000_000;
+    case 'town-buildings-5': return Object.values(state.cityEconomy?.buildings ?? {}).reduce((sum, n) => sum + n, 0) >= 5;
+    case 'town-buildings-15': return Object.values(state.cityEconomy?.buildings ?? {}).reduce((sum, n) => sum + n, 0) >= 15;
+    case 'town-utopia': return (state.cityEconomy?.population ?? 0) >= 500 && (state.cityEconomy?.communityGoodwill ?? 0) >= 90;
+    case 'town-festival': return (state.cityEconomy?.festivalEndsAt ?? 0) > 0;
+    case 'town-petitions-3': return (state.cityEconomy?.petitions ?? []).filter((p) => p.status === 'funded').length >= 3;
+
+    // Prime Billionaires Achievement Rules
+    case 'prime-elon-win': return state.scenarioId === 'elon-prime' && state.totalSpent >= 1_000_000_000_000;
+    case 'prime-bezos-win': return state.scenarioId === 'bezos-prime' && state.totalSpent >= 500_000_000_000;
+    case 'prime-gates-win': return state.scenarioId === 'gates-prime' && state.totalSpent >= 300_000_000_000;
+
+    // Fame & Media Prestige Achievement Rules
+    case 'fame-500': return (state.fame?.points ?? 0) >= 500;
+    case 'fame-forbes-top100': return calculateForbesRank(metrics.netWorth, state.fame?.points ?? 0).rank <= 100;
+    case 'fame-10k': return (state.fame?.points ?? 0) >= 10_000;
+    case 'fame-time-person': return (state.fame?.points ?? 0) >= 75_000;
+    case 'fame-planetary': return (state.fame?.points ?? 0) >= 250_000;
+
     default: return false;
   }
 }
