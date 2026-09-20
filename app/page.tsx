@@ -8,6 +8,8 @@ import { CustomScenarioBuilder } from "@/app/components/CustomScenarioBuilder";
 import { CustomizationView } from "@/app/components/CustomizationView";
 import { DebtView } from "@/app/components/DebtView";
 import { EarningsView } from "@/app/components/EarningsView";
+import { ReligionFrontPageSection } from "@/app/components/ReligionFrontPageSection";
+import { ReligionView } from "@/app/components/ReligionView";
 import { GameOverView } from "@/app/components/GameOverView";
 import { ItemPixelSprite } from "@/app/components/ItemPixelSprite";
 import { LeaderboardView } from "@/app/components/LeaderboardView";
@@ -101,6 +103,7 @@ import type {
   CompanionQuestBonus,
 } from "@/game/card-shop-types";
 import { FinancialMode, GameState, ScenarioId } from "@/game/types";
+import { type ReligionId, getReligionDefinition } from "@/game/systems/religion";
 
 const SAVE_KEY = "spend-it-all-v1";
 const META_KEY = "spend-it-all-meta-v1";
@@ -109,6 +112,7 @@ type View =
   | "earnings"
   | "businesses"
   | "empire"
+  | "religion"
   | "debt"
   | "achievements"
   | "collection"
@@ -131,6 +135,8 @@ export default function Home() {
   const [scenarioId, setScenarioId] = useState<ScenarioId>("nothing");
   const [mode, setMode] = useState<FinancialMode>("simple");
   const [riskMode, setRiskMode] = useState(false);
+  const [selectedReligionId, setSelectedReligionId] = useState<ReligionId | null>("christianity");
+  const [customPrayerTimes, setCustomPrayerTimes] = useState<Record<string, string>>({});
   const [category, setCategory] = useState("all");
   const [view, setView] = useState<View>("market");
   const [offlineAward, setOfflineAward] = useState(0);
@@ -286,7 +292,7 @@ export default function Home() {
               setView(custom.startingCash === 0 ? "earnings" : "market");
               recordedWin.current = null;
               setCustomBuilderOpen(false);
-              setState(newCustomGame(custom));
+              setState(newCustomGame(custom, selectedReligionId, customPrayerTimes));
             }}
           />
         ) : (
@@ -357,13 +363,14 @@ export default function Home() {
                 </small>
               </div>
             </label>
+            <ReligionFrontPageSection selectedReligionId={selectedReligionId} onSelectReligion={setSelectedReligionId} customPrayerTimes={customPrayerTimes} onUpdatePrayerTime={(prayerId, time) => setCustomPrayerTimes((current) => ({ ...current, [prayerId]: time }))} playClickSound={() => undefined} />
             <button
               className="primary"
               onClick={() => {
                 setOfflineAward(0);
                 setView(scenarioId === "nothing" ? "earnings" : "market");
                 recordedWin.current = null;
-                setState(newGame(scenarioId, mode, riskMode));
+                setState(newGame(scenarioId, mode, riskMode, selectedReligionId, customPrayerTimes));
               }}
             >
               Start Scenario
@@ -568,6 +575,9 @@ export default function Home() {
         >
           Debt & Court ⚖
         </button>
+        <button className={view === "religion" ? "active" : ""} onClick={() => setView("religion")}>
+          {state.religion ? `${getReligionDefinition(state.religion.religionId).emblem} Faith & Sanctuary` : "🕊️ Faith & Sanctuary"}
+        </button>
         <button
           className={view === "achievements" ? "active" : ""}
           onClick={() => setView("achievements")}
@@ -600,6 +610,7 @@ export default function Home() {
         </button>
       </nav>
 
+      {view === "religion" ? <ReligionView state={state} setState={setState} /> : null}
       {view === "achievements" ? <AchievementsView state={state} /> : null}
       {view === "collection" ? (
         <CollectionView

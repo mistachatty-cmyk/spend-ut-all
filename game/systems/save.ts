@@ -11,6 +11,7 @@ import { normalizeLifeRpg } from "./life-progression";
 import { normalizeGameRules } from "./rules";
 import { normalizeCustomScenario } from "./custom-scenarios";
 import { normalizeTimeSimulation } from "./time-simulation";
+import { normalizeReligionState } from "./religion";
 
 const DEFAULT_EVENT_INTERVAL_MS = 120_000;
 
@@ -119,5 +120,6 @@ export function normalizeGameState(
     },
     lokTokens: lok.balance,
     lokProgressMs: lok.progressMs,
+    religion: normalizeReligionState(state.religion),
   };
 }

@@ -10,6 +10,7 @@ import {
   townTiers,
 } from "@/data/content";
 import { lokRuntime } from "@/integrations/lok/runtime";
+import { type ReligionId, createReligionState } from "./systems/religion";
 import type { CustomScenarioDefinition } from "./custom-scenario-types";
 import {
   Achievement,
@@ -67,6 +68,8 @@ export function newGame(
   scenarioId: ScenarioId,
   mode: GameState["mode"],
   riskMode = false,
+  selectedReligion?: ReligionId | null,
+  customPrayerTimes?: Record<string, string>,
 ): GameState {
   const scenario = scenarios.find((e) => e.id === scenarioId) ?? scenarios[0],
     now = Date.now(),
@@ -121,14 +124,15 @@ export function newGame(
     },
     lokTokens: lok.balance,
     lokProgressMs: lok.progressMs,
+    religion: selectedReligion ? createReligionState(selectedReligion, customPrayerTimes) : undefined,
     theme: "light",
     createdAt: now,
     updatedAt: now,
   };
 }
-export function newCustomGame(input: CustomScenarioDefinition): GameState {
+export function newCustomGame(input: CustomScenarioDefinition, selectedReligion?: ReligionId | null, customPrayerTimes?: Record<string, string>): GameState {
   const scenario = normalizeCustomScenario(input),
-    base = newGame("nothing", scenario.mode, scenario.riskMode);
+    base = newGame("nothing", scenario.mode, scenario.riskMode, selectedReligion, customPrayerTimes);
   return {
     ...base,
     scenarioId: "custom",

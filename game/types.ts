@@ -1,3 +1,4 @@
+import type { ReligionState } from "./systems/religion";
 import type { BusinessPortfolio } from "./business-types";
 import type { CityEconomyState } from "./city-types";
 import type { TimeSimulationState } from "./time-types";
@@ -278,6 +279,7 @@ export type GameState = {
   cardGameplay: CardGameplayProgress;
   lokTokens: number;
   lokProgressMs: number;
+  religion?: ReligionState;
   theme: "light" | "midnight";
   createdAt: number;
   updatedAt: number;
