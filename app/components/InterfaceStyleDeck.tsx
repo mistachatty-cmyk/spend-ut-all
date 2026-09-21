@@ -23,7 +23,9 @@ const densityChoices: Array<{ id: InformationDensity; title: string; detail: str
   { id: 'less', title: 'Less information', detail: 'Keep the money and next decision in focus.' },
 ];
 
-export function InterfaceStyleDeck({ companionId, companionName, onComplete }: { companionId: string; companionName: string; onComplete: () => void }) {
+const starterCompanionIds = ['pet-lok-slime', 'pet-coin-cat', 'pet-espresso-bot'];
+
+export function InterfaceStyleDeck({ companionId, companionName, onCompanionChange, onComplete }: { companionId: string; companionName: string; onCompanionChange: (id: string) => void; onComplete: () => void }) {
   const [prefs, setPrefs] = useState<HudPreferences>(() => loadHudPreferences());
   const companion = lokPets.find((entry) => entry.id === companionId);
 
@@ -58,13 +60,41 @@ export function InterfaceStyleDeck({ companionId, companionName, onComplete }: {
           <p>Use the sidebar to set the frame, visual language, and how much information stays in view. You can revise every choice later.</p>
         </header>
 
-        <section className="interface-companion-preview" data-art-mode={prefs.visualArtMode} aria-live="polite">
-          <div className="interface-companion-stage">
-            {prefs.visualArtMode === 'emoji' ? <span className="interface-companion-emoji" aria-hidden="true">{companion?.emoji ?? '🐾'}</span> : null}
-            {prefs.visualArtMode === 'pixel' ? <PixelPetSprite petId={companionId} mood="happy" size={108} artStyle="classic" /> : null}
-            {prefs.visualArtMode === 'photo' ? <PixelPetSprite petId={companionId} mood="happy" size={124} artStyle="production" /> : null}
+        <section className="interface-play-kit" data-art-mode={prefs.visualArtMode} data-ui-edge={prefs.uiEdgeStyle} data-information-density={prefs.informationDensity} aria-label="Your play kit">
+          <div className="interface-play-kit-heading">
+            <div><span className="eyebrow">YOUR PLAY KIT</span><h3>Choose your LokPet first</h3></div>
+            <p>Your companion and play-screen preview stay together while you set up.</p>
           </div>
-          <div><span className="eyebrow">LIVE COMPANION PREVIEW</span><h3>{companionName}</h3><p>{prefs.visualArtMode === 'emoji' ? 'Lightweight emoji mode' : prefs.visualArtMode === 'pixel' ? 'Classic pixel collection' : 'Real-life imagery with production companion art'}</p></div>
+          <div className="interface-companion-slider" role="radiogroup" aria-label="Choose your LokPet">
+            {starterCompanionIds.map((petId) => {
+              const pet = lokPets.find((entry) => entry.id === petId);
+              if (!pet) return null;
+              const selected = petId === companionId;
+              return <button type="button" key={petId} className={selected ? 'selected' : ''} role="radio" aria-checked={selected} onClick={() => onCompanionChange(petId)}>
+                <PixelPetSprite petId={petId} mood={selected ? 'happy' : 'idle'} size={44} artStyle="classic" />
+                <span><b>{pet.name}</b><small>{pet.personality}</small></span>
+              </button>;
+            })}
+          </div>
+          <div className="interface-play-kit-body">
+            <section className="interface-companion-preview" aria-live="polite">
+              <div className="interface-companion-stage">
+                {prefs.visualArtMode === 'emoji' ? <span className="interface-companion-emoji" aria-hidden="true">{companion?.emoji ?? '🐾'}</span> : null}
+                {prefs.visualArtMode === 'pixel' ? <PixelPetSprite petId={companionId} mood="happy" size={116} artStyle="classic" /> : null}
+                {prefs.visualArtMode === 'photo' ? <PixelPetSprite petId={companionId} mood="happy" size={126} artStyle="production" /> : null}
+              </div>
+              <div><span className="eyebrow">LIVE COMPANION</span><h3>{companionName}</h3><p>{prefs.visualArtMode === 'emoji' ? 'Emoji companion · Potato mode' : prefs.visualArtMode === 'pixel' ? 'Classic pixel companion' : 'Production companion art'}</p></div>
+            </section>
+            <section id="style-preview" className="interface-style-preview">
+              <div className="interface-style-preview-top"><span>SPEND IT ALL</span><b>◈ 24</b></div>
+              <div className="interface-style-preview-balance"><small>AVAILABLE TO SPEND</small><b>$12,480</b><span>+$86 / sec</span></div>
+              <div className="interface-style-preview-bars" aria-label="Preview information bars">
+                <span><i />Net worth <b>$18.4K</b></span>
+                <span className="preview-secondary"><i />Goals <b>3 active</b></span>
+                <span className="preview-tertiary"><i />Playtime <b>01:42</b></span>
+              </div>
+            </section>
+          </div>
         </section>
 
         <section id="style-corners" className="interface-style-section">
@@ -108,33 +138,23 @@ export function InterfaceStyleDeck({ companionId, companionName, onComplete }: {
         <section className="interface-style-section">
           <div><span className="eyebrow">GAME ART STYLE</span><h3>Choose one visual language</h3></div>
           <div className="interface-style-choice-grid interface-art-grid three-mode-grid">
-            <button type="button" className={prefs.visualArtMode === 'emoji' ? 'selected' : ''} aria-pressed={prefs.visualArtMode === 'emoji'} onClick={() => patch({ visualArtMode: 'emoji' })}>
+            <button type="button" className={prefs.visualArtMode === 'emoji' ? 'selected' : ''} aria-pressed={prefs.visualArtMode === 'emoji'} onClick={() => patch({ visualArtMode: 'emoji', visualQualityPreset: 'potato', potatoMode: true })}>
               <i className="interface-style-emoji-sample" aria-hidden="true">💼</i>
               <b>Emoji</b>
-              <small>Fastest and simplest. Every item uses its matching symbol.</small>
+              <small>Fastest and simplest. Companion emoji is used only in Potato mode.</small>
             </button>
-            <button type="button" className={prefs.visualArtMode === 'pixel' ? 'selected' : ''} aria-pressed={prefs.visualArtMode === 'pixel'} onClick={() => patch({ visualArtMode: 'pixel', looperArtStyle: 'classic' })}>
+            <button type="button" className={prefs.visualArtMode === 'pixel' ? 'selected' : ''} aria-pressed={prefs.visualArtMode === 'pixel'} onClick={() => patch({ visualArtMode: 'pixel', looperArtStyle: 'classic', potatoMode: false })}>
               <i className="interface-style-pixel-sample" aria-hidden="true"><span /><span /><span /><span /></i>
               <b>Pixel</b>
               <small>Item-specific pixel art and classic pixel companions, with no emoji overlay.</small>
             </button>
-            <button type="button" className={prefs.visualArtMode === 'photo' ? 'selected' : ''} aria-pressed={prefs.visualArtMode === 'photo'} onClick={() => patch({ visualArtMode: 'photo', looperArtStyle: 'production' })}>
+            <button type="button" className={prefs.visualArtMode === 'photo' ? 'selected' : ''} aria-pressed={prefs.visualArtMode === 'photo'} onClick={() => patch({ visualArtMode: 'photo', looperArtStyle: 'production', potatoMode: false })}>
               <i className="interface-style-photo-sample" aria-hidden="true" />
               <b>Real-life</b>
               <small>Matching photography for the economy and production companion artwork.</small>
             </button>
           </div>
           <p className="interface-style-coming">This selection controls purchases, earnings, businesses, debt, upgrades, and rich-person scenarios. Missing photos safely fall back to pixel art—never to an unrelated person.</p>
-        </section>
-
-        <section id="style-preview" className="interface-style-preview" data-ui-edge={prefs.uiEdgeStyle} data-information-density={prefs.informationDensity}>
-          <div className="interface-style-preview-top"><span>SPEND IT ALL</span><b>◈ 24</b></div>
-          <div className="interface-style-preview-balance"><small>AVAILABLE TO SPEND</small><b>$12,480</b><span>+$86 / sec</span></div>
-          <div className="interface-style-preview-bars" aria-label="Preview information bars">
-            <span><i />Net worth <b>$18.4K</b></span>
-            <span className="preview-secondary"><i />Goals <b>3 active</b></span>
-            <span className="preview-tertiary"><i />Playtime <b>01:42</b></span>
-          </div>
         </section>
 
         <button type="button" className="interface-style-finish" onClick={onComplete}>Start with this setup</button>

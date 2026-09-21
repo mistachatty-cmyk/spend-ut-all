@@ -52,7 +52,7 @@ export const DEFAULT_HUD_PREFS: HudPreferences = {
   itemPhotoEscalation: true,
   uiEdgeStyle: 'rounded',
   informationDensity: 'balanced',
-  visualArtMode: 'photo',
+  visualArtMode: 'pixel',
   visualQualityPreset: 'mid',
 };
 

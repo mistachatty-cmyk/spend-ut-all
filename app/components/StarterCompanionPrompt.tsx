@@ -61,7 +61,7 @@ export function StarterCompanionPrompt() {
   };
 
   return <div className="starter-companion-backdrop" role="dialog" aria-modal="true" aria-labelledby="starter-companion-title">
-    {step === 'style' ? <InterfaceStyleDeck companionId={companionId} companionName={companionName} onComplete={completeStyleDeck} /> : <section className="starter-companion-panel">
+    {step === 'style' ? <InterfaceStyleDeck companionId={companionId} companionName={companionName} onCompanionChange={choose} onComplete={completeStyleDeck} /> : <section className="starter-companion-panel">
       <span className="eyebrow">YOUR FIRST PRODUCTION LOOPER</span>
       <h2 id="starter-companion-title">Pick who starts the climb with you</h2>
       <p>Choose one starter companion. Their benefit is guidance and personality—not extra money or economic power. You can collect and switch companions later.</p>
