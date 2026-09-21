@@ -60,6 +60,27 @@ export function InterfaceStyleDeck({ companionId, companionName, onCompanionChan
           <p>Use the sidebar to set the frame, visual language, and how much information stays in view. You can revise every choice later.</p>
         </header>
 
+        <section className="interface-style-section interface-art-style-top">
+          <div><span className="eyebrow">VISUAL LANGUAGE</span><h3>Choose what your world looks like</h3></div>
+          <div className="interface-style-choice-grid interface-art-grid three-mode-grid">
+            <button type="button" className={prefs.visualArtMode === 'photo' ? 'selected' : ''} aria-pressed={prefs.visualArtMode === 'photo'} onClick={() => patch({ visualArtMode: 'photo', looperArtStyle: 'production', potatoMode: false })}>
+              <i className="interface-style-photo-sample" aria-hidden="true" />
+              <b>Real-life</b>
+              <small>Production companion art and matching real-life pictures.</small>
+            </button>
+            <button type="button" className={prefs.visualArtMode === 'pixel' ? 'selected' : ''} aria-pressed={prefs.visualArtMode === 'pixel'} onClick={() => patch({ visualArtMode: 'pixel', looperArtStyle: 'classic', potatoMode: false })}>
+              <i className="interface-style-pixel-sample" aria-hidden="true"><span /><span /><span /><span /></i>
+              <b>Pixel</b>
+              <small>Classic item art and pixel LokPets, with no emoji overlay.</small>
+            </button>
+            <button type="button" className={prefs.visualArtMode === 'emoji' ? 'selected' : ''} aria-pressed={prefs.visualArtMode === 'emoji'} onClick={() => patch({ visualArtMode: 'emoji', visualQualityPreset: 'potato', potatoMode: true })}>
+              <i className="interface-style-emoji-sample" aria-hidden="true">💼</i>
+              <b>Emoji Live</b>
+              <small>Fast, lightweight live symbols and companion emoji for Potato mode.</small>
+            </button>
+          </div>
+        </section>
+
         <section className="interface-play-kit" data-art-mode={prefs.visualArtMode} data-ui-edge={prefs.uiEdgeStyle} data-information-density={prefs.informationDensity} aria-label="Your play kit">
           <div className="interface-play-kit-heading">
             <div><span className="eyebrow">YOUR PLAY KIT</span><h3>Choose your LokPet first</h3></div>
@@ -133,28 +154,6 @@ export function InterfaceStyleDeck({ companionId, companionName, onCompanionChan
               </button>
             ))}
           </div>
-        </section>
-
-        <section className="interface-style-section">
-          <div><span className="eyebrow">GAME ART STYLE</span><h3>Choose one visual language</h3></div>
-          <div className="interface-style-choice-grid interface-art-grid three-mode-grid">
-            <button type="button" className={prefs.visualArtMode === 'emoji' ? 'selected' : ''} aria-pressed={prefs.visualArtMode === 'emoji'} onClick={() => patch({ visualArtMode: 'emoji', visualQualityPreset: 'potato', potatoMode: true })}>
-              <i className="interface-style-emoji-sample" aria-hidden="true">💼</i>
-              <b>Emoji</b>
-              <small>Fastest and simplest. Companion emoji is used only in Potato mode.</small>
-            </button>
-            <button type="button" className={prefs.visualArtMode === 'pixel' ? 'selected' : ''} aria-pressed={prefs.visualArtMode === 'pixel'} onClick={() => patch({ visualArtMode: 'pixel', looperArtStyle: 'classic', potatoMode: false })}>
-              <i className="interface-style-pixel-sample" aria-hidden="true"><span /><span /><span /><span /></i>
-              <b>Pixel</b>
-              <small>Item-specific pixel art and classic pixel companions, with no emoji overlay.</small>
-            </button>
-            <button type="button" className={prefs.visualArtMode === 'photo' ? 'selected' : ''} aria-pressed={prefs.visualArtMode === 'photo'} onClick={() => patch({ visualArtMode: 'photo', looperArtStyle: 'production', potatoMode: false })}>
-              <i className="interface-style-photo-sample" aria-hidden="true" />
-              <b>Real-life</b>
-              <small>Matching photography for the economy and production companion artwork.</small>
-            </button>
-          </div>
-          <p className="interface-style-coming">This selection controls purchases, earnings, businesses, debt, upgrades, and rich-person scenarios. Missing photos safely fall back to pixel art—never to an unrelated person.</p>
         </section>
 
         <button type="button" className="interface-style-finish" onClick={onComplete}>Start with this setup</button>
