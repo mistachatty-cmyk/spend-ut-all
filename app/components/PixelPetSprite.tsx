@@ -9,11 +9,11 @@ import { buildLooperFrameSequence } from '@/game/systems/looper-frame-animation'
 import type { PetMood } from '@/game/customization-types';
 import { LooperVectorRuntimeSprite } from './LooperVectorRuntimeSprite';
 
-export function PixelPetSprite({ petId, mood = 'idle', silhouette = false, size = 52 }: { petId: string; mood?: PetMood; silhouette?: boolean; size?: number }) {
+export function PixelPetSprite({ petId, mood = 'idle', silhouette = false, size = 52, artStyle }: { petId: string; mood?: PetMood; silhouette?: boolean; size?: number; artStyle?: 'classic' | 'production' }) {
   const sprite = looperSpriteById(petId);
   const motionPrefs = useMicroMotionPreferences();
   const hudPrefs = useHudPreferences();
-  const classicMode = hudPrefs.looperArtStyle === 'classic';
+  const classicMode = (artStyle ?? hudPrefs.looperArtStyle) === 'classic';
   const classic = classicMode ? classicPetSprites[petId] ?? classicPetSprites[sprite.petId] ?? null : null;
   const baseGrid = classic?.grid ?? sprite.grid;
   const palette = classic?.palette ?? sprite.palette;

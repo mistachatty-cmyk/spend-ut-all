@@ -19,6 +19,7 @@ export function StarterCompanionPrompt() {
   const [open, setOpen] = useState(false);
   const [step, setStep] = useState<'companion' | 'style'>('companion');
   const [companionName, setCompanionName] = useState('your companion');
+  const [companionId, setCompanionId] = useState('pet-lok-slime');
 
   useEffect(() => {
     const check = () => {
@@ -30,6 +31,7 @@ export function StarterCompanionPrompt() {
         const selectedId = localStorage.getItem(STARTER_COMPANION_KEY);
         const selectedPet = lokPets.find((entry) => entry.id === selectedId);
         setCompanionName(selectedPet?.name ?? 'your companion');
+        if (selectedPet) setCompanionId(selectedPet.id);
         setStep(selectedId ? 'style' : 'companion');
         setOpen(selectedId ? !localStorage.getItem(STARTER_INTERFACE_STYLE_KEY) : true);
       } catch { setOpen(false); }
@@ -48,6 +50,7 @@ export function StarterCompanionPrompt() {
     saveCustomizationInventory(inventory);
     localStorage.setItem(STARTER_COMPANION_KEY, id);
     setCompanionName(lokPets.find((entry) => entry.id === id)?.name ?? 'your companion');
+    setCompanionId(id);
     setStep('style');
   };
 
@@ -58,7 +61,7 @@ export function StarterCompanionPrompt() {
   };
 
   return <div className="starter-companion-backdrop" role="dialog" aria-modal="true" aria-labelledby="starter-companion-title">
-    {step === 'style' ? <InterfaceStyleDeck companionName={companionName} onComplete={completeStyleDeck} /> : <section className="starter-companion-panel">
+    {step === 'style' ? <InterfaceStyleDeck companionId={companionId} companionName={companionName} onComplete={completeStyleDeck} /> : <section className="starter-companion-panel">
       <span className="eyebrow">YOUR FIRST PRODUCTION LOOPER</span>
       <h2 id="starter-companion-title">Pick who starts the climb with you</h2>
       <p>Choose one starter companion. Their benefit is guidance and personality—not extra money or economic power. You can collect and switch companions later.</p>

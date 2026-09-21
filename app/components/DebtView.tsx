@@ -11,6 +11,7 @@ import { debtMinimumPayment, debtSummary, normalizeDebtState } from '@/game/syst
 import { emitMicroMotion } from '@/game/systems/micro-animations';
 import type { AutopayMode } from '@/game/debt-types';
 import type { GameState } from '@/game/types';
+import { PurchaseVisual } from './PurchaseVisual';
 
 function gameDateLabel(gameMinute: number) {
   const minute = Math.max(0, Math.floor(gameMinute));
@@ -20,6 +21,15 @@ function gameDateLabel(gameMinute: number) {
   const mins = inDay % 60;
   return `Day ${day} · ${String(hour).padStart(2, '0')}:${String(mins).padStart(2, '0')}`;
 }
+
+
+const DEBT_PRODUCT_IMAGES: Record<string, string> = {
+  'citywide-personal': 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=640&q=80',
+  'community-credit': 'https://images.unsplash.com/photo-1521791136064-7986c2920216?auto=format&fit=crop&w=640&q=80',
+  'quickbridge-private': 'https://images.unsplash.com/photo-1450101499163-c8848c66ca85?auto=format&fit=crop&w=640&q=80',
+  'asset-equity': 'https://images.unsplash.com/photo-1560518883-ce09059eeffa?auto=format&fit=crop&w=640&q=80',
+  'business-expansion': 'https://images.unsplash.com/photo-1497366811353-6870744d04b2?auto=format&fit=crop&w=640&q=80',
+};
 
 export function DebtView({ state, setState }: { state: GameState; setState: React.Dispatch<React.SetStateAction<GameState | null>> }) {
   const debt = normalizeDebtState(state.debt);
@@ -66,7 +76,7 @@ export function DebtView({ state, setState }: { state: GameState; setState: Reac
         const collateralId = secured ? selectedCollateral : undefined;
         const amount = estimatedBorrowAmount(state, product, collateralId);
         const allowed = canBorrowProduct(state, product, collateralId);
-        return <article className="lender-card" key={product.id}><div className="lender-icon">{product.emoji}</div><div><div className="lender-title"><b>{product.name}</b><span>{product.creditorName}</span></div><p>{product.description}</p><div className="lender-meta"><span>{Math.round(product.apr * 1000) / 10}% APR</span><span>{secured ? `${Math.round((product.collateralLtv ?? .5) * 100)}% LTV` : 'Unsecured'}</span><span>{product.defaultAfterMisses} missed payments → default</span></div>{secured ? <label className="collateral-picker">Pledge asset<select value={selectedCollateral} onChange={(e) => setSelectedCollateral(e.target.value)}><option value="">Choose collateral</option>{collateral.map((item) => <option value={item.id} key={item.id}>{item.emoji} {item.name} · {money(item.pledgedValue)}</option>)}</select></label> : null}</div><button disabled={!allowed || amount <= 0} onClick={(event) => applyFinancialAction(event.currentTarget, (current) => borrowFromProduct(current, product.id, collateralId))}>Borrow {amount > 0 ? money(amount) : ''}</button></article>;
+        return <article className="lender-card" key={product.id}><PurchaseVisual id={product.id} name={product.name} emoji={product.emoji} family="investment" value={amount} imageSrc={DEBT_PRODUCT_IMAGES[product.id]} compact locked={!allowed} /><div><div className="lender-title"><b>{product.name}</b><span>{product.creditorName}</span></div><p>{product.description}</p><div className="lender-meta"><span>{Math.round(product.apr * 1000) / 10}% APR</span><span>{secured ? `${Math.round((product.collateralLtv ?? .5) * 100)}% LTV` : 'Unsecured'}</span><span>{product.defaultAfterMisses} missed payments → default</span></div>{secured ? <label className="collateral-picker">Pledge asset<select value={selectedCollateral} onChange={(e) => setSelectedCollateral(e.target.value)}><option value="">Choose collateral</option>{collateral.map((item) => <option value={item.id} key={item.id}>{item.emoji} {item.name} · {money(item.pledgedValue)}</option>)}</select></label> : null}</div><button disabled={!allowed || amount <= 0} onClick={(event) => applyFinancialAction(event.currentTarget, (current) => borrowFromProduct(current, product.id, collateralId))}>Borrow {amount > 0 ? money(amount) : ''}</button></article>;
       })}</div><small className="debt-footnote">*Monthly equivalent is a readable estimate. Actual balances accrue using the in-game calendar.</small></section>
 
       <section className="panel"><span className="eyebrow">YOUR OBLIGATIONS</span><h2>Balances can grow or be paid down</h2>{activeDebts.length ? <div className="obligation-list">{activeDebts.map((entry) => {

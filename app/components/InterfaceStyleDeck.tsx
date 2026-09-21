@@ -1,6 +1,8 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { lokPets } from '@/data/customizations';
+import { PixelPetSprite } from './PixelPetSprite';
 import {
   loadHudPreferences,
   saveHudPreferences,
@@ -21,8 +23,9 @@ const densityChoices: Array<{ id: InformationDensity; title: string; detail: str
   { id: 'less', title: 'Less information', detail: 'Keep the money and next decision in focus.' },
 ];
 
-export function InterfaceStyleDeck({ companionName, onComplete }: { companionName: string; onComplete: () => void }) {
+export function InterfaceStyleDeck({ companionId, companionName, onComplete }: { companionId: string; companionName: string; onComplete: () => void }) {
   const [prefs, setPrefs] = useState<HudPreferences>(() => loadHudPreferences());
+  const companion = lokPets.find((entry) => entry.id === companionId);
 
   useEffect(() => subscribeHudPreferences(setPrefs), []);
 
@@ -52,8 +55,17 @@ export function InterfaceStyleDeck({ companionName, onComplete }: { companionNam
         <header>
           <span className="eyebrow">YOUR INTERFACE</span>
           <h1 id="interface-style-title">Make the screen yours</h1>
-          <p>Use the sidebar to set the frame and how much information stays in view. You can revise either choice later in Settings.</p>
+          <p>Use the sidebar to set the frame, visual language, and how much information stays in view. You can revise every choice later.</p>
         </header>
+
+        <section className="interface-companion-preview" data-art-mode={prefs.visualArtMode} aria-live="polite">
+          <div className="interface-companion-stage">
+            {prefs.visualArtMode === 'emoji' ? <span className="interface-companion-emoji" aria-hidden="true">{companion?.emoji ?? '🐾'}</span> : null}
+            {prefs.visualArtMode === 'pixel' ? <PixelPetSprite petId={companionId} mood="happy" size={108} artStyle="classic" /> : null}
+            {prefs.visualArtMode === 'photo' ? <PixelPetSprite petId={companionId} mood="happy" size={124} artStyle="production" /> : null}
+          </div>
+          <div><span className="eyebrow">LIVE COMPANION PREVIEW</span><h3>{companionName}</h3><p>{prefs.visualArtMode === 'emoji' ? 'Lightweight emoji mode' : prefs.visualArtMode === 'pixel' ? 'Classic pixel collection' : 'Real-life imagery with production companion art'}</p></div>
+        </section>
 
         <section id="style-corners" className="interface-style-section">
           <div><span className="eyebrow">FRAME</span><h3>How should panels look?</h3></div>
@@ -94,20 +106,25 @@ export function InterfaceStyleDeck({ companionName, onComplete }: { companionNam
         </section>
 
         <section className="interface-style-section">
-          <div><span className="eyebrow">ASSET PACK</span><h3>Choose the art language</h3></div>
-          <div className="interface-style-choice-grid interface-art-grid">
-            <button type="button" className={prefs.visualArtMode === 'pixel' ? 'selected' : ''} aria-pressed={prefs.visualArtMode === 'pixel'} onClick={() => patch({ visualArtMode: 'pixel' })}>
-              <i className="interface-style-pixel-sample" aria-hidden="true"><span /><span /><span /><span /></i>
-              <b>Pixel collection</b>
-              <small>Available now. Item-specific pixel pictures across the purchase surfaces.</small>
+          <div><span className="eyebrow">GAME ART STYLE</span><h3>Choose one visual language</h3></div>
+          <div className="interface-style-choice-grid interface-art-grid three-mode-grid">
+            <button type="button" className={prefs.visualArtMode === 'emoji' ? 'selected' : ''} aria-pressed={prefs.visualArtMode === 'emoji'} onClick={() => patch({ visualArtMode: 'emoji' })}>
+              <i className="interface-style-emoji-sample" aria-hidden="true">💼</i>
+              <b>Emoji</b>
+              <small>Fastest and simplest. Every item uses its matching symbol.</small>
             </button>
-            <button type="button" className={prefs.visualArtMode === 'photo' ? 'selected' : ''} aria-pressed={prefs.visualArtMode === 'photo'} onClick={() => patch({ visualArtMode: 'photo' })}>
+            <button type="button" className={prefs.visualArtMode === 'pixel' ? 'selected' : ''} aria-pressed={prefs.visualArtMode === 'pixel'} onClick={() => patch({ visualArtMode: 'pixel', looperArtStyle: 'classic' })}>
+              <i className="interface-style-pixel-sample" aria-hidden="true"><span /><span /><span /><span /></i>
+              <b>Pixel</b>
+              <small>Item-specific pixel art and classic pixel companions, with no emoji overlay.</small>
+            </button>
+            <button type="button" className={prefs.visualArtMode === 'photo' ? 'selected' : ''} aria-pressed={prefs.visualArtMode === 'photo'} onClick={() => patch({ visualArtMode: 'photo', looperArtStyle: 'production' })}>
               <i className="interface-style-photo-sample" aria-hidden="true" />
-              <b>Real-life pictures</b>
-              <small>Use this mode now. Pixel previews stay in place until the verified Google AI Studio photo pack is merged, then local photos replace them automatically.</small>
+              <b>Real-life</b>
+              <small>Matching photography for the economy and production companion artwork.</small>
             </button>
           </div>
-          <p className="interface-style-coming">Visual quality is reserved as <b>Potato / Mid / High</b> for the incoming pack; Mid is the prepared default and never changes earning power.</p>
+          <p className="interface-style-coming">This selection controls purchases, earnings, businesses, debt, upgrades, and rich-person scenarios. Missing photos safely fall back to pixel art—never to an unrelated person.</p>
         </section>
 
         <section id="style-preview" className="interface-style-preview" data-ui-edge={prefs.uiEdgeStyle} data-information-density={prefs.informationDensity}>

@@ -39,6 +39,7 @@ import { TownCommunityView } from "@/app/components/TownCommunityView";
 import { ItemPhotoModal } from "@/app/components/ItemPhotoModal";
 import { RoyaltyFreeLibraryModal } from "@/app/components/RoyaltyFreeLibraryModal";
 import { HouseVisualBanner } from "@/app/components/HouseVisualBanner";
+import { PurchaseVisual } from "@/app/components/PurchaseVisual";
 import { RichPeopleSelector } from "@/app/components/RichPeopleSelector";
 import {
   getRichPersonProfile,
@@ -164,6 +165,15 @@ type View =
   | "leaderboard"
   | "customize"
   | "settings";
+
+const EMPIRE_UPGRADE_IMAGES: Record<string, string> = {
+  operations: 'https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?auto=format&fit=crop&w=640&q=80',
+  automation: 'https://images.unsplash.com/photo-1485827404703-89b55fcc595e?auto=format&fit=crop&w=640&q=80',
+  brand: 'https://images.unsplash.com/photo-1560472354-b33ff0c44a43?auto=format&fit=crop&w=640&q=80',
+  logistics: 'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?auto=format&fit=crop&w=640&q=80',
+  'ai-economy': 'https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=640&q=80',
+  'global-trade': 'https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&w=640&q=80',
+};
 
 export default function Home() {
   const [state, setState] = useState<GameState | null>(null);
@@ -1280,7 +1290,7 @@ export default function Home() {
                     pledged = isItemPledged(debtState, item.id);
                   const visual = getPurchaseVisual(item.id);
                   const cardTierClass =
-                    hudPrefs.showItemPhotos && visual
+                    visual
                       ? hudPrefs.itemPhotoEscalation
                         ? `has-photo tier-${visual.tier}`
                         : "has-photo"
@@ -1291,53 +1301,23 @@ export default function Home() {
                       className={`item-card ${!unlocked ? "locked" : ""} ${cardTierClass}`}
                       key={item.id}
                     >
-                      {hudPrefs.showItemPhotos && visual ? (
-                        <div
-                          className="item-photo-wrapper"
-                          onClick={() => setSelectedVisual(visual)}
-                          title="Click to inspect asset specifications & high-res photography"
-                        >
-                          <img
-                            src={visual.imageUrl}
-                            alt={visual.name}
-                            className="item-photo-img"
-                            referrerPolicy="no-referrer"
-                            onError={(e) => {
-                              const img = e.currentTarget;
-                              if (img.src !== visual.fallbackSeedUrl) {
-                                img.src = visual.fallbackSeedUrl;
-                              }
-                            }}
-                          />
-                          <div className="item-photo-overlay">
-                            <span className={`item-photo-tier-badge tier-${visual.tier}`}>
-                              {visual.badge}
-                            </span>
-                            <button
-                              type="button"
-                              className="item-photo-inspect-hint"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setSelectedVisual(visual);
-                              }}
-                            >
-                              🔍 Inspect Specs
-                            </button>
-                          </div>
-                        </div>
-                      ) : (
-                        <div className="item-icon">{item.emoji}</div>
-                      )}
+                      <PurchaseVisual
+                        id={item.id}
+                        name={item.name}
+                        emoji={item.emoji}
+                        family={item.category === 'business' ? 'business' : item.category === 'property' ? 'property' : item.category === 'luxury' ? 'luxury' : 'everyday'}
+                        value={price}
+                        imageSrc={visual?.imageUrl}
+                        imageAlt={visual?.name ?? item.name}
+                        locked={!unlocked}
+                      />
 
                       <div
                         className="item-copy"
-                        style={hudPrefs.showItemPhotos && visual ? { padding: "12px 14px" } : undefined}
+                        style={visual ? { padding: "12px 14px" } : undefined}
                       >
                         <div className="item-title">
                           <h3>
-                            {hudPrefs.showItemPhotos && visual ? (
-                              <span style={{ marginRight: "6px" }}>{item.emoji}</span>
-                            ) : null}
                             {item.name}
                           </h3>
                           <span>
@@ -1347,7 +1327,7 @@ export default function Home() {
                         </div>
                         <p>{item.description}</p>
 
-                        {hudPrefs.showItemPhotos && visual && Object.keys(visual.specs).length > 0 ? (
+                        {hudPrefs.visualArtMode === "photo" && visual && Object.keys(visual.specs).length > 0 ? (
                           <div className="item-photo-specs-strip">
                             {Object.entries(visual.specs).slice(0, 3).map(([k, v]) => (
                               <span className="item-photo-spec-pill" key={k}>
@@ -1488,7 +1468,7 @@ export default function Home() {
                     className={`upgrade-card ${locked ? "locked" : ""}`}
                     key={upgrade.id}
                   >
-                    <div className="upgrade-icon">{upgrade.emoji}</div>
+                    <PurchaseVisual id={upgrade.id} name={upgrade.name} emoji={upgrade.emoji} family="upgrade" value={upgrade.baseCost} imageSrc={EMPIRE_UPGRADE_IMAGES[upgrade.id]} compact locked={locked} />
                     <div>
                       <div className="item-title">
                         <h3>{upgrade.name}</h3>

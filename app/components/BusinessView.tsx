@@ -26,6 +26,7 @@ import { playPurchaseSound, playClickSound } from '@/game/systems/audio-sfx';
 import { emitFloatingNumber } from '@/game/systems/floating-numbers';
 import { emitMicroMotion } from '@/game/systems/micro-animations';
 import { SponsoredAdBanner } from './SponsoredAdBanner';
+import { PurchaseVisual } from './PurchaseVisual';
 import type { GameState } from '@/game/types';
 
 export function BusinessView({
@@ -148,30 +149,18 @@ export function BusinessView({
 
           return (
             <article className={`panel company-card ${!unlocked ? 'locked' : ''}`} key={definition.id}>
-              {definition.imageUrl ? (
-                <div className="company-cover-wrap">
-                  <img
-                    src={definition.imageUrl}
-                    alt={displayName}
-                    className="company-cover-img"
-                    loading="lazy"
-                    onError={(e) => {
-                      (e.currentTarget as HTMLElement).style.display = 'none';
-                    }}
-                  />
-                  {definition.badge ? (
-                    <span
-                      className="company-category-badge"
-                      style={{ backgroundColor: displayColor }}
-                    >
-                      {definition.badge}
-                    </span>
-                  ) : null}
-                </div>
-              ) : null}
+              <PurchaseVisual
+                id={definition.id}
+                name={displayName}
+                emoji={displayEmoji}
+                family="business"
+                value={definition.foundingCost}
+                imageSrc={definition.imageUrl}
+                imageAlt={`${displayName} business preview`}
+                locked={!unlocked}
+              />
 
               <header>
-                <span className="company-emoji">{displayEmoji}</span>
                 <div>
                   <span className="eyebrow">
                     {business.founded ? hqTiers[business.hqLevel] : definition.foundingCost < 100_000 ? 'STARTER BUSINESS' : 'NEW COMPANY'}

@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import { useHudPreferences } from '@/app/hooks/useHudPreferences';
 import type { ScenarioId } from '@/game/types';
 import {
   PRIME_TITANS,
@@ -20,6 +21,7 @@ export const RichPeopleSelector: React.FC<RichPeopleSelectorProps> = ({
   playClickSound,
 }) => {
   const [subTab, setSubTab] = useState<'all' | 'modern' | 'historic' | 'scale'>('all');
+  const hudPrefs = useHudPreferences();
 
   const filteredOthers = OTHER_RICH_PEOPLE.filter((person) => {
     if (subTab === 'all') return true;
@@ -70,13 +72,17 @@ export const RichPeopleSelector: React.FC<RichPeopleSelectorProps> = ({
                 }}
               >
                 <div className="prime-titan-banner">
-                  <img
-                    src={titan.portraitUrl}
-                    alt={titan.name}
-                    className="prime-titan-img"
-                    referrerPolicy="no-referrer"
-                    onError={(e) => handleImageError(e, titan.fallbackSeedUrl)}
-                  />
+                  {hudPrefs.visualArtMode === 'emoji' ? (
+                    <span className="rich-person-emoji" role="img" aria-label={titan.name}>{titan.iconEmoji ?? '👤'}</span>
+                  ) : (
+                    <img
+                      src={hudPrefs.visualArtMode === 'pixel' ? titan.fallbackSeedUrl : titan.portraitUrl}
+                      alt={`${titan.name} — ${hudPrefs.visualArtMode === 'pixel' ? 'pixel portrait' : 'verified portrait'}`}
+                      className={`prime-titan-img ${hudPrefs.visualArtMode === 'pixel' ? 'pixel-portrait' : ''}`}
+                      referrerPolicy="no-referrer"
+                      onError={(e) => handleImageError(e, titan.fallbackSeedUrl)}
+                    />
+                  )}
                   <div className="prime-titan-gradient-overlay">
                     <span
                       className="prime-badge-tag"
@@ -176,13 +182,17 @@ export const RichPeopleSelector: React.FC<RichPeopleSelectorProps> = ({
                 onClick={() => handleSelect(person.id)}
               >
                 <div className="other-rich-avatar-wrap">
-                  <img
-                    src={person.portraitUrl}
-                    alt={person.name}
-                    className="other-rich-avatar-img"
-                    referrerPolicy="no-referrer"
-                    onError={(e) => handleImageError(e, person.fallbackSeedUrl)}
-                  />
+                  {hudPrefs.visualArtMode === 'emoji' ? (
+                    <span className="rich-person-emoji compact" role="img" aria-label={person.name}>{person.iconEmoji ?? '👤'}</span>
+                  ) : (
+                    <img
+                      src={hudPrefs.visualArtMode === 'pixel' ? person.fallbackSeedUrl : person.portraitUrl}
+                      alt={`${person.name} — ${hudPrefs.visualArtMode === 'pixel' ? 'pixel portrait' : 'verified portrait'}`}
+                      className={`other-rich-avatar-img ${hudPrefs.visualArtMode === 'pixel' ? 'pixel-portrait' : ''}`}
+                      referrerPolicy="no-referrer"
+                      onError={(e) => handleImageError(e, person.fallbackSeedUrl)}
+                    />
+                  )}
                   {isSelected && (
                     <span
                       style={{

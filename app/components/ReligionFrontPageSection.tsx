@@ -23,7 +23,7 @@ export function ReligionFrontPageSection({
   onUpdatePrayerTime,
   playClickSound,
 }: ReligionFrontPageSectionProps) {
-  const [expanded, setExpanded] = useState<boolean>(Boolean(selectedReligionId));
+  const [expanded, setExpanded] = useState(false);
   const [detailModalReligion, setDetailModalReligion] = useState<ReligionDefinition | null>(null);
   const religions = getAllReligions();
 
@@ -34,7 +34,7 @@ export function ReligionFrontPageSection({
       setExpanded(false);
     } else {
       onSelectReligion('christianity');
-      setExpanded(true);
+      setExpanded(false);
     }
   };
 
@@ -70,7 +70,14 @@ export function ReligionFrontPageSection({
       </div>
 
       {selectedReligionId ? (
-        <div className="religion-expanded-body">
+        <button type="button" className="religion-expansion-bar" aria-expanded={expanded} aria-controls="religion-setup-scroll" onClick={() => { playClickSound(); setExpanded((value) => !value); }}>
+          <span><b>{currentDef?.emblem} {currentDef?.name}</b><small>Choose tradition, teachings, and prayer times</small></span>
+          <strong>{expanded ? 'Collapse ▲' : 'Open faith setup ▼'}</strong>
+        </button>
+      ) : null}
+
+      {selectedReligionId && expanded ? (
+        <div className="religion-expanded-body religion-setup-scroll" id="religion-setup-scroll">
           <div className="religion-selection-header">
             <span style={{ fontSize: '12px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
               Select Your Mainstay Religion or Tradition
@@ -202,7 +209,7 @@ export function ReligionFrontPageSection({
       ) : (
         <div className="religion-preview-inactive">
           <p style={{ margin: 0, fontSize: '12px', color: '#64748b' }}>
-            Choose a faith pathway above to incorporate daily contemplation, scriptural study, and moral stewardship into your run.
+            Enable the optional pathway above. Its tradition and prayer settings stay collapsed until you open the setup bar.
           </p>
         </div>
       )}

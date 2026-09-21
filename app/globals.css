@@ -901,3 +901,8 @@
   align-items: flex-start;
 }
 
+
+.religion-expansion-bar{width:100%;display:flex;align-items:center;justify-content:space-between;gap:14px;margin-top:12px;padding:12px 14px;border:1px solid #cbd5e1;border-radius:12px;background:#f8fafc;color:#0f172a;text-align:left;cursor:pointer}
+.religion-expansion-bar span{display:flex;flex-direction:column;gap:2px}.religion-expansion-bar small{color:#64748b}.religion-expansion-bar strong{font-size:11px;color:#2563eb}
+.religion-setup-scroll{max-height:min(520px,62vh);overflow-y:auto;overscroll-behavior:contain;padding-right:6px;scrollbar-gutter:stable}
+.midnight .religion-expansion-bar{background:#111827;border-color:#334155;color:#f8fafc}

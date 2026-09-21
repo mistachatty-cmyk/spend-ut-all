@@ -358,3 +358,7 @@
   text-overflow: ellipsis;
   max-width: 100%;
 }
+
+.rich-person-emoji{width:100%;height:100%;display:grid;place-items:center;font-size:clamp(54px,9vw,104px);background:radial-gradient(circle at 50% 35%,#fff,#dbe4f0 68%,#bcc9da)}
+.rich-person-emoji.compact{font-size:38px}
+.pixel-portrait{image-rendering:pixelated;filter:saturate(.9) contrast(1.08)}

@@ -2,7 +2,7 @@ export type InterfaceMode = 'simple' | 'advanced';
 export type LooperArtStyle = 'classic' | 'production';
 export type UiEdgeStyle = 'rounded' | 'boxed';
 export type InformationDensity = 'more' | 'balanced' | 'less';
-export type VisualArtMode = 'pixel' | 'photo';
+export type VisualArtMode = 'emoji' | 'pixel' | 'photo';
 export type VisualQualityPreset = 'potato' | 'mid' | 'high';
 
 export type HudPreferences = {
@@ -76,7 +76,7 @@ function normalize(input?: Partial<HudPreferences> & { looperArtStyle?: string }
     itemPhotoEscalation: input?.itemPhotoEscalation ?? DEFAULT_HUD_PREFS.itemPhotoEscalation,
     uiEdgeStyle: input?.uiEdgeStyle === 'boxed' ? 'boxed' : 'rounded',
     informationDensity: input?.informationDensity === 'more' || input?.informationDensity === 'less' ? input.informationDensity : 'balanced',
-    visualArtMode: input?.visualArtMode === 'pixel' ? 'pixel' : 'photo',
+    visualArtMode: input?.visualArtMode === 'emoji' || input?.visualArtMode === 'pixel' ? input.visualArtMode : 'photo',
     visualQualityPreset: input?.visualQualityPreset === 'potato' || input?.visualQualityPreset === 'high' ? input.visualQualityPreset : 'mid',
   } as HudPreferences;
 }

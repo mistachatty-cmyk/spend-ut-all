@@ -30,7 +30,7 @@ export function generateRichPersonSvg(profile: {
   category: string;
 }): string {
   const { name, initials, badgeColor, iconEmoji } = profile;
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" width="400" height="400">
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" width="400" height="400" shape-rendering="crispEdges">
     <defs>
       <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
         <stop offset="0%" stop-color="#0f172a" />
@@ -90,7 +90,7 @@ export const RICH_PEOPLE_CATALOG: RichPersonProfile[] = [
     isPrime: true,
     initials: 'EM',
     iconEmoji: '🚀',
-    portraitUrl: 'https://images.unsplash.com/photo-1570295999919-56ceb5ecca61?auto=format&fit=crop&w=480&q=80',
+    portraitUrl: 'https://commons.wikimedia.org/wiki/Special:FilePath/Elon_Musk_Royal_Society_(crop1).jpg?width=640',
     fallbackSeedUrl: generateRichPersonSvg({
       name: 'Elon Musk',
       initials: 'EM',
@@ -117,7 +117,7 @@ export const RICH_PEOPLE_CATALOG: RichPersonProfile[] = [
     isPrime: true,
     initials: 'JB',
     iconEmoji: '📦',
-    portraitUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=480&q=80',
+    portraitUrl: 'https://commons.wikimedia.org/wiki/Special:FilePath/Jeff_Bezos_2016.jpg?width=640',
     fallbackSeedUrl: generateRichPersonSvg({
       name: 'Jeff Bezos',
       initials: 'JB',
@@ -144,7 +144,7 @@ export const RICH_PEOPLE_CATALOG: RichPersonProfile[] = [
     isPrime: true,
     initials: 'BG',
     iconEmoji: '💻',
-    portraitUrl: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=480&q=80',
+    portraitUrl: 'https://commons.wikimedia.org/wiki/Special:FilePath/Bill_Gates_2018.jpg?width=640',
     fallbackSeedUrl: generateRichPersonSvg({
       name: 'Bill Gates',
       initials: 'BG',
@@ -173,7 +173,7 @@ export const RICH_PEOPLE_CATALOG: RichPersonProfile[] = [
     isPrime: false,
     initials: 'WB',
     iconEmoji: '📈',
-    portraitUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=480&q=80',
+    portraitUrl: 'https://commons.wikimedia.org/wiki/Special:FilePath/Warren_Buffett_KU_Visit.jpg?width=640',
     fallbackSeedUrl: generateRichPersonSvg({
       name: 'Warren Buffett',
       initials: 'WB',
@@ -200,7 +200,7 @@ export const RICH_PEOPLE_CATALOG: RichPersonProfile[] = [
     isPrime: false,
     initials: 'BA',
     iconEmoji: '💎',
-    portraitUrl: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=480&q=80',
+    portraitUrl: 'https://commons.wikimedia.org/wiki/Special:FilePath/Bernard_Arnault_(2)_-_2017_(cropped).jpg?width=640',
     fallbackSeedUrl: generateRichPersonSvg({
       name: 'Bernard Arnault',
       initials: 'BA',
@@ -227,7 +227,7 @@ export const RICH_PEOPLE_CATALOG: RichPersonProfile[] = [
     isPrime: false,
     initials: 'MZ',
     iconEmoji: '🌐',
-    portraitUrl: 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?auto=format&fit=crop&w=480&q=80',
+    portraitUrl: 'https://commons.wikimedia.org/wiki/Special:FilePath/Mark_Zuckerberg_F8_2019_Keynote_(32830578717)_(cropped).jpg?width=640',
     fallbackSeedUrl: generateRichPersonSvg({
       name: 'Mark Zuckerberg',
       initials: 'MZ',
@@ -254,7 +254,7 @@ export const RICH_PEOPLE_CATALOG: RichPersonProfile[] = [
     isPrime: false,
     initials: 'LE',
     iconEmoji: '🏝️',
-    portraitUrl: 'https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?auto=format&fit=crop&w=480&q=80',
+    portraitUrl: 'https://commons.wikimedia.org/wiki/Special:FilePath/Larry_Ellison_picture.png?width=640',
     fallbackSeedUrl: generateRichPersonSvg({
       name: 'Larry Ellison',
       initials: 'LE',
@@ -281,7 +281,7 @@ export const RICH_PEOPLE_CATALOG: RichPersonProfile[] = [
     isPrime: false,
     initials: 'JH',
     iconEmoji: '🤖',
-    portraitUrl: 'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?auto=format&fit=crop&w=480&q=80',
+    portraitUrl: 'https://commons.wikimedia.org/wiki/Special:FilePath/Jensen_Huang_2023.jpg?width=640',
     fallbackSeedUrl: generateRichPersonSvg({
       name: 'Jensen Huang',
       initials: 'JH',
@@ -308,7 +308,7 @@ export const RICH_PEOPLE_CATALOG: RichPersonProfile[] = [
     isPrime: false,
     initials: 'SJ',
     iconEmoji: '🍎',
-    portraitUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=480&q=80',
+    portraitUrl: 'https://commons.wikimedia.org/wiki/Special:FilePath/Steve_Jobs_Headshot_2010-CROP.jpg?width=640',
     fallbackSeedUrl: generateRichPersonSvg({
       name: 'Steve Jobs',
       initials: 'SJ',
@@ -335,7 +335,7 @@ export const RICH_PEOPLE_CATALOG: RichPersonProfile[] = [
     isPrime: false,
     initials: 'EM',
     iconEmoji: '🚀',
-    portraitUrl: 'https://images.unsplash.com/photo-1570295999919-56ceb5ecca61?auto=format&fit=crop&w=480&q=80',
+    portraitUrl: 'https://commons.wikimedia.org/wiki/Special:FilePath/Elon_Musk_Royal_Society_(crop1).jpg?width=640',
     fallbackSeedUrl: generateRichPersonSvg({
       name: 'Elon Musk',
       initials: 'EM',
@@ -362,7 +362,7 @@ export const RICH_PEOPLE_CATALOG: RichPersonProfile[] = [
     isPrime: false,
     initials: 'JB',
     iconEmoji: '📦',
-    portraitUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=480&q=80',
+    portraitUrl: 'https://commons.wikimedia.org/wiki/Special:FilePath/Jeff_Bezos_2016.jpg?width=640',
     fallbackSeedUrl: generateRichPersonSvg({
       name: 'Jeff Bezos',
       initials: 'JB',
@@ -389,7 +389,7 @@ export const RICH_PEOPLE_CATALOG: RichPersonProfile[] = [
     isPrime: false,
     initials: 'BG',
     iconEmoji: '💻',
-    portraitUrl: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=480&q=80',
+    portraitUrl: 'https://commons.wikimedia.org/wiki/Special:FilePath/Bill_Gates_2018.jpg?width=640',
     fallbackSeedUrl: generateRichPersonSvg({
       name: 'Bill Gates',
       initials: 'BG',
@@ -418,7 +418,7 @@ export const RICH_PEOPLE_CATALOG: RichPersonProfile[] = [
     isPrime: false,
     initials: 'JDR',
     iconEmoji: '🛢️',
-    portraitUrl: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&w=480&q=80',
+    portraitUrl: 'https://commons.wikimedia.org/wiki/Special:FilePath/John_D._Rockefeller_1885.jpg?width=640',
     fallbackSeedUrl: generateRichPersonSvg({
       name: 'John D. Rockefeller',
       initials: 'JDR',
@@ -445,7 +445,7 @@ export const RICH_PEOPLE_CATALOG: RichPersonProfile[] = [
     isPrime: false,
     initials: 'MM',
     iconEmoji: '👑',
-    portraitUrl: 'https://images.unsplash.com/photo-1501196354995-cbb51c65aaea?auto=format&fit=crop&w=480&q=80',
+    portraitUrl: 'https://commons.wikimedia.org/wiki/Special:FilePath/Mansa_Musa_in_Catalan_Atlas.jpg?width=640',
     fallbackSeedUrl: generateRichPersonSvg({
       name: 'Mansa Musa',
       initials: 'MM',

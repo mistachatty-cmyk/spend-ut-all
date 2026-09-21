@@ -8,3 +8,26 @@
 .customization-card{grid-template-columns:76px minmax(0,1fr) auto}
 @media(max-width:900px){.activity-card{grid-template-columns:72px 1fr}.activity-card button{grid-column:2}}
 @media(max-width:600px){.stream-grid article,.investment-grid article{grid-template-columns:72px 1fr}.customization-card{grid-template-columns:76px minmax(0,1fr)}.customization-action{grid-column:2}.activity-card{grid-template-columns:72px minmax(0,1fr)}.activity-card button{grid-column:1/-1}}
+
+/* Exclusive Emoji / Pixel / Real-life presentation */
+.purchase-visual{position:relative;overflow:hidden;display:grid;place-items:center;isolation:isolate;min-height:58px;background:linear-gradient(145deg,hsl(var(--purchase-hue) 30% 18%),hsl(var(--purchase-hue-2) 35% 28%));border:1px solid rgba(148,163,184,.28);border-radius:14px}
+.purchase-visual__photo,.purchase-visual__emoji,.purchase-visual__pixel,.purchase-visual__effects{grid-area:1/1;width:100%;height:100%}
+.purchase-visual__photo{display:none;object-fit:cover}
+.purchase-visual__emoji{display:none;place-items:center;font-size:clamp(28px,5vw,58px);line-height:1;background:linear-gradient(145deg,#f8fafc,#e2e8f0)}
+.purchase-visual__pixel{display:grid;place-items:center;z-index:2;image-rendering:pixelated}
+.purchase-visual__effects{display:block;position:absolute;inset:0;pointer-events:none;z-index:1}
+.purchase-visual>small{position:absolute;left:7px;bottom:5px;z-index:4;font-size:7px;font-weight:900;letter-spacing:.08em;color:#fff;text-shadow:0 1px 3px #000}
+html[data-visual-art=emoji] .purchase-visual__emoji{display:grid}
+html[data-visual-art=emoji] .purchase-visual__pixel,html[data-visual-art=emoji] .purchase-visual__photo,html[data-visual-art=emoji] .purchase-visual__effects{display:none!important}
+html[data-visual-art=pixel] .purchase-visual__pixel{display:grid}
+html[data-visual-art=pixel] .purchase-visual__photo{display:none!important}
+html[data-visual-art=photo] .purchase-visual[data-has-photo=true] .purchase-visual__photo{display:block}
+html[data-visual-art=photo] .purchase-visual[data-has-photo=true] .purchase-visual__pixel{display:none}
+html[data-visual-art=photo] .purchase-visual[data-has-photo=false] .purchase-visual__pixel{display:grid}
+html[data-visual-art=photo] .purchase-visual[data-has-photo=true] .purchase-visual__effects{opacity:.42}
+html[data-visual-art=pixel] :is(.item-icon,.upgrade-icon,.company-emoji,.earning-emoji-badge,.stream-emoji-badge,.lender-icon){display:none!important}
+html[data-visual-art=photo] :is(.item-icon,.upgrade-icon,.company-emoji,.earning-emoji-badge,.stream-emoji-badge,.lender-icon){display:none!important}
+html[data-visual-art=emoji] :is(.item-photo-wrapper,.company-cover-wrap,.earning-mini-pic,.stream-mini-pic){display:none!important}
+.company-card>.purchase-visual{width:100%;height:140px;margin-bottom:8px}
+.lender-card>.purchase-visual{width:64px;height:58px;flex:0 0 64px}
+.item-card>.purchase-visual{width:100%;height:140px}

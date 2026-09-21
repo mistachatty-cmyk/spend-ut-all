@@ -53,6 +53,19 @@ export function AdvancedInterfaceControl() {
       <div className="interface-setting-actions"><button type="button" className={production ? 'active' : ''} onClick={() => patch({ looperArtStyle: production ? 'classic' : 'production' })} aria-pressed={production}>{production ? 'Switch to Classic' : 'Use Production Art'}</button><a href="/loopers">Open Looper Production Lab</a></div>
     </section>
 
+
+    <section className="interface-setting-block visual-art-setting">
+      <div>
+        <span className="eyebrow">ECONOMY ART MODE</span>
+        <b>{prefs.visualArtMode === 'emoji' ? 'Emoji' : prefs.visualArtMode === 'pixel' ? 'Pixel Collection' : 'Real-life Pictures'}</b>
+        <small>Switch the visual language for purchases, earnings, businesses, debt, upgrades, and rich-person scenarios.</small>
+        <em>Modes are exclusive: Pixel never adds emoji badges, and inaccurate stock portraits are never used as people.</em>
+      </div>
+      <div className="interface-setting-actions">
+        {(['emoji', 'pixel', 'photo'] as const).map((mode) => <button type="button" key={mode} className={prefs.visualArtMode === mode ? 'active' : ''} onClick={() => patch({ visualArtMode: mode, ...(mode === 'pixel' ? { looperArtStyle: 'classic' as const } : mode === 'photo' ? { looperArtStyle: 'production' as const } : {}) })} aria-pressed={prefs.visualArtMode === mode}>{mode === 'photo' ? 'Real-life' : mode[0].toUpperCase() + mode.slice(1)}</button>)}
+      </div>
+    </section>
+
     <section className="interface-setting-block looper-motion-setting">
       <div>
         <span className="eyebrow">LOOPER ANIMATION</span>
