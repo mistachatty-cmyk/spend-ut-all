@@ -1,0 +1,21 @@
+/* A GSix site theme worn for one visit (see game/systems/gsixVisitTheme.ts).
+   Every GSix theme is dark, so this layers over the .midnight look. */
+.app.gsix-visit-theme{background:var(--gsix-bg);color:var(--gsix-ink)}
+.gsix-visit-theme .topbar,.gsix-visit-theme .view-tabs{background:color-mix(in srgb,var(--gsix-bg) 90%,transparent);border-color:color-mix(in srgb,var(--gsix-accent-alt) 45%,transparent)}
+.gsix-visit-theme .panel,.gsix-visit-theme .goal-strip,.gsix-visit-theme .view-tabs button{background:color-mix(in srgb,var(--gsix-bg) 88%,#fff);border-color:color-mix(in srgb,var(--gsix-accent-alt) 45%,transparent);color:var(--gsix-ink)}
+.gsix-visit-theme .item-card{background:color-mix(in srgb,var(--gsix-bg) 94%,#fff);border-color:color-mix(in srgb,var(--gsix-accent-alt) 35%,transparent)}
+.gsix-visit-theme .primary,.gsix-visit-theme .buy-stack button:not(.sell),.gsix-visit-theme .view-tabs button.active,.gsix-visit-theme .tabs button.active{background:var(--gsix-accent);color:var(--gsix-bg);border-color:var(--gsix-accent)}
+.gsix-visit-theme .goal-progress span{background:var(--gsix-accent)}
+.gsix-visit-theme .positive,.gsix-visit-theme .item-meta{color:var(--gsix-highlight)}
+.gsix-visit-theme .eyebrow,.gsix-visit-theme .section-heading>span,.gsix-visit-theme .top-stats span,.gsix-visit-theme .top-stats small,.gsix-visit-theme .item-copy p{color:var(--gsix-muted)}
+.gsix-visit-note{display:flex;gap:8px;align-items:center;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--gsix-muted)}
+.gsix-visit-note button{border:0;background:none;padding:0;color:var(--gsix-accent);font:inherit;font-weight:800;text-decoration:underline;text-underline-offset:3px;cursor:pointer}
+.menu-shell.gsix-visit-theme{background:var(--gsix-bg);color:var(--gsix-ink);align-content:start;gap:12px}
+.gsix-visit-theme .hero-card{background:color-mix(in srgb,var(--gsix-bg) 90%,#fff);border-color:color-mix(in srgb,var(--gsix-accent-alt) 45%,transparent);box-shadow:none}
+.gsix-visit-theme .lead,.gsix-visit-theme .micro,.gsix-visit-theme .choice span,.gsix-visit-theme .choice small{color:var(--gsix-muted)}
+.gsix-visit-theme .choice,.gsix-visit-theme .pill,.gsix-visit-theme .secondary{background:color-mix(in srgb,var(--gsix-bg) 84%,#fff);border-color:color-mix(in srgb,var(--gsix-accent-alt) 45%,transparent);color:var(--gsix-ink)}
+.gsix-visit-theme .choice.selected,.gsix-visit-theme .pill.selected{background:var(--gsix-accent);border-color:var(--gsix-accent);color:var(--gsix-bg)}
+.gsix-visit-theme .choice.selected span,.gsix-visit-theme .choice.selected small{color:color-mix(in srgb,var(--gsix-bg) 75%,transparent)}
+.gsix-visit-note-menu{justify-self:center;margin:0}
+.gsix-visit-theme .prime-titans-header h3,.gsix-visit-theme .other-rich-header h3{color:var(--gsix-ink)}
+.gsix-visit-theme .prime-titans-header>span,.gsix-visit-theme .other-rich-header>span{color:var(--gsix-muted)!important}
