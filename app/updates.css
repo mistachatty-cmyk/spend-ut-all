@@ -1,0 +1,154 @@
+/* Persistent "what's new" footer link + popup (UpdateCenter.tsx). */
+.update-footer-link {
+  /*
+   * Docked above the full-width Card District bar (`.card-district-link`,
+   * z-index 45, pinned to the true viewport bottom) rather than at the
+   * very bottom of the page, so the two fixed bars never overlap and fight
+   * over clicks -- `.app`'s own bottom padding already reserves that bar's
+   * height (see `card-district-access.css`), so anchoring just above it
+   * keeps this clear of it at any viewport width.
+   */
+  position: fixed;
+  right: max(10px, env(safe-area-inset-right));
+  bottom: calc(64px + max(10px, env(safe-area-inset-bottom)));
+  z-index: 40;
+  border: 1px solid #d9dde3;
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(10px);
+  color: #555d68;
+  border-radius: 999px;
+  padding: 6px 12px;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  white-space: nowrap;
+  max-width: calc(100vw - 20px);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  box-shadow: 0 4px 16px rgba(10, 14, 22, 0.1);
+}
+.midnight .update-footer-link {
+  background: rgba(23, 25, 30, 0.92);
+  border-color: #303641;
+  color: #d9dde3;
+}
+
+.update-popup-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.7);
+  backdrop-filter: blur(4px);
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 18px;
+}
+.update-popup {
+  position: relative;
+  width: min(560px, 100%);
+  max-height: 85vh;
+  overflow-y: auto;
+  padding: 22px;
+}
+.update-popup-close {
+  position: absolute;
+  right: 14px;
+  top: 14px;
+  border: 1px solid #d9dde3;
+  background: #fff;
+  border-radius: 10px;
+  width: 32px;
+  height: 32px;
+  cursor: pointer;
+  font-weight: 800;
+}
+.midnight .update-popup-close {
+  background: #171a20;
+  border-color: #292e38;
+  color: #f3f4f6;
+}
+.update-popup-header b {
+  display: block;
+  margin-top: 4px;
+  font-size: 22px;
+  letter-spacing: -0.03em;
+}
+.update-popup-entries {
+  margin-top: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.update-popup-entry {
+  border: 1px solid #dfe2e7;
+  border-radius: 14px;
+  padding: 12px 14px;
+  background: rgba(255, 255, 255, 0.6);
+}
+.update-popup-entry.hotfix {
+  border-color: #f0d9a8;
+  background: rgba(255, 247, 230, 0.6);
+}
+.midnight .update-popup-entry {
+  border-color: #292e38;
+  background: rgba(255, 255, 255, 0.03);
+}
+.midnight .update-popup-entry.hotfix {
+  border-color: #4d4328;
+  background: rgba(255, 200, 80, 0.05);
+}
+.update-popup-entry-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.update-popup-badge {
+  border: 1px solid #d9dde3;
+  border-radius: 999px;
+  padding: 2px 8px;
+  font-size: 10px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.update-popup-entry.hotfix .update-popup-badge {
+  border-color: #e0b95f;
+  color: #92610a;
+}
+.update-popup-entry-meta small {
+  color: #747b87;
+  font-size: 11px;
+}
+.update-popup-entry h3 {
+  margin: 8px 0 4px;
+  font-size: 14px;
+  letter-spacing: -0.01em;
+}
+.update-popup-entry ul {
+  margin: 0;
+  padding-left: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.update-popup-entry li {
+  font-size: 12px;
+  line-height: 1.45;
+  color: #4b5158;
+}
+.midnight .update-popup-entry li {
+  color: #b7bcc4;
+}
+.update-popup-ack {
+  width: 100%;
+  margin-top: 18px;
+}
+
+@media (max-width: 700px) {
+  .update-footer-link {
+    font-size: 9px;
+    padding: 6px 10px;
+  }
+}

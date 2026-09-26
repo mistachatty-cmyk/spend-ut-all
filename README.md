@@ -10,6 +10,22 @@ LOK is intentionally external. The game connects to the broader LOK ecosystem th
 
 LOKdex cards are portable across the G-Six universe: any owned card can be exported as a `lok.card-exchange` JSON file from `/cards` → Universe Exchange, and a card exported by another LOK game can be imported back in as a visiting card. See `docs/LOK_CARD_EXCHANGE_PROTOCOL.md` for the exact contract another game implements to participate, and `docs/LOK_PORTABLE_ASSET_SPEC.md` for the broader portable-asset contract this specializes.
 
+## Changelog — read this before shipping a player-visible change
+
+`data/changelog.ts` is the single source of truth behind the persistent
+"see what's new" link at the bottom of every page and the one-time update
+popup (`app/components/UpdateCenter.tsx`, mounted in `app/layout.tsx`) —
+same pattern as 616 Survivor's changelog/update popup, kept consistent
+across the LOK ecosystem. **Appending an entry there is part of shipping
+any real update or hotfix, the same way running `npm run typecheck` is —
+not an optional chore, for every contributor or AI agent working in this
+repo.** The file's own header comment has the exact convention (bump MINOR
+for a real update, PATCH for a hotfix, just append — `CURRENT_VERSION`
+derives from the array automatically). If you touch `app/layout.tsx`,
+don't let the `<UpdateCenter />` mount get edited away as collateral
+damage from an unrelated change — that exact regression happened to 616
+Survivor's equivalent feature and went unnoticed for over a week.
+
 ## Current playable slice
 
 - Millionaire, Billionaire, and Trillionaire scenarios

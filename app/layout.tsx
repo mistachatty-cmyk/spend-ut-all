@@ -4,7 +4,9 @@ import { CardDistrictLink } from '@/app/components/CardDistrictLink';
 import { DiscoveryNotifier } from '@/app/components/DiscoveryNotifier';
 import { MicroAnimationLayer } from '@/app/components/MicroAnimationLayer';
 import { StarterCompanionPrompt } from '@/app/components/StarterCompanionPrompt';
+import { UpdateCenter } from '@/app/components/UpdateCenter';
 import './globals.css';
+import './updates.css';
 import './empire.css';
 import './collection.css';
 import './businesses.css';
@@ -133,6 +135,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
         <AdvancedInterfaceControl />
         <DiscoveryNotifier />
         <MicroAnimationLayer />
+        <UpdateCenter />
       </body>
     </html>
   );
