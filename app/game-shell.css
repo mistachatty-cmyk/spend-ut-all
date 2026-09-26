@@ -139,33 +139,30 @@
   border-radius: 13px;
   grid-template-columns: minmax(160px, 280px) 1fr auto;
 }
+/*
+ * Overrides the base globals.css `.view-tabs` chrome (dock background,
+ * sticky top) but deliberately leaves `display`, `overflow-x` and the
+ * button sizing rules alone -- those come from globals.css's flex +
+ * horizontal-scroll layout, which renders every tab by its own real label
+ * text/emoji and so stays correct no matter how many tabs exist or what
+ * order they're in. A fixed-column grid here was tried before and broke
+ * (see the removed `@media (max-width: 700px)` block this file used to
+ * carry): it pinned tabs to `nth-child` position with CSS `content:`
+ * strings standing in for the real label, so adding/reordering a tab in
+ * page.tsx silently mislabeled or hid whichever ones shifted past the grid
+ * it was tuned for. Don't reintroduce that pattern.
+ */
 .view-tabs {
   position: sticky;
   top: 0;
   z-index: 30;
   margin: 8px var(--shell-gutter) 0;
   padding: 6px;
-  display: grid;
-  grid-template-columns: repeat(10, minmax(0, 1fr));
-  gap: 4px;
   border: 1px solid var(--dock-border);
   border-radius: 17px;
   background: var(--dock-bg);
   backdrop-filter: blur(18px);
   box-shadow: 0 8px 28px rgba(20, 24, 32, 0.07);
-}
-.view-tabs button {
-  min-width: 0;
-  min-height: 36px;
-  padding: 7px 6px;
-  border-radius: 11px;
-  font-size: 10px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-.view-tabs button:nth-child(6) {
-  border-left-width: 2px;
 }
 .tabs {
   padding: 10px var(--shell-gutter);
@@ -345,10 +342,6 @@
 }
 
 @media (max-width: 1180px) {
-  .view-tabs {
-    grid-template-columns: repeat(5, minmax(0, 1fr));
-    grid-template-rows: repeat(2, auto);
-  }
   .topbar {
     position: relative;
   }
@@ -470,135 +463,29 @@
     font-size: 8px;
   }
 
-  /* Two-level sticky dock: gameplay destinations below, utility destinations above. Positioned at top so codex bar hugs the bottom. */
+  /*
+   * A sticky, horizontally scrollable row of the *real* tab buttons (their
+   * own text/emoji from page.tsx), not a fixed-position icon grid keyed by
+   * `nth-child`. That grid approach (removed here) silently mislabeled and
+   * hid tabs the moment page.tsx's tab order or count changed -- see the
+   * comment on the base `.view-tabs` rule above. `display`/`overflow-x`
+   * are inherited from globals.css's base `.view-tabs`; only sizing is
+   * tuned for narrow screens here.
+   */
   .view-tabs {
     position: sticky;
     top: 0;
     z-index: 25;
-    left: auto;
-    right: auto;
-    bottom: auto;
     margin: 4px var(--shell-gutter) 0;
-    display: grid;
-    grid-template-columns: repeat(5, minmax(0, 1fr));
-    grid-template-rows: 28px 46px;
-    gap: 3px 4px;
-    padding: 5px 6px 6px;
+    padding: 6px 7px;
     border-radius: 17px;
     box-shadow: 0 4px 16px rgba(10, 14, 22, 0.08);
-    overflow: visible;
   }
   .view-tabs button {
-    min-width: 0;
-    border: 0 !important;
-    background: transparent !important;
-    color: #6e7580 !important;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 2px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: clip;
-  }
-  .view-tabs button:nth-child(-n + 5) {
-    grid-row: 2;
-    min-height: 44px;
-    padding: 4px 2px;
+    min-height: 40px;
+    padding: 8px 12px;
+    font-size: 11px;
     border-radius: 12px;
-    font-size: 0;
-    flex-direction: column;
-  }
-  .view-tabs button:nth-child(n + 6) {
-    grid-row: 1;
-    min-height: 26px;
-    padding: 2px 3px;
-    border-radius: 8px;
-    font-size: 0;
-    border-bottom: 1px solid rgba(125, 132, 143, 0.12) !important;
-  }
-  .view-tabs button::before {
-    font-size: 15px;
-    line-height: 1;
-  }
-  .view-tabs button::after {
-    font-size: 7px;
-    line-height: 1;
-    font-weight: 850;
-    letter-spacing: 0.01em;
-  }
-  .view-tabs button:nth-child(n + 6)::before {
-    display: none;
-  }
-  .view-tabs button:nth-child(n + 6)::after {
-    font-size: 7px;
-    color: inherit;
-  }
-  .view-tabs button.active {
-    background: #17191e !important;
-    color: #fff !important;
-    box-shadow: 0 4px 12px rgba(20, 24, 32, 0.16);
-  }
-  .view-tabs button:nth-child(n + 6).active {
-    background: rgba(23, 25, 30, 0.09) !important;
-    color: #17191e !important;
-    box-shadow: none;
-  }
-  .midnight .view-tabs button {
-    color: #adb4be !important;
-  }
-  .midnight .view-tabs button.active {
-    background: #f3f4f6 !important;
-    color: #111419 !important;
-  }
-  .midnight .view-tabs button:nth-child(n + 6).active {
-    background: rgba(243, 244, 246, 0.1) !important;
-    color: #f3f4f6 !important;
-  }
-  .view-tabs button:nth-child(1)::before {
-    content: "🛒";
-  }
-  .view-tabs button:nth-child(1)::after {
-    content: "Market";
-  }
-  .view-tabs button:nth-child(2)::before {
-    content: "⚡";
-  }
-  .view-tabs button:nth-child(2)::after {
-    content: "Earn";
-  }
-  .view-tabs button:nth-child(3)::before {
-    content: "🏪";
-  }
-  .view-tabs button:nth-child(3)::after {
-    content: "Biz";
-  }
-  .view-tabs button:nth-child(4)::before {
-    content: "🏙";
-  }
-  .view-tabs button:nth-child(4)::after {
-    content: "Empire";
-  }
-  .view-tabs button:nth-child(5)::before {
-    content: "⚖";
-  }
-  .view-tabs button:nth-child(5)::after {
-    content: "Debt";
-  }
-  .view-tabs button:nth-child(6)::after {
-    content: "Awards";
-  }
-  .view-tabs button:nth-child(7)::after {
-    content: "Collection";
-  }
-  .view-tabs button:nth-child(8)::after {
-    content: "Scores";
-  }
-  .view-tabs button:nth-child(9)::after {
-    content: "Style";
-  }
-  .view-tabs button:nth-child(10)::after {
-    content: "Settings";
   }
 
   .tabs {
@@ -673,18 +560,13 @@
 
 @media (max-width: 390px) {
   .view-tabs {
-    left: 5px;
-    right: 5px;
-    padding-left: 4px;
-    padding-right: 4px;
-    gap: 2px;
+    padding-left: 5px;
+    padding-right: 5px;
+    gap: 5px;
   }
-  .view-tabs button::before {
-    font-size: 14px;
-  }
-  .view-tabs button::after,
-  .view-tabs button:nth-child(n + 6)::after {
-    font-size: 6px;
+  .view-tabs button {
+    padding: 7px 10px;
+    font-size: 10px;
   }
   .topbar .balance {
     font-size: 40px;
