@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import { dismissGsixVisitTheme, useGsixVisitTheme } from "@/app/hooks/useGsixVisitTheme";
+import { visitThemeStyle } from "@/game/systems/gsixVisitTheme";
 import { AchievementsView } from "@/app/components/AchievementsView";
 import { BusinessView } from "@/app/components/BusinessView";
 import { CollectionView } from "@/app/components/CollectionView";
@@ -177,6 +179,7 @@ const EMPIRE_UPGRADE_IMAGES: Record<string, string> = {
 
 export default function Home() {
   const [state, setState] = useState<GameState | null>(null);
+  const visitTheme = useGsixVisitTheme();
   const [meta, setMeta] = useState<MetaState>(createMetaState());
   const [metaLoaded, setMetaLoaded] = useState(false);
   const [customization, setCustomization] = useState<CustomizationInventory>(
@@ -437,7 +440,13 @@ export default function Home() {
 
   if (!state?.started || inMainMenu)
     return (
-      <main className="menu-shell">
+      <main className={visitTheme ? "menu-shell gsix-visit-theme" : "menu-shell"} style={visitTheme ? visitThemeStyle(visitTheme) : undefined}>
+        {visitTheme && (
+          <p className="gsix-visit-note gsix-visit-note-menu">
+            Wearing your GSix theme ·
+            <button type="button" onClick={dismissGsixVisitTheme}>Use my Spend It All look</button>
+          </p>
+        )}
         {customBuilderOpen ? (
           <CustomScenarioBuilder
             onClose={() => setCustomBuilderOpen(false)}
@@ -804,7 +813,9 @@ export default function Home() {
     "theme-market-terminal",
     "theme-lunar-office",
   ].includes(customization.equipped.themeId ?? "");
-  const appClass = `app ${darkTheme ? "midnight " : ""}${themeClass(customization)} ${moneyCounterClass(customization)}`;
+  const appClass = visitTheme
+    ? `app midnight gsix-visit-theme ${moneyCounterClass(customization)}`
+    : `app ${darkTheme ? "midnight " : ""}${themeClass(customization)} ${moneyCounterClass(customization)}`;
 
   const handleBuy = (item: (typeof items)[number], q: number, e?: React.MouseEvent) => {
     const o = state.owned[item.id] ?? 0;
@@ -850,7 +861,7 @@ export default function Home() {
   };
 
   return (
-    <main className={appClass}>
+    <main className={appClass} style={visitTheme ? visitThemeStyle(visitTheme) : undefined}>
       <FloatingNumbersOverlay />
       <PersistentFollowHud
         state={state}
@@ -862,6 +873,12 @@ export default function Home() {
       />
       <header className="topbar">
         <div>
+          {visitTheme && (
+            <p className="gsix-visit-note">
+              Wearing your GSix theme ·
+              <button type="button" onClick={dismissGsixVisitTheme}>Use my Spend It All look</button>
+            </p>
+          )}
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
             <button
               type="button"

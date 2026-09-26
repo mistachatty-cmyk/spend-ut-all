@@ -41,6 +41,7 @@ import './pixel-purchase-integrations.css';
 import './purchase-visual-integrations.css';
 import './interface-style-deck.css';
 import './rich-people.css';
+import './gsix-visit-theme.css';
 
 export const metadata: Metadata = {
   title: 'Spend It All – Spend Billionaire Money & Wealth Simulator',
