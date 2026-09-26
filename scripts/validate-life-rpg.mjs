@@ -17,18 +17,20 @@ const save=read('game/systems/save.ts');
 const earningActions=read('game/earning-actions.ts');
 const businessActions=read('game/business-actions.ts');
 const view=read('app/components/LifeRpgView.tsx');
+// Record ids may be written id:'x' or id: 'x' depending on the formatter.
+const hasId=(source,id)=>new RegExp(`id:\\s*'${id}'`).test(source);
 const timeView=read('app/components/TimeView.tsx');
 
 const skills=['general-labor','hospitality','sales','creative','technology','finance','management','trades','media','real-estate'];
 for(const skill of skills) if(!types.includes(`'${skill}'`) || !lifeData.includes(`id:'${skill}'`)) fail(`skill ${skill} is not fully registered`);
 const housing=['stay-with-someone','shelter','motel','room-rental','shared-apartment','studio-lease','one-bedroom','small-house-rental','starter-condo','starter-house','townhome'];
-for(const id of housing) if(!lifeData.includes(`id:'${id}'`)) fail(`missing housing option ${id}`);
+for(const id of housing) if(!hasId(lifeData,id)) fail(`missing housing option ${id}`);
 const starterStreams=['snack-cooler','print-on-demand','tool-rental','local-ad-page','storage-flips'];
-for(const id of starterStreams) if(!earnings.includes(`id:'${id}'`)) fail(`missing starter passive stream ${id}`);
+for(const id of starterStreams) if(!hasId(earnings,id)) fail(`missing starter passive stream ${id}`);
 const starterBusinesses=['solo-service','cleaning-service','lawn-care','mobile-detailing','food-cart','online-shop','creative-agency','tech-consultancy','bookkeeping-practice','property-services'];
-for(const id of starterBusinesses) if(!businesses.includes(`id:'${id}'`)) fail(`missing starter business ${id}`);
+for(const id of starterBusinesses) if(!hasId(businesses,id)) fail(`missing starter business ${id}`);
 const zeroCashWork=['microtask','recyclables','neighborhood-help','pet-care'];
-for(const id of zeroCashWork) if(!earnings.includes(`id:'${id}'`)) fail(`missing zero-cash earning ${id}`);
+for(const id of zeroCashWork) if(!hasId(earnings,id)) fail(`missing zero-cash earning ${id}`);
 for(const skill of skills) if(!activities.includes(`skillId:'${skill}'`)) fail(`no timed learning/work activity trains ${skill}`);
 if(!engine.includes('createLifeRpgState')) fail('new games do not initialize Life RPG state');
 if(!engine.includes('advanceLifeHousingCosts')) fail('housing costs are not advanced by the engine');
@@ -36,6 +38,7 @@ if(!engine.includes('housingAssetValue')) fail('owned personal housing is missin
 if(!save.includes('normalizeLifeRpg')) fail('old saves do not normalize Life RPG state');
 if(!earningActions.includes('lifeMeetsSkill')) fail('active earnings do not use optional skill gates');
 if(!businessActions.includes('businessUnlocked') || !businessActions.includes('lifeMeetsSkill')) fail('businesses do not use optional skill gates');
-if(!view.includes('Pause RPG layer') || !view.includes('Enable Life RPG')) fail('Life RPG is not toggleable in the UI');
+// Behavioral check, not button copy: the view must both switch the layer off and back on.
+if(!view.includes('enabled: false') || !view.includes('enableLifeRpg(')) fail('Life RPG is not toggleable in the UI');
 if(!timeView.includes("id:'learning'")) fail('learning is not grouped on the Time screen');
 if(!process.exitCode) console.log(`Life RPG coverage OK: ${skills.length} skills, ${housing.length} housing choices, ${starterStreams.length} starter passive streams, ${starterBusinesses.length} starter businesses and optional gating verified.`);

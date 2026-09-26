@@ -73,7 +73,7 @@ for (const mood of moods) {
 }
 
 if (!gateway.includes('LooperVectorRuntimeSprite')) fail('PixelPetSprite is not routing Production art to canonical SVG masters');
-if (!gateway.includes("looperArtStyle === 'classic'")) fail('Classic fallback is not preserved in the shared gateway');
+if (!/looperArtStyle\)?\s*===\s*'classic'/.test(gateway)) fail('Classic fallback is not preserved in the shared gateway');
 if (!vectorRuntime.includes('looperVectorAssetById')) fail('canonical vector runtime is not resolving the vector asset catalog');
 if (!vectorRuntime.includes('asset.master')) fail('canonical vector runtime is not loading master.svg assets');
 if (!vectorRuntime.includes('LooperProductionSprite')) fail('Forge/generated fallback was removed from vector runtime');
