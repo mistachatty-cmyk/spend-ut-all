@@ -55,3 +55,16 @@ Use a seeded planet descriptor (biomes, continents, resources, species, civiliza
 - World projects spend the existing run balance. Avoid adding premium currency or token issuance to civic simulation.
 - Late-scale simulations should be seeded and summarized. Render only active lots and named characters. Add bounded offline progression when those systems have gameplay effects.
 - Test migrations, milestone gates, duplicate city names, insufficient funds, and capped population as those systems expand.
+
+## Major expansion: living-world systems
+
+The Atlas now includes the first simulation layer above construction:
+
+- **Civic resources:** Culture, Knowledge, Care, Influence and Discovery persist in the run. Projects, city development, diplomacy and events earn them. Charters spend them, so later scales are tied to meaningful development rather than cash alone.
+- **Policy board:** Open Studios, Green Covenant, Learning Guarantee, Trade Compact, Frontier Charter and Public Works are reversible civic priorities. Eligible policies create a small bounded economic bonus for the existing game economy.
+- **Civic events:** A district or world stage can surface a daily event with three outcomes: support people, build balance or take a venture. Each produces a different resource profile; support also raises local goodwill.
+- **Satellite city initiatives:** Each linked city can open a Night Market, Civic Clinic and Maker Exchange alongside its four development tiers. Their simulation is summarized by game-day population, jobs and prosperity.
+- **Diplomacy:** Four simulated partners have trust tracks and can form compacts. Two compacts are required for the Empire Accord, making a global network an earned relationship system.
+- **Planet development:** Outposts retain biome, traits, stability and four development levels. Developed worlds add a small bounded contribution to world economy.
+
+All new state normalizes safely for earlier saves and is capped so the browser only simulates the active capital in detail.

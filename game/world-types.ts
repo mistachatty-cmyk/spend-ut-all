@@ -2,12 +2,20 @@ export type WorldScale = 'town' | 'city' | 'civilization' | 'country' | 'empire'
 export type CivicFocus = 'creative' | 'builder' | 'scholar' | 'care' | 'explorer' | 'commerce';
 export type WorldProjectId = 'sound-booth' | 'lokpet-sanctuary' | 'card-quarter' | 'garden' | 'workshop' | 'commons' | 'regional-rail' | 'civic-archive' | 'orbital-observatory';
 export type WorldMilestone = 'civilization' | 'country' | 'empire' | 'planet';
-export type SatelliteCity = { id: string; name: string; specialty: CivicFocus; foundedAt: number; foundedAtGameMinute: number; level: number };
-export type WorldPlanet = { id: string; name: string; biome: string; foundedAt: number };
+export type WorldPolicyId = 'open-studios' | 'green-covenant' | 'learning-guarantee' | 'trade-compact' | 'frontier-charter' | 'public-works';
+export type WorldResourceId = 'culture' | 'knowledge' | 'care' | 'influence' | 'discovery';
+export type WorldEventChoice = 'support' | 'balance' | 'venture';
+export type SatelliteCity = { id: string; name: string; specialty: CivicFocus; foundedAt: number; foundedAtGameMinute: number; level: number; projects: string[] };
+export type WorldPlanet = { id: string; name: string; biome: string; foundedAt: number; level: number; traits: string[]; stability: number };
+export type DiplomacyPartner = { id: string; name: string; icon: string; specialty: CivicFocus; trust: number; compact: boolean };
 export type WorldState = {
   focus: CivicFocus | null;
   projects: WorldProjectId[];
   milestones: WorldMilestone[];
   cities: SatelliteCity[];
   planets: WorldPlanet[];
+  policies: WorldPolicyId[];
+  resources: Record<WorldResourceId, number>;
+  diplomacy: DiplomacyPartner[];
+  resolvedEventIds: string[];
 };
