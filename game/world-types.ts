@@ -5,9 +5,13 @@ export type WorldMilestone = 'civilization' | 'country' | 'empire' | 'planet';
 export type WorldPolicyId = 'open-studios' | 'green-covenant' | 'learning-guarantee' | 'trade-compact' | 'frontier-charter' | 'public-works';
 export type WorldResourceId = 'culture' | 'knowledge' | 'care' | 'influence' | 'discovery';
 export type WorldEventChoice = 'support' | 'balance' | 'venture';
+export type WorldMarketId = 'aurelian-freeports' | 'meridian-assembly' | 'verdant-collective' | 'orbit-makers' | 'luminous-commonwealth';
+export type WorldTradeSector = 'culture' | 'learning' | 'care' | 'industry' | 'discovery';
+export type GlobalVentureId = 'festival-circuit' | 'open-learning-network' | 'wellbeing-exchange' | 'maker-consortium' | 'starlight-courier';
 export type SatelliteCity = { id: string; name: string; specialty: CivicFocus; foundedAt: number; foundedAtGameMinute: number; level: number; projects: string[] };
 export type WorldPlanet = { id: string; name: string; biome: string; foundedAt: number; level: number; traits: string[]; stability: number };
 export type DiplomacyPartner = { id: string; name: string; icon: string; specialty: CivicFocus; trust: number; compact: boolean };
+export type ForeignMarket = { id: WorldMarketId; name: string; icon: string; region: string; sector: WorldTradeSector; reputation: number; embassy: boolean; routeLevel: number; ventures: GlobalVentureId[] };
 export type WorldState = {
   focus: CivicFocus | null;
   projects: WorldProjectId[];
@@ -17,5 +21,6 @@ export type WorldState = {
   policies: WorldPolicyId[];
   resources: Record<WorldResourceId, number>;
   diplomacy: DiplomacyPartner[];
+  foreignMarkets: ForeignMarket[];
   resolvedEventIds: string[];
 };

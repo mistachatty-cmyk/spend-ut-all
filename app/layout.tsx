@@ -30,6 +30,7 @@ import './card-universe-exchange.css';
 import './micro-animations.css';
 import './town-community.css';
 import './world-atlas.css';
+import './world-atlas-international.css';
 import './fame-view.css';
 import './effects-levels.css';
 import './debt.css';
