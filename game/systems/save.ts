@@ -14,6 +14,7 @@ import { normalizeTimeSimulation } from "./time-simulation";
 import { normalizeFameState } from "./fame";
 import { normalizeDailyCheckInState } from "./daily-rewards";
 import { normalizeReligionState } from "./religion";
+import { normalizeWorld } from "./world";
 
 const DEFAULT_EVENT_INTERVAL_MS = 120_000;
 
@@ -73,6 +74,7 @@ export function normalizeGameState(
     totalSold: state.totalSold ?? 0,
     businesses: normalizeBusinessPortfolio(state.businesses),
     cityEconomy: normalizeCityEconomy(state.cityEconomy, now),
+    world: normalizeWorld(state.world),
     incomeStreams: normalizeIncomeStreams(state.incomeStreams),
     time,
     life,

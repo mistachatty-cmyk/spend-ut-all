@@ -1,5 +1,6 @@
 import type { BusinessPortfolio } from "./business-types";
 import type { CityEconomyState } from "./city-types";
+import type { WorldState } from "./world-types";
 import type { TimeSimulationState } from "./time-types";
 import type { GameRules } from "./rules-types";
 import type { CustomScenarioDefinition } from "./custom-scenario-types";
@@ -288,6 +289,7 @@ export type GameState = {
   incomeStreams: Record<string, number>;
   businesses: BusinessPortfolio;
   cityEconomy: CityEconomyState;
+  world: WorldState;
   time: TimeSimulationState;
   life: LifeRpgState;
   career?: CareerState;
