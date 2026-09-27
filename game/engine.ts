@@ -84,7 +84,7 @@ import {
 } from "./systems/fame";
 import { addFame } from "./fame-actions";
 import { ReligionId, createReligionState } from "./systems/religion";
-import { createWorldState } from "./systems/world";
+import { createWorldState, worldIncomeMultiplier } from "./systems/world";
 
 export function newGame(
   scenarioId: ScenarioId,
@@ -334,6 +334,7 @@ export function grossIncomePerSecond(s: GameState) {
     deckSynergies.revenueMultiplier *
     prestigeMult *
     fameMult *
+    worldIncomeMultiplier(s) *
     (s.life?.enabled ? getSimMood(s.life).incomeMultiplier : 1)
   );
 }
