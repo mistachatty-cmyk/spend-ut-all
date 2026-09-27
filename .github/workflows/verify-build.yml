@@ -31,6 +31,8 @@ jobs:
         run: npm run validate:education
       - name: Validate freelance progression
         run: npm run validate:freelance
+      - name: Validate World Atlas progression
+        run: npm run validate:world
       - name: Typecheck
         run: npm run typecheck
       - name: Production build

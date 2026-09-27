@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import dynamic from "next/dynamic";
 import { dismissGsixVisitTheme, useGsixVisitTheme } from "@/app/hooks/useGsixVisitTheme";
 import { visitThemeStyle } from "@/game/systems/gsixVisitTheme";
 import { AchievementsView } from "@/app/components/AchievementsView";
@@ -150,6 +151,7 @@ import { getDailyCheckInStatus } from "@/game/systems/daily-rewards";
 import { detectActiveReminders, loadNotificationPreferences } from "@/game/systems/notifications";
 
 const SAVE_KEY = "spend-it-all-v1";
+const WorldAtlasView = dynamic(() => import("@/app/components/WorldAtlasView").then(module => module.WorldAtlasView));
 const META_KEY = "spend-it-all-meta-v1";
 type View =
   | "market"
@@ -157,6 +159,7 @@ type View =
   | "businesses"
   | "empire"
   | "town"
+  | "world"
   | "religion"
   | "daily"
   | "debt"
@@ -1110,6 +1113,9 @@ export default function Home() {
             </span>
           ) : null}
         </button>
+        <button className={view === "world" ? "active" : ""} onClick={() => { playClickSound(); setView("world"); }}>
+          World Atlas 🌎
+        </button>
         <button
           className={view === "daily" ? "active" : ""}
           onClick={() => { playClickSound(); setView("daily"); }}
@@ -1230,6 +1236,9 @@ export default function Home() {
       ) : null}
       {view === "town" ? (
         <TownCommunityView state={state} setState={setState} money={money} />
+      ) : null}
+      {view === "world" ? (
+        <WorldAtlasView state={state} setState={setState} money={money} onOpenTown={() => setView("town")} />
       ) : null}
       {view === "market" ? (
         <>
