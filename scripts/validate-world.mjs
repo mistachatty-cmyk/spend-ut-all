@@ -3,6 +3,7 @@ import {
   createWorldState, normalizeWorld, chooseCivicFocus, fundWorldProject,
   foundSatelliteCity, developSatelliteCity, satelliteCitySnapshot,
   claimWorldMilestone, establishWorldOutpost, worldScale, toggleWorldPolicy, buildDiplomaticTrust, formDiplomaticCompact, developPlanet, openCityInitiative, currentWorldEvent, resolveWorldEvent, worldIncomeMultiplier,
+  canOpenEmbassy, canSignGlobalVenture, canUpgradeTradeRoute, internationalBusinessSnapshot, openEmbassy, signGlobalVenture, upgradeTradeRoute,
 } from '../game/systems/world.ts';
 
 const base = {
@@ -38,6 +39,14 @@ state = claimWorldMilestone(state, 'country');
 assert.equal(claimWorldMilestone(state, 'empire'), state, 'empire needs diplomatic compacts');
 for (const partner of state.world.diplomacy.slice(0, 2)) { for (let i = 0; i < 6; i++) state = buildDiplomaticTrust(state, partner.id); state = formDiplomaticCompact(state, partner.id); }
 assert.equal(state.world.diplomacy.filter(p => p.compact).length, 2);
+assert.ok(canOpenEmbassy(state, 'aurelian-freeports'));
+state = openEmbassy(state, 'aurelian-freeports');
+assert.equal(state.world.foreignMarkets[0].embassy, true);
+assert.ok(canUpgradeTradeRoute(state, 'aurelian-freeports'));
+state = upgradeTradeRoute(state, 'aurelian-freeports');
+assert.ok(canSignGlobalVenture(state, 'festival-circuit'));
+state = signGlobalVenture(state, 'festival-circuit');
+assert.equal(internationalBusinessSnapshot(state).ventures, 1);
 state = claimWorldMilestone(state, 'empire');
 assert.equal(claimWorldMilestone(state, 'planet'), state, 'regional rail required');
 state = fundWorldProject(state, 'regional-rail');
