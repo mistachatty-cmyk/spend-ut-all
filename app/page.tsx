@@ -35,6 +35,7 @@ import {
 } from "@/game/systems/audio-sfx";
 import { ReligionFrontPageSection } from "@/app/components/ReligionFrontPageSection";
 import { ReligionView } from "@/app/components/ReligionView";
+import { FameView } from "@/app/components/FameView";
 import { ReligionId, getReligionDefinition } from "@/game/systems/religion";
 import { emitFloatingNumber } from "@/game/systems/floating-numbers";
 import { achievements } from "@/data/achievement-catalog";
@@ -161,6 +162,7 @@ type View =
   | "town"
   | "world"
   | "religion"
+  | "fame"
   | "daily"
   | "debt"
   | "achievements"
@@ -1134,6 +1136,12 @@ export default function Home() {
             : "🕊️ Faith & Religion"}
         </button>
         <button
+          className={view === "fame" ? "active" : ""}
+          onClick={() => { playClickSound(); setView("fame"); }}
+        >
+          🏆 Fame & Forbes List
+        </button>
+        <button
           className={view === "familyOffice" ? "active" : ""}
           onClick={() => { playClickSound(); setView("familyOffice"); }}
         >
@@ -1201,6 +1209,9 @@ export default function Home() {
       ) : null}
       {view === "religion" ? (
         <ReligionView state={state} setState={setState} />
+      ) : null}
+      {view === "fame" ? (
+        <FameView state={state} setState={setState} potatoMode={hudPrefs.potatoMode} />
       ) : null}
       {view === "deck" ? <ExecutiveDeckView meta={meta} /> : null}
       {view === "achievements" ? <AchievementsView state={state} /> : null}

@@ -21,12 +21,60 @@ import { money } from '@/game/format';
 import { netWorth } from '@/game/engine';
 import { getRichPersonProfile } from '@/data/rich-people';
 
+const FORBES_ROW_HEIGHT = 58;
+
+function ForbesLiveRow({
+  entry,
+  potatoMode,
+}: {
+  entry: import('@/game/systems/fame').ForbesLeaderboardEntry;
+  potatoMode: boolean;
+}) {
+  const sinceEvent = entry.lastEventAt > 0 ? Date.now() - entry.lastEventAt : Infinity;
+  const isFreshEvent = !potatoMode && sinceEvent < 4000;
+  const flashClass = isFreshEvent ? (entry.momentum >= 0 ? 'flash-up' : 'flash-down') : '';
+
+  return (
+    <div
+      className={[
+        'forbes-live-row',
+        entry.isPlayer ? 'player-row' : '',
+        potatoMode ? 'no-animate' : '',
+        flashClass,
+      ].filter(Boolean).join(' ')}
+      style={{ transform: `translateY(${(entry.displayRank - 1) * FORBES_ROW_HEIGHT}px)` }}
+    >
+      <span className="forbes-rank">
+        {entry.isPlayer ? `★ #${entry.displayRank}` : `#${entry.displayRank}`}
+      </span>
+      <span>
+        <span style={{ fontSize: '1.2rem', marginRight: '8px' }}>{entry.emoji}</span>
+        <b>{entry.name}</b>
+      </span>
+      <span>
+        <b>{money(entry.netWorth)}</b>
+      </span>
+      <span
+        style={{
+          color: entry.momentum > 0.05 ? '#059669' : entry.momentum < -0.05 ? '#dc2626' : '#6b7280',
+          fontWeight: 600,
+        }}
+      >
+        {entry.momentum > 0.05 ? '▲ Rising' : entry.momentum < -0.05 ? '▼ Falling' : '— Steady'}
+      </span>
+      <small>{entry.title}</small>
+    </div>
+  );
+}
+
 export function FameView({
   state,
   setState,
+  potatoMode = false,
 }: {
   state: GameState;
   setState: React.Dispatch<React.SetStateAction<GameState | null>>;
+  potatoMode?: boolean;
 }) {
   const [activeTab, setActiveTab] = useState<'pr' | 'forbes' | 'magazines' | 'celebrities'>('pr');
   const [lastMessage, setLastMessage] = useState<string | null>(null);
@@ -313,41 +361,30 @@ export function FameView({
 
           {rivalryLeaderboard ? (
             <>
-              <table className="forbes-table">
-                <thead>
-                  <tr>
-                    <th>RANK</th>
-                    <th>RIVAL</th>
-                    <th>NET WORTH</th>
-                    <th>MOMENTUM</th>
-                    <th>DOMAIN</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {rivalryLeaderboard.board.map((entry) => (
-                    <tr key={entry.id} className={entry.isPlayer ? 'player-row' : ''}>
-                      <td className="forbes-rank">
-                        {entry.isPlayer ? `★ #${entry.displayRank}` : `#${entry.displayRank}`}
-                      </td>
-                      <td>
-                        <span style={{ fontSize: '1.2rem', marginRight: '8px' }}>{entry.emoji}</span>
-                        <b>{entry.name}</b>
-                      </td>
-                      <td>
-                        <b>{money(entry.netWorth)}</b>
-                      </td>
-                      <td>
-                        <span style={{ color: entry.momentum > 0.05 ? '#059669' : entry.momentum < -0.05 ? '#dc2626' : '#6b7280', fontWeight: 600 }}>
-                          {entry.momentum > 0.05 ? '▲ Rising' : entry.momentum < -0.05 ? '▼ Falling' : '— Steady'}
-                        </span>
-                      </td>
-                      <td>
-                        <small>{entry.title}</small>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+              {!potatoMode ? (
+                <p style={{ margin: '0 0 8px', color: '#9ca3af', fontSize: '0.8rem' }}>
+                  🎬 Live mode: watch rivals climb and fall in real time as their fortunes swing.
+                </p>
+              ) : (
+                <p style={{ margin: '0 0 8px', color: '#9ca3af', fontSize: '0.8rem' }}>
+                  🥔 Potato mode: rank changes snap instantly to save performance.
+                </p>
+              )}
+              <div className="forbes-live-board-header">
+                <span>RANK</span>
+                <span>RIVAL</span>
+                <span>NET WORTH</span>
+                <span>MOMENTUM</span>
+                <span>DOMAIN</span>
+              </div>
+              <div
+                className="forbes-live-board"
+                style={{ height: rivalryLeaderboard.board.length * FORBES_ROW_HEIGHT }}
+              >
+                {rivalryLeaderboard.board.map((entry) => (
+                  <ForbesLiveRow key={entry.id} entry={entry} potatoMode={potatoMode} />
+                ))}
+              </div>
 
               <div style={{ marginTop: '18px' }}>
                 <span className="eyebrow">RIVALRY NEWSWIRE</span>

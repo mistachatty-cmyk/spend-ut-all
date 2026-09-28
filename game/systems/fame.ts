@@ -594,6 +594,7 @@ export type ForbesLeaderboardEntry = {
   famePoints: number;
   momentum: number;
   lastEventLabel: string | null;
+  lastEventAt: number;
   isPlayer: boolean;
   displayRank: number;
 };
@@ -622,6 +623,7 @@ export function getForbesRivalryLeaderboard(
       famePoints: r.famePoints,
       momentum: r.momentum,
       lastEventLabel: r.lastEventLabel,
+      lastEventAt: r.lastEventAt,
       isPlayer: false,
       displayRank: 0,
     };
@@ -636,6 +638,7 @@ export function getForbesRivalryLeaderboard(
     famePoints: playerFame,
     momentum: 0,
     lastEventLabel: null,
+    lastEventAt: 0,
     isPlayer: true,
     displayRank: 0,
   };
