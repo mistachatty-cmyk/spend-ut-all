@@ -5,6 +5,7 @@ import {
   PR_ACTIONS,
   CELEBRITY_IMMIGRANTS,
   MAGAZINE_COVERS,
+  initializeForbesRivals,
 } from './systems/fame';
 
 export function addFame(state: GameState, amount: number, now = Date.now()): GameState {
@@ -110,5 +111,24 @@ export function executePRAction(
     state: finalState,
     success: true,
     message: `Executed "${action.name}"! Gained +${action.fameReward.toLocaleString()} Fame Points!`,
+  };
+}
+
+/**
+ * Toggles the optional Forbes List rivalry add-on. Turning it on seeds a
+ * living roster of rival oligarchs whose fortunes grow and swing on their
+ * own; turning it off just freezes their state without deleting progress.
+ */
+export function toggleForbesListAddon(state: GameState, now = Date.now()): GameState {
+  const fame = normalizeFameState(state.fame);
+  const enabling = !fame.forbesListEnabled;
+  return {
+    ...state,
+    fame: {
+      ...fame,
+      forbesListEnabled: enabling,
+      forbesRivals: fame.forbesRivals.length > 0 ? fame.forbesRivals : initializeForbesRivals(),
+    },
+    updatedAt: now,
   };
 }

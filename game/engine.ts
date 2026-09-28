@@ -81,6 +81,7 @@ import {
   CELEBRITY_IMMIGRANTS,
   MAGAZINE_COVERS,
   createFameState,
+  advanceForbesRivals,
 } from "./systems/fame";
 import { addFame } from "./fame-actions";
 import { ReligionId, createReligionState } from "./systems/religion";
@@ -703,6 +704,17 @@ export function advance(state: GameState, deltaMs: number) {
     peakCash: Math.max(next.peakCash, next.cash),
     peakNetWorth: Math.max(next.peakNetWorth, worth),
   };
+  if (next.fame?.forbesListEnabled) {
+    const rivalry = advanceForbesRivals(next.fame.forbesRivals, deltaMs, now, worth);
+    next = {
+      ...next,
+      fame: {
+        ...next.fame,
+        forbesRivals: rivalry.rivals,
+        forbesEventLog: [...rivalry.events, ...next.fame.forbesEventLog].slice(0, 30),
+      },
+    };
+  }
   next = updateRiskState(next, worth, now);
   worth = netWorth(next);
   return syncAchievementUnlocks(

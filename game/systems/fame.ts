@@ -319,6 +319,335 @@ export const FORBES_TITANS: ForbesTitan[] = [
   { rank: 10, name: 'Larry Page', netWorth: 120_000_000_000, famePoints: 55_000, title: 'Planetary Algorithmic Index', emoji: '🔍' },
 ];
 
+/**
+ * FORBES LIST — optional add-on. Toggle it on to compete against a living
+ * roster of rival oligarchs, entrepreneurs, and moguls whose fortunes grow,
+ * crash, and swing on their own schedule, reacting to whether you're
+ * catching up to them.
+ */
+export type ForbesRivalStrategy = 'aggressive' | 'steady' | 'volatile' | 'philanthropic' | 'defensive';
+
+export type ForbesRivalProfile = {
+  id: string;
+  name: string;
+  emoji: string;
+  title: string;
+  domain: string;
+  baseNetWorth: number;
+  strategy: ForbesRivalStrategy;
+  growthRatePerHour: number;
+  volatility: number;
+  tauntOvertaken: string;
+  tauntOvertakes: string;
+};
+
+export const FORBES_RIVAL_ROSTER: ForbesRivalProfile[] = [
+  {
+    id: 'rival-orbital-shipping',
+    name: 'Cassius Voss',
+    emoji: '🛰️',
+    title: 'Orbital Shipping Baron',
+    domain: 'Cislunar logistics & satellite constellations',
+    baseNetWorth: 210_000_000_000,
+    strategy: 'aggressive',
+    growthRatePerHour: 0.0028,
+    volatility: 0.55,
+    tauntOvertaken: 'Voss launches three new constellations overnight and reclaims the lead.',
+    tauntOvertakes: 'Cassius Voss quietly slips behind your empire for the first time.',
+  },
+  {
+    id: 'rival-luxury-conglomerate',
+    name: 'Ingrid Solheim',
+    emoji: '👜',
+    title: 'Heiress of the Solheim Luxury Trust',
+    domain: 'Haute couture, private jets & auction houses',
+    baseNetWorth: 165_000_000_000,
+    strategy: 'steady',
+    growthRatePerHour: 0.0016,
+    volatility: 0.25,
+    tauntOvertaken: 'Solheim Trust unveils a record-breaking auction house acquisition.',
+    tauntOvertakes: 'Ingrid Solheim watches your fortune eclipse the family trust.',
+  },
+  {
+    id: 'rival-crypto-exchange',
+    name: 'Devon "Ledger" Kade',
+    emoji: '🪙',
+    title: 'Founder of the Kade Ledger Exchange',
+    domain: 'Crypto exchanges & tokenized real estate',
+    baseNetWorth: 95_000_000_000,
+    strategy: 'volatile',
+    growthRatePerHour: 0.0022,
+    volatility: 0.85,
+    tauntOvertaken: 'Ledger Kade rides a token rally back to the top of the list.',
+    tauntOvertakes: 'Devon Kade gets margin-called and slides beneath you overnight.',
+  },
+  {
+    id: 'rival-oil-dynasty',
+    name: 'Farida Al-Mansoor',
+    emoji: '🛢️',
+    title: 'Chair of the Al-Mansoor Petro Dynasty',
+    domain: 'Sovereign oil fields & desalination megaprojects',
+    baseNetWorth: 260_000_000_000,
+    strategy: 'defensive',
+    growthRatePerHour: 0.0014,
+    volatility: 0.2,
+    tauntOvertaken: 'The Al-Mansoor dynasty secures a new sovereign drilling concession.',
+    tauntOvertakes: 'Farida Al-Mansoor loses the crown to your empire for the first time in years.',
+  },
+  {
+    id: 'rival-ai-labs',
+    name: 'Priya Ashwood',
+    emoji: '🧠',
+    title: 'CEO of Ashwood General Intelligence',
+    domain: 'Frontier AI models & compute superclusters',
+    baseNetWorth: 140_000_000_000,
+    strategy: 'aggressive',
+    growthRatePerHour: 0.0032,
+    volatility: 0.6,
+    tauntOvertaken: 'Ashwood General Intelligence ships a model that resets the valuation table.',
+    tauntOvertakes: 'Priya Ashwood is knocked out of the top tier by your net worth.',
+  },
+  {
+    id: 'rival-media-mogul',
+    name: 'Reginald Thorncastle III',
+    emoji: '📺',
+    title: 'Heir to the Thorncastle Media Empire',
+    domain: 'Streaming networks & tabloid publishing houses',
+    baseNetWorth: 110_000_000_000,
+    strategy: 'philanthropic',
+    growthRatePerHour: 0.0011,
+    volatility: 0.3,
+    tauntOvertaken: 'Thorncastle Media announces a blockbuster streaming merger.',
+    tauntOvertakes: 'Reginald Thorncastle III is quietly overtaken while vacationing.',
+  },
+  {
+    id: 'rival-shipping-heiress',
+    name: 'Odalys Marchetti',
+    emoji: '🚢',
+    title: 'Matriarch of the Marchetti Shipping Line',
+    domain: 'Container fleets, ports & undersea cables',
+    baseNetWorth: 185_000_000_000,
+    strategy: 'steady',
+    growthRatePerHour: 0.0017,
+    volatility: 0.22,
+    tauntOvertaken: 'The Marchetti Line opens a new mega-port, surging past you.',
+    tauntOvertakes: 'Odalys Marchetti concedes the rankings to your rising empire.',
+  },
+  {
+    id: 'rival-biotech-founder',
+    name: 'Dr. Nomvula Khumalo',
+    emoji: '🧬',
+    title: 'Founder of Khumalo Longevity Biotech',
+    domain: 'Gene therapy patents & longevity clinics',
+    baseNetWorth: 78_000_000_000,
+    strategy: 'volatile',
+    growthRatePerHour: 0.0026,
+    volatility: 0.7,
+    tauntOvertaken: 'Khumalo Biotech patents a breakthrough therapy, valuation skyrockets.',
+    tauntOvertakes: 'Dr. Khumalo drops out of the top ranks after a trial setback.',
+  },
+];
+
+export type ForbesRivalState = {
+  id: string;
+  netWorth: number;
+  famePoints: number;
+  momentum: number;
+  lastEventLabel: string | null;
+  lastEventAt: number;
+};
+
+export type RivalEventKind = 'surge' | 'ipo' | 'philanthropy' | 'scandal' | 'crash' | 'retaliate';
+
+export type RivalEventLogEntry = {
+  id: string;
+  timestamp: number;
+  rivalId: string;
+  rivalName: string;
+  message: string;
+  netWorthDelta: number;
+  kind: RivalEventKind;
+};
+
+export function createForbesRivalState(profile: ForbesRivalProfile): ForbesRivalState {
+  return {
+    id: profile.id,
+    netWorth: profile.baseNetWorth,
+    famePoints: Math.round(profile.baseNetWorth / 2_000_000),
+    momentum: 0,
+    lastEventLabel: null,
+    lastEventAt: 0,
+  };
+}
+
+export function initializeForbesRivals(): ForbesRivalState[] {
+  return FORBES_RIVAL_ROSTER.map(createForbesRivalState);
+}
+
+export function getForbesRivalProfile(id: string): ForbesRivalProfile | undefined {
+  return FORBES_RIVAL_ROSTER.find((p) => p.id === id);
+}
+
+/**
+ * Simulates one tick of rival growth: baseline compounding, occasional
+ * randomized swing events (IPOs, scandals, crashes, philanthropy), and a
+ * chance of "retaliation" when the player closes in on a rival's rank.
+ */
+export function advanceForbesRivals(
+  rivals: ForbesRivalState[],
+  deltaMs: number,
+  now: number,
+  playerNetWorth: number,
+): { rivals: ForbesRivalState[]; events: RivalEventLogEntry[] } {
+  const hours = deltaMs / 3_600_000;
+  const events: RivalEventLogEntry[] = [];
+
+  const nextRivals = rivals.map((r) => {
+    const profile = getForbesRivalProfile(r.id);
+    if (!profile) return r;
+
+    let momentum = r.momentum * 0.98;
+    let netWorth = r.netWorth * (1 + profile.growthRatePerHour * hours + momentum * 0.01 * hours);
+    let lastEventLabel = r.lastEventLabel;
+    let lastEventAt = r.lastEventAt;
+
+    const eventChance = profile.volatility * (deltaMs / 60_000) * 0.02;
+    if (Math.random() < eventChance) {
+      const roll = Math.random();
+      let kind: RivalEventKind;
+      let pct: number;
+      let message: string;
+      if (roll < 0.3) {
+        kind = 'surge';
+        pct = 0.02 + Math.random() * 0.05;
+        message = `${profile.name} rides a market surge in ${profile.domain}.`;
+      } else if (roll < 0.5) {
+        kind = 'ipo';
+        pct = 0.05 + Math.random() * 0.12;
+        message = `${profile.name} takes a new venture public, valuation spikes.`;
+      } else if (roll < 0.68) {
+        kind = 'philanthropy';
+        pct = -(0.01 + Math.random() * 0.03);
+        message = `${profile.name} pledges a philanthropic mega-donation.`;
+      } else if (roll < 0.86) {
+        kind = 'scandal';
+        pct = -(0.02 + Math.random() * 0.06);
+        message = `${profile.name} is rocked by a boardroom scandal.`;
+      } else {
+        kind = 'crash';
+        pct = -(0.05 + Math.random() * 0.1);
+        message = `${profile.name}'s core holdings take a sudden hit.`;
+      }
+      netWorth *= 1 + pct;
+      momentum = Math.max(-1, Math.min(1, momentum + pct * 4));
+      lastEventLabel = message;
+      lastEventAt = now;
+      events.push({
+        id: `${r.id}-${now}-${Math.round(Math.random() * 1e6)}`,
+        timestamp: now,
+        rivalId: r.id,
+        rivalName: profile.name,
+        message,
+        netWorthDelta: netWorth - r.netWorth,
+        kind,
+      });
+    }
+
+    const closingIn = playerNetWorth > netWorth && playerNetWorth < netWorth * 1.15;
+    if (closingIn && profile.strategy !== 'philanthropic' && Math.random() < 0.02 * hours + 0.0005) {
+      const boost = 0.03 + Math.random() * 0.05;
+      const before = netWorth;
+      netWorth *= 1 + boost;
+      momentum = Math.min(1, momentum + 0.3);
+      lastEventLabel = profile.tauntOvertaken;
+      lastEventAt = now;
+      events.push({
+        id: `${r.id}-retaliate-${now}-${Math.round(Math.random() * 1e6)}`,
+        timestamp: now,
+        rivalId: r.id,
+        rivalName: profile.name,
+        message: profile.tauntOvertaken,
+        netWorthDelta: netWorth - before,
+        kind: 'retaliate',
+      });
+    }
+
+    return {
+      ...r,
+      netWorth: Math.max(1_000_000, netWorth),
+      famePoints: Math.round(Math.max(1_000_000, netWorth) / 2_000_000),
+      momentum,
+      lastEventLabel,
+      lastEventAt,
+    };
+  });
+
+  return { rivals: nextRivals, events };
+}
+
+export type ForbesLeaderboardEntry = {
+  id: string;
+  name: string;
+  emoji: string;
+  title: string;
+  netWorth: number;
+  famePoints: number;
+  momentum: number;
+  lastEventLabel: string | null;
+  isPlayer: boolean;
+  displayRank: number;
+};
+
+/**
+ * Builds the live Forbes List leaderboard (rivals + player) for the
+ * optional add-on. Returns the player's current rank alongside the full
+ * sorted board.
+ */
+export function getForbesRivalryLeaderboard(
+  fame: FameState,
+  playerNetWorth: number,
+  playerFame: number,
+  playerLabel: string,
+  playerEmoji: string,
+  playerTitle: string,
+): { board: ForbesLeaderboardEntry[]; playerRank: number } {
+  const rivalEntries: ForbesLeaderboardEntry[] = fame.forbesRivals.map((r) => {
+    const profile = getForbesRivalProfile(r.id);
+    return {
+      id: r.id,
+      name: profile?.name ?? r.id,
+      emoji: profile?.emoji ?? '💼',
+      title: profile ? `${profile.title} · ${profile.domain}` : '',
+      netWorth: r.netWorth,
+      famePoints: r.famePoints,
+      momentum: r.momentum,
+      lastEventLabel: r.lastEventLabel,
+      isPlayer: false,
+      displayRank: 0,
+    };
+  });
+
+  const playerEntry: ForbesLeaderboardEntry = {
+    id: 'player',
+    name: playerLabel,
+    emoji: playerEmoji,
+    title: playerTitle,
+    netWorth: playerNetWorth,
+    famePoints: playerFame,
+    momentum: 0,
+    lastEventLabel: null,
+    isPlayer: true,
+    displayRank: 0,
+  };
+
+  const board = [...rivalEntries, playerEntry]
+    .sort((a, b) => b.netWorth - a.netWorth)
+    .map((entry, idx) => ({ ...entry, displayRank: idx + 1 }));
+
+  const playerRank = board.find((e) => e.isPlayer)?.displayRank ?? board.length;
+  return { board, playerRank };
+}
+
 export type FameState = {
   points: number;
   totalEarned: number;
@@ -327,6 +656,10 @@ export type FameState = {
   celebrityResidents: string[];
   touristVisitorCount: number;
   lifetimeTourismRevenue: number;
+  forbesListEnabled: boolean;
+  forbesRivals: ForbesRivalState[];
+  forbesEventLog: RivalEventLogEntry[];
+  forbesLastRank: number;
 };
 
 export function createFameState(): FameState {
@@ -338,6 +671,10 @@ export function createFameState(): FameState {
     celebrityResidents: [],
     touristVisitorCount: 0,
     lifetimeTourismRevenue: 0,
+    forbesListEnabled: false,
+    forbesRivals: [],
+    forbesEventLog: [],
+    forbesLastRank: 0,
   };
 }
 
@@ -350,6 +687,10 @@ export function normalizeFameState(fame?: Partial<FameState>): FameState {
     celebrityResidents: Array.isArray(fame?.celebrityResidents) ? [...fame.celebrityResidents] : [],
     touristVisitorCount: Math.max(0, fame?.touristVisitorCount ?? 0),
     lifetimeTourismRevenue: Math.max(0, fame?.lifetimeTourismRevenue ?? 0),
+    forbesListEnabled: fame?.forbesListEnabled ?? false,
+    forbesRivals: Array.isArray(fame?.forbesRivals) ? [...fame.forbesRivals] : [],
+    forbesEventLog: Array.isArray(fame?.forbesEventLog) ? [...fame.forbesEventLog] : [],
+    forbesLastRank: Math.max(0, fame?.forbesLastRank ?? 0),
   };
 }
 

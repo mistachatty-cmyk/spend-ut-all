@@ -12,8 +12,9 @@ import {
   getNextFameTier,
   calculateForbesRank,
   normalizeFameState,
+  getForbesRivalryLeaderboard,
 } from '@/game/systems/fame';
-import { executePRAction } from '@/game/fame-actions';
+import { executePRAction, toggleForbesListAddon } from '@/game/fame-actions';
 import { playClickSound, playPurchaseSound, playPrestigeSound } from '@/game/systems/audio-sfx';
 import { emitFloatingNumber } from '@/game/systems/floating-numbers';
 import { money } from '@/game/format';
@@ -73,19 +74,37 @@ export function FameView({
   // Compile Forbes Leaderboard including player
   const leaderboardList = [...FORBES_TITANS];
   const richProfile = getRichPersonProfile(state.scenarioId);
+  const playerName = richProfile ? `${richProfile.name.toUpperCase()} (YOU)` : `${state.scenarioId.toUpperCase()} (YOU)`;
+  const playerEmoji = richProfile ? richProfile.badge.split(' ')[0] : currentTier.emoji;
   const playerTitan = {
     rank: forbes.rank,
-    name: richProfile ? `${richProfile.name.toUpperCase()} (YOU)` : `${state.scenarioId.toUpperCase()} (YOU)`,
+    name: playerName,
     netWorth: playerNetWorth,
     famePoints: fame.points,
     title: `${currentTier.title} · ${currentTier.name}`,
-    emoji: richProfile ? richProfile.badge.split(' ')[0] : currentTier.emoji,
+    emoji: playerEmoji,
     isPlayer: true,
   };
 
   const fullList = [...leaderboardList.map((t) => ({ ...t, isPlayer: false })), playerTitan]
     .sort((a, b) => b.netWorth - a.netWorth)
     .map((entry, idx) => ({ ...entry, displayRank: idx + 1 }));
+
+  const rivalryLeaderboard = fame.forbesListEnabled
+    ? getForbesRivalryLeaderboard(
+        fame,
+        playerNetWorth,
+        fame.points,
+        playerName,
+        playerEmoji,
+        `${currentTier.title} · ${currentTier.name}`,
+      )
+    : null;
+
+  const handleToggleForbesAddon = () => {
+    playClickSound();
+    setState((curr) => (curr ? toggleForbesListAddon(curr) : curr));
+  };
 
   return (
     <div className="fame-shell">
@@ -266,46 +285,145 @@ export function FameView({
             </p>
           </div>
 
-          <table className="forbes-table">
-            <thead>
-              <tr>
-                <th>RANK</th>
-                <th>TITAN</th>
-                <th>NET WORTH</th>
-                <th>FAME RATING</th>
-                <th>CIVILIZATION DOMAIN</th>
-              </tr>
-            </thead>
-            <tbody>
-              {fullList.map((entry) => (
-                <tr
-                  key={entry.name}
-                  className={entry.isPlayer ? 'player-row' : ''}
+          <div
+            style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              gap: '12px',
+              padding: '12px 16px',
+              marginBottom: '16px',
+              borderRadius: '10px',
+              background: fame.forbesListEnabled ? '#ecfdf5' : '#f9fafb',
+              border: `1px solid ${fame.forbesListEnabled ? '#10b981' : '#e5e7eb'}`,
+            }}
+          >
+            <div>
+              <b>{fame.forbesListEnabled ? '🟢 Forbes List Rivalry: ON' : '⚪ Forbes List Rivalry: OFF (optional add-on)'}</b>
+              <p style={{ margin: '4px 0 0', color: '#6b7280', fontSize: '0.85rem' }}>
+                {fame.forbesListEnabled
+                  ? 'A living roster of rival oligarchs is actively competing against you — their fortunes rise, crash, and react to your rank in real time.'
+                  : 'Turn this on to compete against a dynamic cast of rival moguls whose net worth grows and swings on its own, instead of the static reference list below.'}
+              </p>
+            </div>
+            <button className="pr-actions-btn" style={{ flexShrink: 0 }} onClick={handleToggleForbesAddon}>
+              {fame.forbesListEnabled ? 'Turn Off' : 'Turn On'}
+            </button>
+          </div>
+
+          {rivalryLeaderboard ? (
+            <>
+              <table className="forbes-table">
+                <thead>
+                  <tr>
+                    <th>RANK</th>
+                    <th>RIVAL</th>
+                    <th>NET WORTH</th>
+                    <th>MOMENTUM</th>
+                    <th>DOMAIN</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {rivalryLeaderboard.board.map((entry) => (
+                    <tr key={entry.id} className={entry.isPlayer ? 'player-row' : ''}>
+                      <td className="forbes-rank">
+                        {entry.isPlayer ? `★ #${entry.displayRank}` : `#${entry.displayRank}`}
+                      </td>
+                      <td>
+                        <span style={{ fontSize: '1.2rem', marginRight: '8px' }}>{entry.emoji}</span>
+                        <b>{entry.name}</b>
+                      </td>
+                      <td>
+                        <b>{money(entry.netWorth)}</b>
+                      </td>
+                      <td>
+                        <span style={{ color: entry.momentum > 0.05 ? '#059669' : entry.momentum < -0.05 ? '#dc2626' : '#6b7280', fontWeight: 600 }}>
+                          {entry.momentum > 0.05 ? '▲ Rising' : entry.momentum < -0.05 ? '▼ Falling' : '— Steady'}
+                        </span>
+                      </td>
+                      <td>
+                        <small>{entry.title}</small>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+
+              <div style={{ marginTop: '18px' }}>
+                <span className="eyebrow">RIVALRY NEWSWIRE</span>
+                <div
+                  style={{
+                    marginTop: '8px',
+                    maxHeight: '220px',
+                    overflowY: 'auto',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '6px',
+                  }}
                 >
-                  <td className="forbes-rank">
-                    {entry.isPlayer ? `★ #${entry.displayRank}` : `#${entry.displayRank}`}
-                  </td>
-                  <td>
-                    <span style={{ fontSize: '1.2rem', marginRight: '8px' }}>
-                      {entry.emoji}
-                    </span>
-                    <b>{entry.name}</b>
-                  </td>
-                  <td>
-                    <b>{money(entry.netWorth)}</b>
-                  </td>
-                  <td>
-                    <span style={{ color: '#d97706', fontWeight: 600 }}>
-                      ⭐ {entry.famePoints.toLocaleString()}
-                    </span>
-                  </td>
-                  <td>
-                    <small>{entry.title}</small>
-                  </td>
+                  {fame.forbesEventLog.length === 0 ? (
+                    <small style={{ color: '#9ca3af' }}>No rivalry headlines yet — keep the game running and rivals will make moves.</small>
+                  ) : (
+                    fame.forbesEventLog.map((ev) => (
+                      <div
+                        key={ev.id}
+                        style={{
+                          padding: '8px 12px',
+                          borderRadius: '8px',
+                          background: ev.netWorthDelta >= 0 ? '#f0fdf4' : '#fef2f2',
+                          border: `1px solid ${ev.netWorthDelta >= 0 ? '#bbf7d0' : '#fecaca'}`,
+                          fontSize: '0.85rem',
+                        }}
+                      >
+                        <b>{ev.rivalName}:</b> {ev.message}
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
+            </>
+          ) : (
+            <table className="forbes-table">
+              <thead>
+                <tr>
+                  <th>RANK</th>
+                  <th>TITAN</th>
+                  <th>NET WORTH</th>
+                  <th>FAME RATING</th>
+                  <th>CIVILIZATION DOMAIN</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {fullList.map((entry) => (
+                  <tr
+                    key={entry.name}
+                    className={entry.isPlayer ? 'player-row' : ''}
+                  >
+                    <td className="forbes-rank">
+                      {entry.isPlayer ? `★ #${entry.displayRank}` : `#${entry.displayRank}`}
+                    </td>
+                    <td>
+                      <span style={{ fontSize: '1.2rem', marginRight: '8px' }}>
+                        {entry.emoji}
+                      </span>
+                      <b>{entry.name}</b>
+                    </td>
+                    <td>
+                      <b>{money(entry.netWorth)}</b>
+                    </td>
+                    <td>
+                      <span style={{ color: '#d97706', fontWeight: 600 }}>
+                        ⭐ {entry.famePoints.toLocaleString()}
+                      </span>
+                    </td>
+                    <td>
+                      <small>{entry.title}</small>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
         </section>
       ) : null}
 
