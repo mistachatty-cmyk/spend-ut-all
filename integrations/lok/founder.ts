@@ -1,4 +1,5 @@
 import { createClient, type Session, type SupabaseClient, type User } from '@supabase/supabase-js';
+import { LokSessionAdapter } from './session';
 
 /**
  * Shared LokServices Supabase project (auth, alpha waitlist, feedback) --
@@ -12,7 +13,15 @@ const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
 /** Undefined when NEXT_PUBLIC_SUPABASE_URL / NEXT_PUBLIC_SUPABASE_ANON_KEY aren't set -- callers must handle the missing-client case. */
-export const lokAuthClient: SupabaseClient | undefined = url && anonKey ? createClient(url, anonKey) : undefined;
+export const lokAuthClient: SupabaseClient | undefined = url && anonKey
+  ? createClient(url, anonKey, {
+      auth: {
+        storage: new LokSessionAdapter(),
+        persistSession: true,
+        autoRefreshToken: true,
+      },
+    })
+  : undefined;
 export const lokAccountsAvailable = Boolean(lokAuthClient);
 
 export type NotificationPreference = 'email' | 'sms' | 'both' | 'none';
