@@ -11,7 +11,8 @@
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 
-import { buildCardsSql, type PlatformManifest, type PublishCard } from '../lib/lok-universe/src/publish';
+import { buildCardsSql, type PublishCard } from '../lib/lok-universe/src/publish';
+import type { PlatformManifest } from '../lib/lok-universe/src/types';
 import { lokDexEntries } from '../data/lokdex';
 import { lokDexReleases } from '../data/lokdex-editions';
 import { pixelPetSprites } from '../data/pixel-pet-sprites';
