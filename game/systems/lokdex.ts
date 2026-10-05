@@ -5,6 +5,8 @@ import type { LokDexCharacter, LokDexCollection, LokDexOwnedCard, LokDexAcquisit
 
 export const LOKDEX_COLLECTION_KEY = 'spend-it-all-lokdex-v1';
 export const LOKDEX_COLLECTION_VERSION = 1;
+/** Fired on `window` after every saved collection change so app-level sync can react without polling. */
+export const LOKDEX_CHANGED_EVENT = 'spend-it-all:lokdex-changed';
 
 export function createLokDexCollection(): LokDexCollection {
   return { version: LOKDEX_COLLECTION_VERSION, discoveredIds: [], discoveredAt: {}, cards: [], favoriteCharacterIds: [], foreignCharacters: [] };
@@ -63,6 +65,7 @@ export function saveLokDexCollection(input: LokDexCollection) {
   const next = normalizeLokDexCollection(input);
   if (typeof window !== 'undefined') {
     try { localStorage.setItem(LOKDEX_COLLECTION_KEY, JSON.stringify(next)); } catch {}
+    window.dispatchEvent(new Event(LOKDEX_CHANGED_EVENT));
   }
   return next;
 }

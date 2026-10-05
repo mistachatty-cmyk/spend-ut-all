@@ -96,3 +96,16 @@ export async function submitFeedback(input: SubmitFeedbackInput, userId?: string
 }
 
 export type { Session, User };
+
+/**
+ * Publishes the compact LokDex snapshot to the shared account (one row per
+ * account + app in `lokdex_collections`) so the GSix hub can show it. Separate
+ * from any save data and tiny by design. Payload shape: game/systems/lokdex-snapshot.ts.
+ */
+export async function pushLokDexSnapshot(userId: string, appKey: string, snapshot: { schema: 'lok.dex-snapshot' } & Record<string, unknown>) {
+  if (!lokAuthClient) return { error: 'Auth is not configured yet.' };
+  const { error } = await lokAuthClient
+    .from('lokdex_collections')
+    .upsert({ user_id: userId, app_key: appKey, snapshot, updated_at: new Date().toISOString() }, { onConflict: 'user_id,app_key' });
+  return { error: error?.message ?? null };
+}
