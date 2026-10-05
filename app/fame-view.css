@@ -328,6 +328,94 @@
   color: #fbbf24;
 }
 
+/* Forbes List add-on prompt / status bar */
+.forbes-addon-prompt {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 14px 16px;
+  border: 1px dashed #d97706;
+  border-radius: 10px;
+  background: #fffbeb;
+  margin-bottom: 14px;
+}
+
+.midnight .forbes-addon-prompt {
+  background: #1f1a0f;
+  border-color: #92400e;
+}
+
+.forbes-addon-prompt h3 {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.forbes-addon-prompt p {
+  margin: 0;
+  font-size: 0.85rem;
+  color: #6b7280;
+}
+
+.forbes-addon-prompt.forbes-addon-enabled {
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  border-style: solid;
+  border-color: #10b981;
+  background: #ecfdf5;
+}
+
+.midnight .forbes-addon-enabled {
+  background: #0c2a1f;
+  border-color: #059669;
+}
+
+/* Forbes rank-change event feed */
+.forbes-events-feed {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 14px;
+}
+
+.forbes-event {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  background: #f8fafc;
+  font-size: 0.85rem;
+  color: #334155;
+}
+
+.midnight .forbes-event {
+  background: #1e293b;
+  color: #cbd5e1;
+}
+
+.forbes-event-overtakenBy {
+  background: #fef2f2;
+  color: #991b1b;
+}
+
+.midnight .forbes-event-overtakenBy {
+  background: #2a1414;
+  color: #fca5a5;
+}
+
+.forbes-event-newLeader {
+  background: #fdf4ff;
+  color: #86198f;
+  font-weight: 700;
+}
+
+.midnight .forbes-event-newLeader {
+  background: #2a1430;
+  color: #f0abfc;
+}
+
 /* Magazine Gallery */
 .magazine-grid {
   display: grid;

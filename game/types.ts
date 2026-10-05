@@ -11,6 +11,7 @@ import type { EducationState } from "./education-types";
 import type { FreelanceState } from "./freelance-types";
 import type { FameState } from "./systems/fame";
 import type { DailyCheckInState } from "./systems/daily-rewards";
+import type { ForbesListState } from "./systems/forbes-list";
 
 export type FinancialMode = "simple" | "advanced";
 export type ScenarioId =
@@ -319,6 +320,7 @@ export type GameState = {
   lokTokens: number;
   lokProgressMs: number;
   fame?: FameState;
+  forbesList?: ForbesListState;
   dailyRewards?: DailyCheckInState;
   religion?: ReligionState;
   theme: "light" | "midnight";

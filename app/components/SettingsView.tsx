@@ -8,6 +8,8 @@ import { loadMicroMotionPreferences, microMotionProfile, saveMicroMotionPreferen
 import { loadHudPreferences, saveHudPreferences, subscribeHudPreferences, type HudPreferences } from '@/game/systems/hud-preferences';
 import type { MicroMotionLevel, MicroMotionPreferences } from '@/game/micro-animation-types';
 import { setDebtSystemEnabled } from '@/game/debt-actions';
+import { setForbesListSystemEnabled } from '@/game/forbes-actions';
+import { normalizeForbesListState } from '@/game/systems/forbes-list';
 import { lokRuntime } from '@/integrations/lok/runtime';
 import {
   getAudioSettings,
@@ -43,6 +45,7 @@ export function SettingsView({ state, setState }: { state: GameState; setState: 
   const wallet = lokRuntime.snapshot();
   const challengeLocked = state.scenarioId === 'custom' && !!state.customScenario?.rulesLocked;
   const debt = normalizeDebtState(state.debt);
+  const forbesList = normalizeForbesListState(state.forbesList);
   const debtInfo = debtSummary(debt);
   const [section, setSection] = useState<SettingsSection>('display');
   const [motionPrefs, setMotionPrefs] = useState<MicroMotionPreferences>(() => loadMicroMotionPreferences());
@@ -123,6 +126,10 @@ export function SettingsView({ state, setState }: { state: GameState; setState: 
           <Range label="Active work payouts" value={state.rules.difficulty.activeIncomeMultiplier} min={0.1} max={5} step={0.05} suffix="×" onChange={(v) => patchRules('difficulty',{activeIncomeMultiplier:v})}/>
         </section>
       </div>
+      <section className="panel settings-group"><span className="eyebrow">FORBES LIST</span><h2>Optional rival oligarchs</h2><p className="muted">Turn on a roster of real and fictional billionaires who keep compounding their own fortunes while you play, so your Forbes rank (in the Fame tab) becomes a live race instead of a frozen scoreboard. Fully optional and off by default — your run plays the same either way.</p>
+        <Toggle label="Forbes List rivalry (dynamic rival net worth)" checked={forbesList.enabled} onChange={(v) => setState((current) => current ? setForbesListSystemEnabled(current, v) : current)}/>
+        {forbesList.enabled ? <div className="finance-grid"><span>Your rank <b>#{forbesList.playerRank}</b></span><span>Best rank this run <b>#{forbesList.bestPlayerRank}</b></span><span>Rivals overtaken <b>{forbesList.everOvertakenIds.length}</b></span></div> : null}
+      </section>
     </fieldset> : null}
 
     {section === 'time' ? <fieldset className="settings-lockable" disabled={challengeLocked}><section className="panel settings-group settings-single"><span className="eyebrow">TIME & SCHEDULE</span><h2>How much the clock matters</h2>
