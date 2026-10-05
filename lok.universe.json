@@ -1,0 +1,15 @@
+{
+  "schema": "lok.universe.platform",
+  "schemaVersion": 1,
+  "appKey": "spendutall",
+  "namespace": "g6.spend-it-all",
+  "label": "Spend It All",
+  "draws": [
+    "pixel-grid"
+  ],
+  "publishes": [
+    "pixel-grid"
+  ],
+  "publicLore": null,
+  "sdkVersion": "1.0.0"
+}
