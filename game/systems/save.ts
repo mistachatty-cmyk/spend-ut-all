@@ -12,6 +12,7 @@ import { normalizeGameRules } from "./rules";
 import { normalizeCustomScenario } from "./custom-scenarios";
 import { normalizeTimeSimulation } from "./time-simulation";
 import { normalizeFameState } from "./fame";
+import { normalizeForbesListState } from "./forbes-list";
 import { normalizeDailyCheckInState } from "./daily-rewards";
 import { normalizeReligionState } from "./religion";
 import { normalizeWorld } from "./world";
@@ -125,6 +126,7 @@ export function normalizeGameState(
     lokTokens: lok.balance,
     lokProgressMs: lok.progressMs,
     fame: normalizeFameState(state.fame),
+    forbesList: normalizeForbesListState(state.forbesList, now),
     dailyRewards: normalizeDailyCheckInState(state.dailyRewards),
     religion: normalizeReligionState(state.religion),
   };

@@ -85,6 +85,7 @@ import {
 import { addFame } from "./fame-actions";
 import { ReligionId, createReligionState } from "./systems/religion";
 import { createWorldState, worldIncomeMultiplier } from "./systems/world";
+import { advanceForbesList, createForbesListState } from "./systems/forbes-list";
 
 export function newGame(
   scenarioId: ScenarioId,
@@ -179,6 +180,7 @@ export function newGame(
     lokTokens: lok.balance,
     lokProgressMs: lok.progressMs,
     fame: initialFameState,
+    forbesList: createForbesListState(now),
     religion: selectedReligion ? createReligionState(selectedReligion, customPrayerTimes) : undefined,
     theme: "light",
     createdAt: now,
@@ -705,6 +707,9 @@ export function advance(state: GameState, deltaMs: number) {
   };
   next = updateRiskState(next, worth, now);
   worth = netWorth(next);
+  if (next.forbesList?.enabled) {
+    next = { ...next, forbesList: advanceForbesList(next.forbesList, deltaMs, worth, now) };
+  }
   return syncAchievementUnlocks(
     next,
     achievements,

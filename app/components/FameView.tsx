@@ -19,6 +19,10 @@ import { emitFloatingNumber } from '@/game/systems/floating-numbers';
 import { money } from '@/game/format';
 import { netWorth } from '@/game/engine';
 import { getRichPersonProfile } from '@/data/rich-people';
+import { computeForbesStandings, normalizeForbesListState, FORBES_RIVALS } from '@/game/systems/forbes-list';
+
+const FORBES_RIVALS_COUNT = FORBES_RIVALS.length;
+import { setForbesListSystemEnabled } from '@/game/forbes-actions';
 
 export function FameView({
   state,
@@ -36,6 +40,17 @@ export function FameView({
 
   const playerNetWorth = netWorth(state);
   const forbes = calculateForbesRank(playerNetWorth, fame.points);
+  const richProfileForbes = getRichPersonProfile(state.scenarioId);
+  const forbesList = normalizeForbesListState(state.forbesList);
+  const forbesDisplayRank = forbesList.enabled ? forbesList.playerRank : forbes.rank;
+  const liveStandings = forbesList.enabled
+    ? computeForbesStandings(forbesList, playerNetWorth, richProfileForbes ? richProfileForbes.name : 'You')
+    : null;
+
+  const handleToggleForbesList = (enabled: boolean) => {
+    setState((curr) => (curr ? setForbesListSystemEnabled(curr, enabled) : curr));
+    playClickSound();
+  };
 
   const tierProgress = nextTier
     ? Math.min(
@@ -117,7 +132,7 @@ export function FameView({
           </div>
           <div className="fame-stat-box">
             <span>FORBES RANK</span>
-            <b style={{ color: '#059669' }}>#{forbes.rank}</b>
+            <b style={{ color: '#059669' }}>#{forbesDisplayRank}</b>
           </div>
           <div className="fame-stat-box">
             <span>REVENUE BOOST</span>
@@ -178,7 +193,7 @@ export function FameView({
             setActiveTab('forbes');
           }}
         >
-          🏆 Forbes Titan Leaderboard (#{forbes.rank})
+          🏆 Forbes Titan Leaderboard (#{forbesDisplayRank})
         </button>
         <button
           className={activeTab === 'magazines' ? 'active' : ''}
@@ -255,16 +270,54 @@ export function FameView({
         </section>
       ) : null}
 
-      {/* Tab 2: Forbes 400 Leaderboard */}
+      {/* Tab 2: Forbes Leaderboard */}
       {activeTab === 'forbes' ? (
         <section className="forbes-panel">
           <div style={{ marginBottom: '16px' }}>
             <span className="eyebrow">GLOBAL WEALTH & CULTURAL TITANS</span>
             <h2>Forbes Real-Time Billionaire Index</h2>
             <p style={{ margin: 0, color: '#6b7280' }}>
-              Your net worth is ranked live against historical and modern titans. Overtake them by spending, building towns, and compounding cash.
+              {forbesList.enabled
+                ? 'Rivals compound their own net worth while you play — overtake them by spending, building towns, and compounding cash. Rankings and standings below update live.'
+                : 'Your net worth is ranked against a fixed snapshot of historical and modern titans. Enable the Forbes List add-on for a living rivalry where every oligarch keeps growing their own fortune in the background.'}
             </p>
           </div>
+
+          {!forbesList.enabled ? (
+            <div className="forbes-addon-prompt">
+              <span className="eyebrow">OPTIONAL ADD-ON</span>
+              <h3>Turn rivals into a living race</h3>
+              <p>
+                Flip this on and {FORBES_RIVALS_COUNT} oligarchs, entrepreneurs, and a few fictional wildcards start compounding their own
+                fortunes in real time. Overtake one and they fire back with a quote; fall behind and they gloat. Fully optional — leave it off
+                for the classic static scoreboard below.
+              </p>
+              <button className="primary" onClick={() => handleToggleForbesList(true)}>
+                Enable Forbes List Rivalry
+              </button>
+            </div>
+          ) : (
+            <div className="forbes-addon-prompt forbes-addon-enabled">
+              <span>
+                Best rank this run: <b>#{forbesList.bestPlayerRank}</b> · Rivals overtaken: <b>{forbesList.everOvertakenIds.length}/{FORBES_RIVALS_COUNT}</b>
+                {forbesList.reachedNumberOneAt ? ' · 👑 You have held #1' : ''}
+              </span>
+              <button className="secondary" onClick={() => handleToggleForbesList(false)}>
+                Disable Add-on
+              </button>
+            </div>
+          )}
+
+          {forbesList.enabled && forbesList.events.length > 0 ? (
+            <div className="forbes-events-feed">
+              {forbesList.events.slice(0, 5).map((event) => (
+                <div key={event.id} className={`forbes-event forbes-event-${event.kind}`}>
+                  <span>{event.kind === 'overtakenBy' ? '🔻' : event.kind === 'newLeader' ? '👑' : '🔺'}</span>
+                  <span>{event.message}</span>
+                </div>
+              ))}
+            </div>
+          ) : null}
 
           <table className="forbes-table">
             <thead>
@@ -272,38 +325,55 @@ export function FameView({
                 <th>RANK</th>
                 <th>TITAN</th>
                 <th>NET WORTH</th>
-                <th>FAME RATING</th>
-                <th>CIVILIZATION DOMAIN</th>
+                <th>{forbesList.enabled ? 'DOMAIN' : 'FAME RATING'}</th>
+                <th>{forbesList.enabled ? 'TITLE' : 'CIVILIZATION DOMAIN'}</th>
               </tr>
             </thead>
             <tbody>
-              {fullList.map((entry) => (
-                <tr
-                  key={entry.name}
-                  className={entry.isPlayer ? 'player-row' : ''}
-                >
-                  <td className="forbes-rank">
-                    {entry.isPlayer ? `★ #${entry.displayRank}` : `#${entry.displayRank}`}
-                  </td>
-                  <td>
-                    <span style={{ fontSize: '1.2rem', marginRight: '8px' }}>
-                      {entry.emoji}
-                    </span>
-                    <b>{entry.name}</b>
-                  </td>
-                  <td>
-                    <b>{money(entry.netWorth)}</b>
-                  </td>
-                  <td>
-                    <span style={{ color: '#d97706', fontWeight: 600 }}>
-                      ⭐ {entry.famePoints.toLocaleString()}
-                    </span>
-                  </td>
-                  <td>
-                    <small>{entry.title}</small>
-                  </td>
-                </tr>
-              ))}
+              {forbesList.enabled && liveStandings
+                ? liveStandings.map((entry) => (
+                    <tr key={entry.id} className={entry.isPlayer ? 'player-row' : ''}>
+                      <td className="forbes-rank">{entry.isPlayer ? `★ #${entry.rank}` : `#${entry.rank}`}</td>
+                      <td>
+                        <span style={{ fontSize: '1.2rem', marginRight: '8px' }}>{entry.emoji}</span>
+                        <b>{entry.name}</b>
+                        {entry.fictional ? <small style={{ marginLeft: 6, color: '#94a3b8' }}>(fictional rival)</small> : null}
+                      </td>
+                      <td>
+                        <b>{money(entry.netWorth)}</b>
+                      </td>
+                      <td>
+                        <small>{entry.domain}</small>
+                      </td>
+                      <td>
+                        <small>{entry.title}</small>
+                      </td>
+                    </tr>
+                  ))
+                : fullList.map((entry) => (
+                    <tr key={entry.name} className={entry.isPlayer ? 'player-row' : ''}>
+                      <td className="forbes-rank">
+                        {entry.isPlayer ? `★ #${entry.displayRank}` : `#${entry.displayRank}`}
+                      </td>
+                      <td>
+                        <span style={{ fontSize: '1.2rem', marginRight: '8px' }}>
+                          {entry.emoji}
+                        </span>
+                        <b>{entry.name}</b>
+                      </td>
+                      <td>
+                        <b>{money(entry.netWorth)}</b>
+                      </td>
+                      <td>
+                        <span style={{ color: '#d97706', fontWeight: 600 }}>
+                          ⭐ {entry.famePoints.toLocaleString()}
+                        </span>
+                      </td>
+                      <td>
+                        <small>{entry.title}</small>
+                      </td>
+                    </tr>
+                  ))}
             </tbody>
           </table>
         </section>
