@@ -86,6 +86,7 @@ import { addFame } from "./fame-actions";
 import { ReligionId, createReligionState } from "./systems/religion";
 import { createWorldState, worldIncomeMultiplier } from "./systems/world";
 import { advanceForbesList, createForbesListState } from "./systems/forbes-list";
+import { createArtPortfolio } from "./systems/art-market";
 
 export function newGame(
   scenarioId: ScenarioId,
@@ -152,6 +153,7 @@ export function newGame(
     career: createCareerState(),
     education: createEducationState(),
     rules: createGameRules("standard"),
+    art: createArtPortfolio(),
     houseLevel: 0,
     townLevel: 0,
     regionLevel: 0,

@@ -16,6 +16,7 @@ import { normalizeForbesListState } from "./forbes-list";
 import { normalizeDailyCheckInState } from "./daily-rewards";
 import { normalizeReligionState } from "./religion";
 import { normalizeWorld } from "./world";
+import { normalizeArtPortfolio } from "./art-market";
 
 const DEFAULT_EVENT_INTERVAL_MS = 120_000;
 
@@ -76,6 +77,7 @@ export function normalizeGameState(
     businesses: normalizeBusinessPortfolio(state.businesses),
     cityEconomy: normalizeCityEconomy(state.cityEconomy, now),
     world: normalizeWorld(state.world),
+    art: normalizeArtPortfolio(state.art),
     incomeStreams: normalizeIncomeStreams(state.incomeStreams),
     time,
     life,

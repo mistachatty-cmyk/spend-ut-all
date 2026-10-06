@@ -10,6 +10,7 @@ import type { CareerState } from "./career-types";
 import type { EducationState } from "./education-types";
 import type { FreelanceState } from "./freelance-types";
 import type { FameState } from "./systems/fame";
+import type { ArtPortfolio } from "./art-types";
 import type { DailyCheckInState } from "./systems/daily-rewards";
 import type { ForbesListState } from "./systems/forbes-list";
 
@@ -298,6 +299,7 @@ export type GameState = {
   freelance?: FreelanceState;
   rules: GameRules;
   debt?: DebtState;
+  art?: ArtPortfolio;
   houseLevel: number;
   townLevel: number;
   regionLevel: number;
