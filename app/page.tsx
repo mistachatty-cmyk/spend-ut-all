@@ -152,6 +152,7 @@ import { getDailyCheckInStatus } from "@/game/systems/daily-rewards";
 import { detectActiveReminders, loadNotificationPreferences } from "@/game/systems/notifications";
 
 const SAVE_KEY = "spend-it-all-v1";
+const ArtDistrictView = dynamic(() => import("@/app/components/ArtDistrictView").then(module => module.ArtDistrictView));
 const WorldAtlasView = dynamic(() => import("@/app/components/WorldAtlasView").then(module => module.WorldAtlasView));
 const META_KEY = "spend-it-all-meta-v1";
 type View =
@@ -161,6 +162,7 @@ type View =
   | "empire"
   | "town"
   | "world"
+  | "art"
   | "religion"
   | "daily"
   | "debt"
@@ -1136,6 +1138,12 @@ export default function Home() {
             : "🕊️ Faith & Religion"}
         </button>
         <button
+          className={view === "art" ? "active" : ""}
+          onClick={() => { playClickSound(); setView("art"); }}
+        >
+          Art District 🖼
+        </button>
+        <button
           className={view === "familyOffice" ? "active" : ""}
           onClick={() => { playClickSound(); setView("familyOffice"); }}
         >
@@ -1201,6 +1209,7 @@ export default function Home() {
           onOpenCards={() => setView("deck")}
         />
       ) : null}
+      {view === "art" ? <ArtDistrictView state={state} setState={setState} /> : null}
       {view === "religion" ? (
         <ReligionView state={state} setState={setState} />
       ) : null}

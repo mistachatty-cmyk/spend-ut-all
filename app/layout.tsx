@@ -9,6 +9,7 @@ import './globals.css';
 import './updates.css';
 import './empire.css';
 import './collection.css';
+import './art-district.css';
 import './businesses.css';
 import './money.css';
 import './achievements.css';
