@@ -6,7 +6,7 @@ import { lokDexEntries } from '@/data/lokdex';
 import { lokPets } from '@/data/customizations';
 import type { CustomizationInventory } from '@/game/customization-types';
 import type { LokDexCollection } from '@/game/lokdex-types';
-import { cardCopiesForCharacter, createLokDexCollection, loadLokDexCollection, saveLokDexCollection, syncCompanionsToLokDex } from '@/game/systems/lokdex';
+import { LOKDEX_CHANGED_EVENT, cardCopiesForCharacter, createLokDexCollection, loadLokDexCollection, saveLokDexCollection, syncCompanionsToLokDex } from '@/game/systems/lokdex';
 import { PixelPetSprite } from './PixelPetSprite';
 
 const affinityIcon: Record<string, string> = {
@@ -27,6 +27,13 @@ export function LokDexPanel({ inventory }: { inventory: CustomizationInventory }
     if (!loaded) return;
     setCollection((current) => saveLokDexCollection(syncCompanionsToLokDex(current, inventory)));
   }, [inventory.ownedIds.join(','), loaded]);
+
+  // A card granted elsewhere (the app-root sync on a new LokPet) should show here without a remount.
+  useEffect(() => {
+    const refresh = () => setCollection(loadLokDexCollection());
+    window.addEventListener(LOKDEX_CHANGED_EVENT, refresh);
+    return () => window.removeEventListener(LOKDEX_CHANGED_EVENT, refresh);
+  }, []);
 
   const companionCount = useMemo(() => lokDexEntries.filter((entry) => !!entry.companionCustomizationId).length, []);
   const discovered = collection.discoveredIds.length;

@@ -2,7 +2,7 @@
 
 import { useEffect, useRef } from 'react';
 import type { CustomizationInventory } from '@/game/customization-types';
-import { LOKDEX_CHANGED_EVENT, loadLokDexCollection } from '@/game/systems/lokdex';
+import { LOKDEX_CHANGED_EVENT, loadLokDexCollection, saveLokDexCollection, syncCompanionsToLokDex } from '@/game/systems/lokdex';
 import { LOKDEX_APP_KEY, buildLokDexSnapshot, lokDexSnapshotFingerprint } from '@/game/systems/lokdex-snapshot';
 import { pushLokDexSnapshot } from '@/integrations/lok/founder';
 import { useLokAccount } from './useLokAccount';
@@ -15,14 +15,28 @@ const SYNC_DEBOUNCE_MS = 5000;
  * app root: it listens for collection writes anywhere in the game, so it does
  * not depend on the LokDex tab being open. Does nothing when signed out or
  * until `ready` (local saves loaded).
+ *
+ * Also grants the LokDex card for every LokPet the player owns, whenever the
+ * inventory changes (starter pick, achievement, scenario, purchase). Without
+ * this the card only appeared once the LokDex or card shop was opened, so the
+ * snapshot pushed to the hub lagged behind the pet the player had just earned.
  */
-export function useLokDexSync(inventory: Pick<CustomizationInventory, 'ownedIds'>, ready: boolean) {
+export function useLokDexSync(inventory: CustomizationInventory, ready: boolean) {
   const { user } = useLokAccount();
   const userId = user?.id;
   const ownedKey = inventory.ownedIds.join(',');
   const lastFingerprint = useRef<string | null>(null);
   const owned = useRef(inventory);
   owned.current = inventory;
+
+  useEffect(() => {
+    if (!ready) return;
+    const current = loadLokDexCollection();
+    const next = syncCompanionsToLokDex(current, owned.current);
+    // Only write when a card or discovery was actually added, so an unchanged
+    // collection does not fire LOKDEX_CHANGED_EVENT on every load.
+    if (next.cards.length !== current.cards.length || next.discoveredIds.length !== current.discoveredIds.length) saveLokDexCollection(next);
+  }, [ownedKey, ready]);
 
   useEffect(() => {
     if (!userId) {
