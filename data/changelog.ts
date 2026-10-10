@@ -58,6 +58,16 @@ export const CHANGELOG: ChangelogEntry[] = [
       "Added a persistent \"what's new\" link at the bottom of every page, and a one-time popup that shows what changed the next time you load the game after an update -- same pattern as 616 Survivor, so it feels consistent across LOK games.",
     ],
   },
+  {
+    version: '1.2.0',
+    date: '2026-10-10',
+    kind: 'update',
+    title: 'LokPacks and the LOK Box',
+    body: [
+      'LokPets now arrive in sealed LokPacks. Buy a Street or Prime LokPack with LOK on the Companions tab, or earn a Prime LokPack from achievements and scenarios, then open it to reveal one companion. The starter pick is unchanged.',
+      'The Firstlight Archive Box is now the LOK Box: a printed sellbook of twelve Gen 1 cards with an Epic or better final card, styled as printed stock.',
+    ],
+  },
 ];
 
 export const CURRENT_VERSION = CHANGELOG[CHANGELOG.length - 1]!.version;

@@ -1,4 +1,5 @@
-import { allCustomizations, customizationById } from '@/data/customizations';
+import { allCustomizations, customizationById, lokPets } from '@/data/customizations';
+import { LOKPACKS_BY_ID } from '@/data/lokpacks';
 import type { AcquisitionMethod, CustomizationDefinition, CustomizationInventory, CustomizationKind } from '../customization-types';
 import type { GameState } from '../types';
 
@@ -24,6 +25,8 @@ export function createCustomizationInventory(now = Date.now()): CustomizationInv
       petAccessoryIds: [],
     },
     unlocks: Object.fromEntries(starterIds.map((id) => [id, { acquiredAt: now, method: 'starter' as const }])),
+    sealedLokPacks: {},
+    packClaimedPetIds: [],
   };
 }
 
@@ -50,10 +53,20 @@ export function normalizeCustomizationInventory(value?: Partial<CustomizationInv
       unlocks[id] = { acquiredAt: Number.isFinite(record.acquiredAt) ? record.acquiredAt : Date.now(), method: record.method ?? 'starter' };
     }
   }
+  const sealedLokPacks: CustomizationInventory['sealedLokPacks'] = {};
+  if (value?.sealedLokPacks && typeof value.sealedLokPacks === 'object') {
+    for (const [packId, count] of Object.entries(value.sealedLokPacks)) {
+      if (packId in LOKPACKS_BY_ID && Number.isInteger(count) && count > 0) sealedLokPacks[packId] = count;
+    }
+  }
+  const petIds = new Set(lokPets.map((pet) => pet.id));
+  const packClaimedPetIds = Array.isArray(value?.packClaimedPetIds) ? [...new Set(value!.packClaimedPetIds.filter((id): id is string => typeof id === 'string' && petIds.has(id)))] : [];
   return {
     version: CUSTOMIZATION_VERSION,
     ownedIds,
     unlocks,
+    sealedLokPacks,
+    packClaimedPetIds,
     equipped: {
       themeId: validEquipped(source.themeId, 'theme', owned) ?? 'theme-classic-ledger',
       hudId: validEquipped(source.hudId, 'hud', owned) ?? 'hud-default',
@@ -93,7 +106,8 @@ export function grantCustomization(inventory: CustomizationInventory, id: string
 export function syncCustomizationUnlocks(inventory: CustomizationInventory, state: GameState, now = Date.now()) {
   let next = normalizeCustomizationInventory(inventory);
   for (const item of allCustomizations) {
-    if (next.ownedIds.includes(item.id) || !item.requirementId) continue;
+    // LokPets are granted through LokPacks (see syncLokPackUnlocks), never directly.
+    if (item.kind === 'pet' || next.ownedIds.includes(item.id) || !item.requirementId) continue;
     if (item.acquisition.includes('achievement') && state.runAchievements?.[item.requirementId]) next = grantCustomization(next, item.id, 'achievement', now);
     if (item.requirementId === 'region-planetary' && state.regionLevel >= 5) next = grantCustomization(next, item.id, 'scenario', now);
   }

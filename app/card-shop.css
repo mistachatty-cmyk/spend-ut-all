@@ -255,8 +255,73 @@
   background: linear-gradient(135deg, #5ad5ff, #ba7cff, #63f3c6);
   animation: cardPackGlow 3s ease-in-out infinite;
 }
-.accent-origin .pack-art {
-  background: linear-gradient(155deg, #232323, #a78d43);
+.accent-lokbox .pack-art {
+  position: relative;
+  overflow: hidden;
+  color: #2a2118;
+  background: repeating-linear-gradient(180deg, #fbf7ea 0 9px, #d9cba9 9px 10px);
+  border: 2px solid #2a2118;
+  border-radius: 4px;
+  box-shadow: 4px 4px 0 #2a2118;
+}
+.accent-lokbox .pack-art::before {
+  content: "LOK";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  padding: 4px 0;
+  background: #9a3b1f;
+  color: #fbf7ea;
+  font: 900 9px/1 Georgia, "Times New Roman", serif;
+  letter-spacing: 0.22em;
+  text-align: center;
+}
+.accent-lokbox .pack-art::after {
+  content: "No. 001";
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  padding: 3px 0;
+  border-top: 1px dashed #2a2118;
+  background: #fbf7ea;
+  font: 700 7px/1 ui-monospace, SFMono-Regular, Menlo, monospace;
+  letter-spacing: 0.1em;
+  text-align: center;
+}
+.accent-lokbox {
+  background: #f6efdc;
+  border: 2px solid #2a2118;
+  box-shadow: 6px 6px 0 #2a2118;
+  color: #2a2118;
+}
+.accent-lokbox h3 {
+  color: #2a2118;
+  font-family: Georgia, "Times New Roman", serif;
+  letter-spacing: 0.02em;
+}
+.accent-lokbox p {
+  color: #5a4a36;
+}
+.accent-lokbox .product-title span {
+  background: #9a3b1f;
+}
+.accent-lokbox .release-label {
+  display: block;
+  color: #9a3b1f;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+.accent-lokbox .release-label::before {
+  content: "Printed stock · ";
+}
+.accent-lokbox .product-tags span {
+  background: #ece2c8;
+  border: 1px solid #cdbf9b;
+  color: #2a2118;
 }
 .pack-rules small {
   display: block;

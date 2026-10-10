@@ -38,7 +38,7 @@ Random packs are currently purchased only with local in-game Card Credits. Do no
 - Risk & Market Pack
 - Cosmic Pack
 - Holo Vault
-- Origin Collector Box
+- LOK Box (printed sellbook, formerly the Origin Collector Box)
 
 ### Deck kits / build blueprints
 - Cashflow Crew

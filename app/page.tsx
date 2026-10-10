@@ -136,6 +136,7 @@ import {
   syncCustomizationUnlocks,
   themeClass,
 } from "@/game/systems/customizations";
+import { syncLokPackUnlocks } from "@/game/systems/lokpacks";
 import type { RunResult } from "@/game/run-types";
 import { money } from "@/game/format";
 import type { MetaState } from "@/game/meta-types";
@@ -343,8 +344,8 @@ export default function Home() {
   useEffect(() => {
     if (!state || !customizationLoaded) return;
     setCustomization((current) => {
-      const next = syncCustomizationUnlocks(current, state);
-      if (next.ownedIds.length === current.ownedIds.length) return current;
+      const next = syncLokPackUnlocks(syncCustomizationUnlocks(current, state), state);
+      if (JSON.stringify(next) === JSON.stringify(current)) return current;
       return saveCustomizationInventory(next);
     });
   }, [state?.regionLevel, state?.runAchievements, customizationLoaded]);
