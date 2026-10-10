@@ -17,6 +17,7 @@ export type AcquisitionMethod =
   | 'scenario'
   | 'lok'
   | 'lok-pass'
+  | 'lokpack'
   | 'event'
   | 'secret'
   | 'supporter';
@@ -67,4 +68,8 @@ export type CustomizationInventory = {
     petAccessoryIds: string[];
   };
   unlocks: Record<string, { acquiredAt: number; method: AcquisitionMethod }>;
+  /** Sealed LokPacks waiting to be opened, keyed by LokPack id. Companions only; never card packs. */
+  sealedLokPacks: Record<string, number>;
+  /** LokPets whose pack reward was already granted, so an achievement pays out once. */
+  packClaimedPetIds: string[];
 };

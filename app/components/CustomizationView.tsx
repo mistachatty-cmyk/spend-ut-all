@@ -8,6 +8,7 @@ import type { GameState } from '@/game/types';
 import { lokRuntime } from '@/integrations/lok/runtime';
 import { CardShopView } from './CardShopView';
 import { LokDexPanel } from './LokDexPanel';
+import { LokPackShelf } from './LokPackShelf';
 import { PixelPetSprite } from './PixelPetSprite';
 
 type CustomizationTab = CustomizationKind | 'card-shop';
@@ -39,7 +40,7 @@ const tabHelp: Partial<Record<CustomizationTab, string>> = {
   background: 'Layer a lightweight environment treatment underneath your active theme.',
   hud: 'Choose how dense or stylized the heads-up display feels.',
   effect: 'Presentation-only feedback for purchases, milestones and reward moments.',
-  pet: 'Curated LOK companions can sit in the game HUD and react to play.',
+  pet: 'Companions arrive in LokPacks. Buy or earn a pack, then open it to reveal one LokPet.',
   'pet-accessory': 'Small cosmetic gear for the currently equipped companion.',
   'title-style': 'Style the title and identity treatment used around the game shell.',
   'profile-frame': 'Decorative identity frames for collection/profile presentation.',
@@ -94,6 +95,7 @@ export function CustomizationView({ state, setState, inventory, onInventoryChang
 
     {tab === 'card-shop' ? <CardShopView inventory={inventory} /> : <>
       {message ? <div className="customization-message" aria-live="polite">{message}</div> : null}
+      {tab === 'pet' ? <LokPackShelf inventory={inventory} onInventoryChange={onInventoryChange} setState={setState} /> : null}
       {tab === 'pet' ? <LokDexPanel inventory={inventory} /> : null}
       <section className={`customization-grid customization-grid-${tab}`}>{visible.map((item) => {
         const owned = inventory.ownedIds.includes(item.id);
@@ -113,6 +115,7 @@ export function CustomizationView({ state, setState, inventory, onInventoryChang
             {equipped ? <button disabled>Equipped ✓</button> : owned ? <button onClick={() => equip(item.id)}>{item.kind === 'pet-accessory' ? 'Toggle Gear' : 'Equip'}</button> : lokBuyable ? <button disabled={!canAfford || !lifetimeReady} onClick={() => purchase(item.id, item.lokPrice ?? 0)}>Buy · ◈ {(item.lokPrice ?? 0).toLocaleString()}</button> : <button disabled>Locked</button>}
             {!owned && !lifetimeReady ? <small>Tier unlock: earn {lifetimeRequired.toLocaleString()} lifetime LOK ({wallet.lifetimeEarned.toLocaleString()} earned)</small> : null}
             {!owned && lifetimeReady && lokBuyable && !canAfford ? <small>Need ◈ {(item.lokPrice ?? 0).toLocaleString()} current LOK</small> : null}
+            {!owned && item.kind === 'pet' && item.acquisition.includes('lokpack') ? <small>Found in LokPacks</small> : null}
             {!owned && requirement ? <small>Unlock: {requirement}</small> : null}
           </div>
         </article>;
