@@ -148,6 +148,7 @@ import { FinancialMode, GameState, ScenarioId } from "@/game/types";
 import { DailyRewardsModal, DailyRewardsView } from "@/app/components/DailyRewardsModal";
 import { NotificationCenter } from "@/app/components/NotificationCenter";
 import { useLokDexSync } from "@/app/hooks/useLokDexSync";
+import { useLokPlaytime } from "@/app/hooks/useLokPlaytime";
 import { getDailyCheckInStatus } from "@/game/systems/daily-rewards";
 import { detectActiveReminders, loadNotificationPreferences } from "@/game/systems/notifications";
 
@@ -191,6 +192,7 @@ export default function Home() {
   );
   const [customizationLoaded, setCustomizationLoaded] = useState(false);
   useLokDexSync(customization, customizationLoaded);
+  useLokPlaytime();
   const [cardShop, setCardShop] = useState<CardShopState>(() =>
     ensureCardShopStarterGrant(createCardShopState()),
   );
