@@ -120,6 +120,13 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
   return (
     <html lang="en" data-effects-level="1" data-interface-mode="simple" suppressHydrationWarning>
       <head>
+        {/* Inside the GSix arcade frame only: lets the arcade game bar mute this game and show a sound meter. Standalone, nothing loads. */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html:
+              'if (window.parent !== window) { var s = document.createElement("script"); s.src = "https://gsix.online/lok-audio-bridge.js"; document.head.appendChild(s); }',
+          }}
+        />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
